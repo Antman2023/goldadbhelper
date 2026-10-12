@@ -117,7 +117,9 @@ public final class ScreenshotCaptureTests {
                 capture.close(); thread.join(2000);
                 check(!thread.isAlive() && outcome.get() instanceof IOException, "close promptly cancels " + phase);
                 check(d.session.state() == AdbSession.State.CONNECTED, "cancel preserves session during " + phase);
-                check(d.closedLocals.contains(d.blockedLocal), "cancel explicitly closes the active ADB channel during " + phase);
+                // Cancellation may race OPEN's OKAY; the session reader sends CLSE asynchronously.
+                // Wait for that same wire invariant instead of assuming the reader has already run.
+                check(d.blockedClosed.await(2, TimeUnit.SECONDS) && d.closedLocals.contains(d.blockedLocal), "cancel explicitly closes the active ADB channel during " + phase);
                 if (phase.equals("shot") || phase.equals("recv")) check(d.cleanups == 1, "cancel cleans owned directory during " + phase);
                 if (phase.equals("mkdir")) {
                     check(d.cleanups == 0, "cancel does not delete an unverified mkdir result");
@@ -162,6 +164,7 @@ public final class ScreenshotCaptureTests {
         final Map<Integer, ByteArrayOutputStream> sync = new HashMap<Integer, ByteArrayOutputStream>();
         final Set<Integer> closedLocals = Collections.synchronizedSet(new HashSet<Integer>());
         final CountDownLatch blocked = new CountDownLatch(1);
+        final CountDownLatch blockedClosed = new CountDownLatch(1);
         final boolean rejectExec; byte[] png = png(); long statSize = -1; int mode = 0100600;
         volatile int execOpens, mkdirs, shots, syncOpens, cleanups, recvs;
         int mkdirExit, shotExit, cleanupExit; volatile int blockedLocal; volatile String block, directory;
@@ -176,7 +179,10 @@ public final class ScreenshotCaptureTests {
                 AdbPacket p = AdbPacket.read(new ByteArrayInputStream(b,offset,length),AdbPacket.MAX_PAYLOAD,true);
                 if (p.command == AdbPacket.CNXN) send(new AdbPacket(AdbPacket.CNXN,0x01000000,4096,AdbPacket.text("device::\0")));
                 else if (p.command == AdbPacket.OPEN) open(p);
-                else if (p.command == AdbPacket.CLSE) closedLocals.add(p.arg0);
+                else if (p.command == AdbPacket.CLSE) {
+                    closedLocals.add(p.arg0);
+                    if (p.arg0 == blockedLocal) blockedClosed.countDown();
+                }
                 else if (p.command == AdbPacket.WRTE) {
                     send(new AdbPacket(AdbPacket.OKAY,p.arg1,p.arg0,null));
                     ByteArrayOutputStream requests = sync.get(p.arg0);

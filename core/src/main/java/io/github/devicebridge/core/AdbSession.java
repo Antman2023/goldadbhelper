@@ -90,7 +90,12 @@ public final class AdbSession implements Closeable {
         }
         AdbStream s=new AdbStream(this,id,timeoutMs);streams.put(id,s);
         try{send(new AdbPacket(AdbPacket.OPEN,id,0,AdbPacket.text(service+"\0")));s.awaitOpen();return s;}
-        catch(IOException e){streams.remove(id);s.fail(e);throw e;}
+        catch(IOException e){
+            // OPEN may already be acknowledged when cancellation or a write error wins.
+            // Close before forgetting/failing, so that acknowledged remote channels are released.
+            try{s.close();}catch(IOException closeError){e.addSuppressed(closeError);}
+            s.fail(e);throw e;
+        }
     }
     void send(AdbPacket p)throws IOException{synchronized(writer){transport.output().write(p.encode());transport.output().flush();}}
     int maxPayload(){return maxPayload;}

@@ -104,7 +104,8 @@ class SigningTests(unittest.TestCase):
         self.assertIn('RELEASE_KEYSTORE', result.stderr)
 
     def test_shell_syntax(self):
-        subprocess.run(['bash', '-n', 'tools/build-apk.sh', 'tools/build-servers.sh', 'tools/sign-apk.sh'], cwd=ROOT, check=True)
+        for script in ['tools/build-apk.sh', 'tools/build-servers.sh', 'tools/sign-apk.sh', 'tools/test-release-signing.sh']:
+            subprocess.run(['bash', '-n', script], cwd=ROOT, check=True)
 
 
 if __name__ == '__main__':

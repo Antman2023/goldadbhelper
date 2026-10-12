@@ -21,7 +21,17 @@ public final class AdbStream implements Closeable {
     }
     synchronized void awaitOpen()throws IOException{long end=System.nanoTime()+TimeUnit.MILLISECONDS.toNanos(timeout);while(!opened&&!closed&&failure==null)waitForChange(end);check();if(!opened)throw new IOException("ADB service rejected");}
     private void check()throws IOException{if(failure!=null)throw failure;}
-    synchronized void onOkay(int id)throws IOException{if(opened&&remote!=id)throw new IOException("ADB stream target mismatch");remote=id;opened=true;writeReady=true;notifyAll();}
+    void onOkay(int id)throws IOException{
+        boolean closeLateOpen;
+        synchronized(this){
+            if(opened&&remote!=id)throw new IOException("ADB stream target mismatch");
+            // The reader may hold this stream after another thread cancels and forgets it.
+            // A late OPEN acknowledgement must be closed, never resurrect the stream.
+            closeLateOpen=closed;
+            if(!closeLateOpen){remote=id;opened=true;writeReady=true;notifyAll();}
+        }
+        if(closeLateOpen)session.send(new AdbPacket(AdbPacket.CLSE,local,id,null));
+    }
     void onData(int id,byte[] bytes)throws IOException{
         synchronized(this){if(!opened||remote!=id)throw new IOException("Unexpected ADB stream writer");if(closed)return;
             if(buffered+bytes.length>8*1024*1024){fail(new IOException("Stream receive buffer limit exceeded"));close();return;}
@@ -53,5 +63,11 @@ public final class AdbStream implements Closeable {
         public void flush()throws IOException{if(direct!=null)direct.output().flush();}
         public void close()throws IOException{AdbStream.this.close();}
     };}
-    public void close()throws IOException{boolean send;synchronized(this){send=!closed;closed=true;notifyAll();}session.forget(local);if(direct!=null){direct.close();return;}if(send&&opened)session.send(new AdbPacket(AdbPacket.CLSE,local,remote,null));}
+    public void close()throws IOException{
+        boolean send;int remoteId;
+        synchronized(this){send=!closed&&opened;remoteId=remote;closed=true;notifyAll();}
+        session.forget(local);
+        if(direct!=null){direct.close();return;}
+        if(send)session.send(new AdbPacket(AdbPacket.CLSE,local,remoteId,null));
+    }
 }

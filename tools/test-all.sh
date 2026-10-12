@@ -4,7 +4,7 @@ cd "$(dirname "$0")/.."
 mkdir -p build/core-classes build/test-results
 find core/src/main/java core/src/test/java -name '*.java' | sort > build/core-sources.txt
 java -m jdk.compiler/com.sun.tools.javac.Main -source 8 -target 8 -Xlint:-options -encoding UTF-8 -d build/core-classes @build/core-sources.txt
-for suite in CoreTests DomainTests ProtocolTests ScreenProtocolTests UiSafetyTests FileTransferTests ActivationTests InteractiveShellTests LegacyShellTests LegacyCloseTests ScreenshotCaptureTests TerminalTranscriptTests PackageCommandStrategyTests ApkManifestInspectorTests ModuleNavigationTests; do
+for suite in CoreTests DomainTests ProtocolTests ScreenProtocolTests UiSafetyTests FileTransferTests ActivationTests InteractiveShellTests LegacyShellTests LegacyCloseTests AdbOpenCancellationTests ScreenshotCaptureTests TerminalTranscriptTests PackageCommandStrategyTests ApkManifestInspectorTests ModuleNavigationTests; do
   java -ea -cp build/core-classes "io.github.devicebridge.core.$suite" | tee "build/test-results/$suite.txt"
 done
 java -ea -cp build/core-classes io.github.muntashirakon.crypto.ed25519.FieldArithmeticTests | tee build/test-results/FieldArithmeticTests.txt
