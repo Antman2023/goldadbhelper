@@ -1,0 +1,293 @@
+{
+  "scope": "Independent app, isolated official Android emulators and owned fixtures only. Partial feature evidence does not establish full parity or physical-device acceptance.",
+  "runs": [
+    {
+      "name": "api26-initial-review",
+      "candidate_sha256": "05b8ef79ba9801978c9afbc09ef1d526961499a419554375b7889ad9c460d8f5",
+      "report": "build/emulator-qa/UI_QA_REPORT.md",
+      "passed_partial": {
+        "NAV-01": "First launch and connection home displayed",
+        "NAV-02": "Seven icon tabs accessible; switching away from terminal revealed a crash, separately tracked as fixed-in-source pending rerun",
+        "NAV-03": "Live information card with actual emulator values",
+        "NAV-04": "Tools visible; reboot and display-power confirmations cancelled without execution",
+        "NAV-05": "Embedded seven-row remote options reachable",
+        "NAV-06": "Actual SYNC files and folder icons visible",
+        "NAV-07": "Real application names and icons visible after Looper fix",
+        "NAV-08": "Memory summary and multiple real process rows visible",
+        "NAV-09": "Terminal input/output reachable; leave-page crash pending new-candidate regression",
+        "NAV-10": "Settings return and leave/re-enter paths checked",
+        "NAV-11": "Leave retained live ADB session",
+        "NAV-12": "Fresh refusal, relaunch, acceptance and persistence",
+        "CON-01": "Actual loopback host IP:port connection; blank endpoint rejected",
+        "CON-07": "Blank input and repeated pairing cancellation; no Android11 pairing target involved",
+        "CON-11": "Connection refusal and missing USB error paths",
+        "CON-13": "Fastboot and settings shortcuts; no Fastboot hardware connected",
+        "INFO-01": "Actual model/API26/x86/resolution/memory/storage card",
+        "INFO-02": "Read actual getprop system fields",
+        "INFO-03": "Read actual CPU/ABI fields",
+        "INFO-05": "Read actual emulator storage information",
+        "INFO-06": "Read actual network information; cellular/realWiFi not available in this AVD",
+        "INFO-07": "Read actual emulator battery information",
+        "FILE-01": "Real SYNC listing and navigation",
+        "FILE-03": "Hidden-file switch and real list visibility",
+        "FILE-07": "Production transfer fixture: 131101-byte download, exact bytes and SHA256",
+        "FILE-10": "Delete confirmation cancelled, no deletion executed",
+        "FILE-12": "Actual file properties retrieved",
+        "FILE-15": "Production upload 131101 bytes, exact bytes/SHA256; existing file refusal; precommit cancellation",
+        "APP-01": "Real Android System labels and icon metadata; no package-only fallback",
+        "APP-07": "Actual version/minSdk/targetSdk fields shown",
+        "PROC-01": "Summarized RAM no longer crowds out process list",
+        "PROC-02": "Multiple actual process groups visible",
+        "CMD-01": "Real persistent PTY cd/pwd, environment across inputs, Ctrl-C then continued input",
+        "CMD-03": "Production PTY exit0 verified",
+        "SCR-07": "Compatibility screenshot stream displayed 480x800 on API26",
+        "SCR-16": "Exit confirmation cancel continues, confirmed exit retains ADB connection",
+        "SET-03": "Show-hidden preference persisted through force-stop",
+        "SET-04": "Default module persisted through force-stop",
+        "SET-08": "About callback checked",
+        "SET-09": "Offline license list opened"
+      },
+      "limitations": [
+        "Terminal close emitted ADB CLSE on UI thread and crashed on tab change. Source now uses background close; candidate df2e4223 is queued for actual rerun.",
+        "ART oat artifacts remained in temporary helper workspaces. New source implements bounded known-artifact cleanup; real rerun pending.",
+        "Normal H264 encoder crashed inside this x86 software emulator system codec with SIGILL. No claim of working normal video; independent ARM target test planned."
+      ]
+    },
+    {
+      "name": "api26-min19-v2",
+      "candidate_sha256": "df2e4223791fcba0577a07e8ed4958c01819292c9bf7eed1cda59e20e8b4656a",
+      "report": "build/emulator-qa/UI_QA_REPORT.md",
+      "passed_partial": {
+        "NAV-02": "Live PTY tab changes, rotation, Back/re-entry and teardown pass; empty final crash buffer.",
+        "NAV-09": "Terminal leave/re-enter, exit/new input and restart run without prior UI-thread CLSE crash.",
+        "INFO-08": "Cancel real information reads and continue navigation without UI resource-close crash.",
+        "FILE-07": "Production 131101-byte download matches bytes/SHA256; no cleanup warning.",
+        "FILE-15": "Production 131101-byte upload matches SHA256; existing ordinary file unchanged; precommit cancellation leaves no destination.",
+        "FILE-16": "Actual picker file and directory tokens plus queued-confirmation cancellation: three ordinary cases pass.",
+        "APP-01": "Real labels/icons return; metadata helper/ART workspaces cleaned with audit.",
+        "PROC-01": "Measured memory summary renders and leaves space for process rows.",
+        "PROC-02": "Actual process list and labels/icons display.",
+        "CMD-01": "Persistent PTY cwd/variable/Ctrl-C/subsequent input passed.",
+        "CMD-03": "Actual PTY exit0 and restart/new command passed before v5 rendering update.",
+        "CMD-04": "Restart terminal and continued input passed before v5 rendering update.",
+        "SCR-07": "Real 480x800 compatibility screenshot stream; normal H264 not passed.",
+        "SCR-16": "Cancel exit keeps stream; confirmed exit returns with ADB retained.",
+        "SET-02": "Screenshot save document picker reached; cancel returned without writing."
+      },
+      "limitations": [
+        "Normal H264 blocked by x86 software system codec SIGILL.",
+        "No physical USB/Fastboot or Android11 pairing target.",
+        "Second independent local-file security review is incomplete; ordinary picker tests are not its replacement."
+      ]
+    },
+    {
+      "name": "api19-min19-v4",
+      "candidate_sha256": "d505eaf9a5e6225e58b6645ea6580891d686c8021b79dce9d16eaa9f65759fe4",
+      "report": "../device_bridge_api19_qa/API19_QA.md",
+      "passed_partial": {
+        "NAV-01": "Real API19 install, MultiDex and live connected UI; all seven module entries opened.",
+        "CON-01": "Real API19 legacy adbd wire through isolated self-loopback relay; no wireless setting changed.",
+        "INFO-02": "Actual SDK19 properties read.",
+        "APP-01": "Bundled production helper returns69 packages with real Chinese label and PNG icon.",
+        "APP-07": "API19 unavailable minSdk is explicitly marked, not a fabricated value.",
+        "FILE-07": "Production download131101 bytes exactly matches SHA256.",
+        "FILE-15": "Production upload131101 bytes, ordinary existing destination refusal and precommit cancellation pass; fixture cleanup0.",
+        "CMD-01": "Legacy persistent PTY cwd/variables/Ctrl-C/continued input pass.",
+        "CMD-03": "Legacy PTY shutdown retains unknown exit(-1), not a guessed0.",
+        "SCR-07": "Old adbd unsupported exec automatically falls back to reserved PNG+SYNC; decoded480x800, no cleanup warning.",
+        "TOOLS-02": "Production screenshot capture yields decoded480x800 PNG; this covers capture, not every save/share flow."
+      },
+      "limitations": [
+        "v4 df and process parsing defects were found and fixed in later sources.",
+        "v4 GCM provider incompatibility fixed and retested in v5."
+      ]
+    },
+    {
+      "name": "api19-min19-v5",
+      "candidate_sha256": "61e2e94e0e2c774ce9c83a7c533f2233a5b64589d6cb76f31df8d5e7cd2b5f97",
+      "report": "../device_bridge_api19_qa/API19_QA.md",
+      "passed_partial": {
+        "CON-07": "Unmodified APK production TLS1.3 mutual-cert loopback, matching exporter, SPAKE/HKDF/AES-GCM all pass on default Dalvik JIT; not Android11 adbd end-to-end pairing.",
+        "INFO-05": "Real legacy df /data returns one rounded storage record with explicit Free/reserved-block distinction.",
+        "PROC-01": "Target ActivityManager available-memory measurement renders when old kernel lacks MemAvailable.",
+        "PROC-02": "Legacy read-only ps fallback returns76 processes; unlabelled task-state prefix defect observed and separately fixed in v6 source.",
+        "CMD-01": "Actual UI echo output and green real prompt render; clear preserves current prompt; switch away/re-enter opens a fresh prompt. Legacy PTY merges stderr, so remote error text is not falsely inferred red.",
+        "CMD-03": "Actual UI exit closes PTY with honest unknown legacy status; subsequent echo starts a new terminal.",
+        "CMD-04": "Leave/re-entry and new command after exit pass."
+      },
+      "limitations": [
+        "v5 process state-prefix defect pending v6 rerun.",
+        "Screen ART lifecycle cleanup only integrated after v5."
+      ]
+    },
+    {
+      "name": "api24-arm-min19-v6",
+      "candidate_sha256": "948e2cc6f39082520f6e10bc2b2b6092b4e5b091406b0d2a9dcd79910673968e",
+      "report": "../device_bridge_api24_qa/README.md",
+      "passed_partial": {
+        "SCR-12": "Actual bundled scrcpy H264 encoding and production TextureView decoding: two runs yielded4 and3 frames at encoded360x640. New generated displayed frame preserved. This does not pass Back control or exit lifecycle."
+      },
+      "limitations": [
+        "Back control not accepted: 20-second test saw system ANR and no own Window callback.",
+        "Both runs hit identical official SurfaceFlinger libgui SIGSEGV, triggering zygote restart. No further same-route video repetition.",
+        "Ordinary fixed-component workspace cleanup passed; unknown ordinary sidecar retained and failure reported. This API24 created no real OAT and cleanup fixture does not prove video lifecycle success.",
+        "Both temporary workspaces and reverse cleaned; VM stopped."
+      ]
+    },
+    {
+      "name": "api19-min19-v7",
+      "candidate_sha256": "824c2751c6087c8ebb978d8bb7ac2d6b8f214d5d9d27ca0384bbbf136e973115",
+      "report": "../device_bridge_api19_qa/API19_QA.md",
+      "passed_partial": {
+        "NAV-01": "Unified v7 installs and starts; screenshot42 shows actual home. Earlier screenshot41 was transition launcher, not evidence of app crash.",
+        "CON-01": "Production ADB legacy wire to isolated self adbd through loopback relay.",
+        "CON-07": "Unmodified unified APK DEX/default Dalvik JIT TLS1.3 mutual cert/data/matching64-byte exporter plus SPAKE2/HKDF/AES-GCM pass; no real Android11 adbd target.",
+        "INFO-05": "Actual legacy df six storage records parsed with approximate/Free labels.",
+        "PROC-02": "Actual ps84 process names without old unlabelled state-prefix defect.",
+        "APP-01": "Actual metadata helper package labels/icons and launcher metadata read.",
+        "FILE-07": "131101-byte production download, SHA256 and independent byte equality passed.",
+        "FILE-08": "Actual FileCopyManager six-entry ordinary nested tree includes empty directory, Chinese/space/quote names and131101-byte data. Each receipt/hash checked; independentSYNC bytes match. Retry existing destination leaves it unchanged. JournalProbe9 checks pass.",
+        "FILE-09": "API19 move explicitly NOT_EXECUTED and source unchanged; not a functioning legacy move acceptance.",
+        "FILE-12": "Actual MetadataServer kernel stat returns regular mode81b6, size131101, mtime/uid/gid.",
+        "FILE-13": "Production ordinary mkdir and fixture cleanup pass.",
+        "FILE-14": "Exclusive zero-byte upload/hash creates empty file.",
+        "FILE-10": "Production rm-r with quoted absolute ordinary fixture path deletes only that created fixture; no path-mutation/escape testing.",
+        "FILE-15": "131101-byte production upload/hash, existing ordinary file preservation, precommit cancellation passed.",
+        "CMD-01": "Real persistent PTY cd/pwd/variables/CtrlC and continued input pass.",
+        "CMD-03": "Actual legacy exit retains unknown status instead of inventing0.",
+        "SCR-07": "Reserved PNG+SYNC fallback decodes480x800; no cleanup warnings.",
+        "TOOLS-02": "Production screenshot capture yields decoded480x800 PNG; this covers capture, not every save/share flow."
+      },
+      "limitations": [
+        "Read-only pm usage shows legacy install/uninstall option differences; package installation/uninstallation is not covered by these passes.",
+        "All fixtures, loopback relay/forward/ADB and VM cleaned/stopped.",
+        "No physical USB/Fastboot or real Android11 pairing."
+      ]
+    },
+    {
+      "name": "api26-min19-v7",
+      "candidate_sha256": "824c2751c6087c8ebb978d8bb7ac2d6b8f214d5d9d27ca0384bbbf136e973115",
+      "report": "build/emulator-qa-v7/API26_V7_REPORT.md",
+      "passed_partial": {
+        "NAV-01": "Exact installed v7 hash verified; startup/overflow/history and saved endpoint passed.",
+        "NAV-02": "Terminal tab leave/reopen and active landscape/portrait rebuild passed. No claim of original smooth horizontal ViewPager animation.",
+        "CON-01": "Only explicit isolated self-loopback5596 connection used; noLAN scan.",
+        "FILE-07": "131101-byte production binary download andSHA exact.",
+        "FILE-08": "Six-entry production recursivecopy, empty/nested dirs,65539-byte binary and Chinese/space/quote filename; receipts and independentSYNC bytes exact. Existing directory/file conflicts preserved.",
+        "FILE-09": "Actual same-filesystem ordinary file and directory moves VERIFIED, source absent and destination bytes checked; existing targetsNOT_EXECUTED with both sides preserved. No cleanup warning.",
+        "FILE-11": "Same-file-system rename/move primitives above verified; all UI rename dialogs not separately exercised.",
+        "FILE-15": "131101-byte production upload andSHA; existing-file unchanged; precommitcancelNOT_COMMITTED and nofinaltarget.",
+        "CMD-01": "Real persistent PTYcwd/variables/CtrlC and continuedinput; UIvariable/clear-preservesprompt/leave-reopen passed.",
+        "CMD-03": "Cleanexit, UIexit-newPTY, unknownlegacy distinction unchanged.",
+        "CMD-04": "Actual restartmenu/newcommands after rotations and exits passed.",
+        "SCR-16": "Isolated workspace cleanup only: actual scrcpy odex/vdex generated after list_displays, productioncleanup removeddirectory withoutwarning and repeatedcleanup idempotent. This does not pass screenvideo exit lifecycle."
+      },
+      "limitations": [
+        "Bootbaseline already had emulatorHEVC/SSE4.2 SIGILL and SystemUI ANR; posttestcrashbuffer byte-identical, no new app-specific crash/ANR.",
+        "No newvideo attempt; no physicalUSB/Fastboot, actualAndroid11pairing, orLAN scan.",
+        "VM retained for finalv8 acceptance; shutdownnotyetclaimed by v7report."
+      ]
+    },
+    {
+      "name": "api26-min19-v8",
+      "candidate_sha256": "60cff683826f293861d0eab5fff004c52b8f957e35f5e19b2b62f396c3578bda",
+      "report": "build/emulator-qa-v8/API26_V8_REPORT.md",
+      "passed_partial": {
+        "NAV-01": "Exact installed v8 hash verified; startup and saved endpoint displayed.",
+        "NAV-02": "Real horizontal content swipes select adjacent modules; focused terminal input does not flip pages. Still no smooth ViewPager/state parity.",
+        "CON-01": "Production self-loopback ADB connection only.",
+        "CON-09": "Passive interface prefix suggestion and Cancel verified; no LAN scan executed.",
+        "FILE-07": "131101-byte real production download, SHA256 and independent bytes match.",
+        "FILE-08": "Production six-entry ordinary tree copy; receipts, SHA256 and independent SYNC bytes match; existing file/directory conflicts preserved.",
+        "FILE-09": "Production same-filesystem file and directory moves VERIFIED; exact source absence/destination bytes verified; existing targets preserved.",
+        "FILE-11": "Production same-filesystem move/rename primitives verified; not every UI rename flow.",
+        "FILE-12": "Own ordinary file details and raw stat UI displayed.",
+        "FILE-14": "Normal cancellation and pending-confirmation rotation left no output. Rotation logged WindowLeaked in v8; fixed and separately retested in v9.",
+        "FILE-15": "Production upload/hash, ordinary no-overwrite, precommit cancellation NOT_COMMITTED with no final target.",
+        "CMD-01": "Real persistent PTY cwd/variables/Ctrl-C/continued command passed.",
+        "CMD-03": "Real clean PTY exit passed.",
+        "SCR-16": "Production owned ScreenServerWorkspace cleanup after actual scrcpy display listing and ART odex/vdex generation; removed/idempotent/no warnings. No video lifecycle acceptance.",
+        "FB-01": "Disconnected UI guard only, no physical device or Fastboot command."
+      },
+      "limitations": [
+        "v8 nonfatal pending-confirmation WindowLeaked retained as known failure; v9 targeted evidence separately records fix.",
+        "UI driver footer expected home from nested directory but Back correctly returned to /sdcard; full script did not exit zero, while documented assertions passed.",
+        "Existing official cold-boot codec SIGILL/SystemUI ANR baseline unchanged; no new application FATAL/ANR.",
+        "Fixtures, forward/reverse, ADB and VM cleaned/stopped; no physical devices, network scanning or unsafe package changes."
+      ]
+    },
+    {
+      "name": "api19-package-v8",
+      "candidate_sha256": "60cff683826f293861d0eab5fff004c52b8f957e35f5e19b2b62f396c3578bda",
+      "report": "../device_bridge_api19_qa/package_v8/result-readable.txt",
+      "passed_partial": {
+        "APP-10": "Actual production UI uninstall of only newly created zero-permission/no-code fixture: all-user scope shown, Cancel preserves it, Confirm returns pm Success and independent query proves absence.",
+        "APP-13": "Actual production UI installs only newly created zero-permission/no-code fixture on API19: all-user scope shown, Cancel leaves package absent/no stage; Confirm returns pm Success and independent query verifies fixture and zero permissions.",
+        "APP-14": "API19 multi-split selection and a single real split manifest rejected before transfer; this validates refusal, not old-OS split support.",
+        "APP-15": "API19 restore explicitly rejected before transfer; no install-existing support claimed."
+      },
+      "limitations": [
+        "API19_V8_PACKAGE_FAILURES=0; package operations touched only one newly created fixture, not system/user packages.",
+        "Fixture/stage cleaned and sync completed; loopback/forward/ADB/VM stopped.",
+        "Android re-added a logical IPv4 default at end; QEMU NIC remained off/carrier0 and eth0 RX/TX0, so there was no external egress."
+      ]
+    },
+    {
+      "name": "api26-dialog-v9",
+      "candidate_sha256": "89bc4d8a0805d965c6bf217c69575875f0c08a0bd593975bd7a4526c77efe20f",
+      "report": "build/emulator-qa-v9/API26_V9_DIALOG_REPORT.md",
+      "passed_partial": {
+        "NAV-01": "Exact final v9 installed hash verified; activity start succeeded.",
+        "FILE-14": "Actual pending create confirmation→rotation dismisses dialog without output; normal Cancel produces no file; normal Confirm creates zero-byte file verified by independent SYNC and SHA256. Three callback-count fixtures also pass; no WindowLeaked in final log."
+      },
+      "limitations": [
+        "This is targeted lifecycle regression only, not a full v9 emulator regression. v8→v9 changes only Ui.java and MainActivity.java lifecycle ownership.",
+        "Final log contained no WindowLeaked or new app FATAL/ANR; official cold-boot crash buffer unchanged.",
+        "Owned fixture and forward/reverse removed, VM/ADB stopped."
+      ]
+    },
+    {
+      "name": "api26-local-app-hotfix-0.1.1",
+      "candidate_sha256": "c140b3684bb164bead7c72c297d3871662417d5d0b142be8945e23abf8009a18",
+      "report": "../device_bridge_hotfix_localapps/build/api26-qa/RESULT.md",
+      "passed_partial": {
+        "APP-14": "Actual production local PackageManager list of 89 apps; light/dark real icons, long Chinese, search/empty, selection, fixed APK SHA256 confirmation and cancellation; Back/reopen and rotation recoverable; no API30/OEM acceptance. Only 0.1.1 hash, not proof for later 0.1.2 merge."
+      },
+      "blocked": {
+        "api30_oem_visibility": "Official API30 environment repeatedly failed Watchdog before any app tested; user device brand/error unknown."
+      }
+    },
+    {
+      "name": "api26-navigation-server-0.1.2-candidate01",
+      "candidate_sha256": "fb0333569047d43b57977245c487f8d08146d7d17b10825220531ec23fc7a634",
+      "report": "build/api26-followup-v10/RESULT.md",
+      "passed_partial": {
+        "NAV-02": "Actual retained files/apps/terminal; continuous horizontal gestures; rotation lightweight state. Slow initial vertical folding FAILED and paired slow-down assertion NOT-RUN; fixed separately in candidate02.",
+        "CON-05": "Actual same-VM AOSP server shared enumeration, transport_id selection, shell info and SYNC listing.",
+        "CON-06": "Actual stop warning inspected and CANCELLED; no real daemon stop/restart executed.",
+        "APP-14": "Actual local 89-app icon list, Chinese search/empty, selection, fixed SHA review and cancellation; no modern OEM verification.",
+        "CMD-01": "Actual old PTY exited on leave, fresh PID on return, draft/transcript retained and no command replay."
+      },
+      "limitations": [
+        "28 PASS, 1 FAIL, 1 NOT-RUN; not full parity",
+        "API26 only; exact APK hash; no physical devices"
+      ]
+    },
+    {
+      "name": "api26-navigation-server-0.1.2-candidate02",
+      "candidate_sha256": "6711a1556a9c301dbefb93696296ebd3b2693bcb84071770d94ac9b27b4dc37f",
+      "report": "build/api26-followup-v10/RESULT.md",
+      "passed_partial": {
+        "NAV-02": "Same formerly failing slow upward fold and slow downward restore passed; visited-page horizontal commit/rebound/cancel, drawer/shade, file/app retention and terminal input exclusion passed.",
+        "CON-05": "Same-VM external server reconnect, transport_id selection, initial-load cancellation and actual SYNC/apps reads passed.",
+        "CMD-01": "Terminal echo, draft/transcript revisit and input protection passed."
+      },
+      "limitations": [
+        "Nine targeted UI groups plus log/cleanup check passed; not candidate01 full suite repeated",
+        "First unvisited page still placeholder in this frozen version",
+        "API26 only; no new crashes/window leaks; baseline crash buffer unchanged",
+        "Owned fixtures/helper/forward/reverse removed; VM/ADB stopped; emulator wait exit138 retained"
+      ]
+    }
+  ]
+}

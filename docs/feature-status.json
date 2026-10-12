@@ -1,0 +1,3830 @@
+[
+  {
+    "id": "NAV-01",
+    "feature": "启动连接页",
+    "evidence": "Manifest `ConnectActivity` MAIN/LAUNCHER；L:a4 `0x7f0c001e`；C/R/N",
+    "acceptance": "全新安装启动；显示连接输入、连接列表/状态与连接菜单。原版首次初始化时序需D。",
+    "implementation_status": "implemented",
+    "runtime_status": "tested-on-emulator-partial",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java"
+    ],
+    "related_mock_suites": [],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed",
+    "runtime_evidence": [
+      {
+        "candidate_sha256": "05b8ef79ba9801978c9afbc09ef1d526961499a419554375b7889ad9c460d8f5",
+        "scope": "First launch and connection home displayed",
+        "report": "build/emulator-qa/UI_QA_REPORT.md",
+        "run": "api26-initial-review"
+      },
+      {
+        "candidate_sha256": "d505eaf9a5e6225e58b6645ea6580891d686c8021b79dce9d16eaa9f65759fe4",
+        "scope": "Real API19 install, MultiDex and live connected UI; all seven module entries opened.",
+        "report": "../device_bridge_api19_qa/API19_QA.md",
+        "run": "api19-min19-v4"
+      },
+      {
+        "candidate_sha256": "824c2751c6087c8ebb978d8bb7ac2d6b8f214d5d9d27ca0384bbbf136e973115",
+        "scope": "Unified v7 installs and starts; screenshot42 shows actual home. Earlier screenshot41 was transition launcher, not evidence of app crash.",
+        "report": "../device_bridge_api19_qa/API19_QA.md",
+        "run": "api19-min19-v7"
+      },
+      {
+        "candidate_sha256": "824c2751c6087c8ebb978d8bb7ac2d6b8f214d5d9d27ca0384bbbf136e973115",
+        "scope": "Exact installed v7 hash verified; startup/overflow/history and saved endpoint passed.",
+        "report": "build/emulator-qa-v7/API26_V7_REPORT.md",
+        "run": "api26-min19-v7"
+      },
+      {
+        "candidate_sha256": "60cff683826f293861d0eab5fff004c52b8f957e35f5e19b2b62f396c3578bda",
+        "scope": "Exact installed v8 hash verified; startup and saved endpoint displayed.",
+        "report": "build/emulator-qa-v8/API26_V8_REPORT.md",
+        "run": "api26-min19-v8"
+      },
+      {
+        "candidate_sha256": "89bc4d8a0805d965c6bf217c69575875f0c08a0bd593975bd7a4526c77efe20f",
+        "scope": "Exact final v9 installed hash verified; activity start succeeded.",
+        "report": "build/emulator-qa-v9/API26_V9_DIALOG_REPORT.md",
+        "run": "api26-dialog-v9"
+      }
+    ]
+  },
+  {
+    "id": "NAV-02",
+    "feature": "设备内主框架：工具栏、可滚动页签、抽屉",
+    "evidence": "L:a8 `0x7f0c0022`、L:bf `0x7f0c004f`；D:MainActivity 字段 ViewPager/TabLayout；C/R/N",
+    "acceptance": "选择一个已授权设备；页签与抽屉选择指向同一当前模块，不把其他设备结果混入。",
+    "implementation_status": "partial",
+    "runtime_status": "tested-on-emulator-partial",
+    "implementation_note": "冻结0.1.2候选已取得API26连续拖动、驻留、慢滑折叠和有限旋转证据；0.1.3新增首次邻页真实控件预创建，I/O延后提交，其实际Android待验收。精确动画、信息页读取时序及终端后台语义仍未完全对齐。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "core/src/main/java/io/github/devicebridge/core/RetainedModuleState.java",
+      "app/src/main/java/io/github/devicebridge/android/RetainedModulePager.java",
+      "app/src/main/java/io/github/devicebridge/android/CollapsingRoot.java"
+    ],
+    "related_mock_suites": [
+      "RetainedModuleStateTests",
+      "RetainedPagerGestureTests",
+      "Nav02LifecycleTests",
+      "NeighborPreparationTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed",
+    "runtime_evidence": [
+      {
+        "candidate_sha256": "05b8ef79ba9801978c9afbc09ef1d526961499a419554375b7889ad9c460d8f5",
+        "scope": "Seven icon tabs accessible; switching away from terminal revealed a crash, separately tracked as fixed-in-source pending rerun",
+        "report": "build/emulator-qa/UI_QA_REPORT.md",
+        "run": "api26-initial-review"
+      },
+      {
+        "candidate_sha256": "df2e4223791fcba0577a07e8ed4958c01819292c9bf7eed1cda59e20e8b4656a",
+        "scope": "Live PTY tab changes, rotation, Back/re-entry and teardown pass; empty final crash buffer.",
+        "report": "build/emulator-qa/UI_QA_REPORT.md",
+        "run": "api26-min19-v2"
+      },
+      {
+        "candidate_sha256": "824c2751c6087c8ebb978d8bb7ac2d6b8f214d5d9d27ca0384bbbf136e973115",
+        "scope": "Terminal tab leave/reopen and active landscape/portrait rebuild passed. No claim of original smooth horizontal ViewPager animation.",
+        "report": "build/emulator-qa-v7/API26_V7_REPORT.md",
+        "run": "api26-min19-v7"
+      },
+      {
+        "candidate_sha256": "60cff683826f293861d0eab5fff004c52b8f957e35f5e19b2b62f396c3578bda",
+        "scope": "Real horizontal content swipes select adjacent modules; focused terminal input does not flip pages. Still no smooth ViewPager/state parity.",
+        "report": "build/emulator-qa-v8/API26_V8_REPORT.md",
+        "run": "api26-min19-v8"
+      },
+      {
+        "candidate_sha256": "fb0333569047d43b57977245c487f8d08146d7d17b10825220531ec23fc7a634",
+        "scope": "Actual retained files/apps/terminal; continuous horizontal gestures; rotation lightweight state. Slow initial vertical folding FAILED and paired slow-down assertion NOT-RUN; fixed separately in candidate02.",
+        "report": "build/api26-followup-v10/RESULT.md",
+        "run": "api26-navigation-server-0.1.2-candidate01"
+      },
+      {
+        "candidate_sha256": "6711a1556a9c301dbefb93696296ebd3b2693bcb84071770d94ac9b27b4dc37f",
+        "scope": "Same formerly failing slow upward fold and slow downward restore passed; visited-page horizontal commit/rebound/cancel, drawer/shade, file/app retention and terminal input exclusion passed.",
+        "report": "build/api26-followup-v10/RESULT.md",
+        "run": "api26-navigation-server-0.1.2-candidate02"
+      }
+    ]
+  },
+  {
+    "id": "NAV-03",
+    "feature": "设备信息模块",
+    "evidence": "D:c.c.a.k3 → v3.j0.d；M:a item `0x7f090198` / title `0x7f110057`；C/R",
+    "acceptance": "打开该页得到当前目标设备信息与刷新。详见INFO。",
+    "implementation_status": "implemented",
+    "runtime_status": "tested-on-emulator-partial",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java"
+    ],
+    "related_mock_suites": [],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed",
+    "runtime_evidence": [
+      {
+        "candidate_sha256": "05b8ef79ba9801978c9afbc09ef1d526961499a419554375b7889ad9c460d8f5",
+        "scope": "Live information card with actual emulator values",
+        "report": "build/emulator-qa/UI_QA_REPORT.md",
+        "run": "api26-initial-review"
+      }
+    ]
+  },
+  {
+    "id": "NAV-04",
+    "feature": "实用工具模块",
+    "evidence": "k3 → v3.m0.z；M:a item `0x7f0901a2` / title `0x7f110132`；C/R",
+    "acceptance": "打开工具列表，按实际代码覆盖9项工具，不能只照旧 L:bd 的6项。",
+    "implementation_status": "implemented",
+    "runtime_status": "tested-on-emulator-partial",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java"
+    ],
+    "related_mock_suites": [],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed",
+    "runtime_evidence": [
+      {
+        "candidate_sha256": "05b8ef79ba9801978c9afbc09ef1d526961499a419554375b7889ad9c460d8f5",
+        "scope": "Tools visible; reboot and display-power confirmations cancelled without execution",
+        "report": "build/emulator-qa/UI_QA_REPORT.md",
+        "run": "api26-initial-review"
+      }
+    ]
+  },
+  {
+    "id": "NAV-05",
+    "feature": "远程控制模块",
+    "evidence": "k3 → v3.h0；M:a item `0x7f09019c` / title `0x7f1100f2`；C/R",
+    "acceptance": "先显示连接参数，连接后进入 RemoteActivity。",
+    "implementation_status": "implemented",
+    "runtime_status": "tested-on-emulator-partial",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java"
+    ],
+    "related_mock_suites": [],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed",
+    "runtime_evidence": [
+      {
+        "candidate_sha256": "05b8ef79ba9801978c9afbc09ef1d526961499a419554375b7889ad9c460d8f5",
+        "scope": "Embedded seven-row remote options reachable",
+        "report": "build/emulator-qa/UI_QA_REPORT.md",
+        "run": "api26-initial-review"
+      }
+    ]
+  },
+  {
+    "id": "NAV-06",
+    "feature": "文件管理模块",
+    "evidence": "k3 → v3.k0.t；M:a item `0x7f09019a` / title `0x7f110072`；C/R",
+    "acceptance": "打开目标设备文件树并展示当前路径。",
+    "implementation_status": "implemented",
+    "runtime_status": "tested-on-emulator-partial",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java"
+    ],
+    "related_mock_suites": [],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed",
+    "runtime_evidence": [
+      {
+        "candidate_sha256": "05b8ef79ba9801978c9afbc09ef1d526961499a419554375b7889ad9c460d8f5",
+        "scope": "Actual SYNC files and folder icons visible",
+        "report": "build/emulator-qa/UI_QA_REPORT.md",
+        "run": "api26-initial-review"
+      }
+    ]
+  },
+  {
+    "id": "NAV-07",
+    "feature": "应用管理模块",
+    "evidence": "k3 → v3.i0.r；M:a item `0x7f090196` / title `0x7f110025`；C/R",
+    "acceptance": "打开目标设备应用列表，可区分启用/停用和系统/第三方。",
+    "implementation_status": "implemented",
+    "runtime_status": "tested-on-emulator-partial",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java"
+    ],
+    "related_mock_suites": [],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed",
+    "runtime_evidence": [
+      {
+        "candidate_sha256": "05b8ef79ba9801978c9afbc09ef1d526961499a419554375b7889ad9c460d8f5",
+        "scope": "Real application names and icons visible after Looper fix",
+        "report": "build/emulator-qa/UI_QA_REPORT.md",
+        "run": "api26-initial-review"
+      }
+    ]
+  },
+  {
+    "id": "NAV-08",
+    "feature": "进程管理模块",
+    "evidence": "k3 → v3.l0.l；M:a item `0x7f09019b` / title `0x7f1100e8`；C/R",
+    "acceptance": "打开实际内存/进程列表；L:ba“正在开发中”不是此版本只有占位页的证据。",
+    "implementation_status": "implemented",
+    "runtime_status": "tested-on-emulator-partial",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java"
+    ],
+    "related_mock_suites": [],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed",
+    "runtime_evidence": [
+      {
+        "candidate_sha256": "05b8ef79ba9801978c9afbc09ef1d526961499a419554375b7889ad9c460d8f5",
+        "scope": "Memory summary and multiple real process rows visible",
+        "report": "build/emulator-qa/UI_QA_REPORT.md",
+        "run": "api26-initial-review"
+      }
+    ]
+  },
+  {
+    "id": "NAV-09",
+    "feature": "运行命令模块",
+    "evidence": "k3 → v3.f0；M:a item `0x7f090197` / title `0x7f110043`；C/R",
+    "acceptance": "打开交互命令输入、输出及历史。",
+    "implementation_status": "implemented",
+    "runtime_status": "tested-on-emulator-partial",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java"
+    ],
+    "related_mock_suites": [],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed",
+    "runtime_evidence": [
+      {
+        "candidate_sha256": "05b8ef79ba9801978c9afbc09ef1d526961499a419554375b7889ad9c460d8f5",
+        "scope": "Terminal input/output reachable; leave-page crash pending new-candidate regression",
+        "report": "build/emulator-qa/UI_QA_REPORT.md",
+        "run": "api26-initial-review"
+      },
+      {
+        "candidate_sha256": "df2e4223791fcba0577a07e8ed4958c01819292c9bf7eed1cda59e20e8b4656a",
+        "scope": "Terminal leave/re-enter, exit/new input and restart run without prior UI-thread CLSE crash.",
+        "report": "build/emulator-qa/UI_QA_REPORT.md",
+        "run": "api26-min19-v2"
+      }
+    ]
+  },
+  {
+    "id": "NAV-10",
+    "feature": "设置与退出",
+    "evidence": "M:a items `0x7f0901a1`,`0x7f090199`；D:SettingsActivity、MainActivity；R/N",
+    "acceptance": "设置可返回原设备页；退出/离开与返回键取消不会误触设备指令。原版退出确认/双击退出规则需D。",
+    "implementation_status": "implemented",
+    "runtime_status": "tested-on-emulator-partial",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java"
+    ],
+    "related_mock_suites": [],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed",
+    "runtime_evidence": [
+      {
+        "candidate_sha256": "05b8ef79ba9801978c9afbc09ef1d526961499a419554375b7889ad9c460d8f5",
+        "scope": "Settings return and leave/re-enter paths checked",
+        "report": "build/emulator-qa/UI_QA_REPORT.md",
+        "run": "api26-initial-review"
+      }
+    ]
+  },
+  {
+    "id": "NAV-11",
+    "feature": "抽屉显示当前设备并“离开”",
+    "evidence": "L:bw `0x7f0c0060`，device labels `0x7f090284`,`0x7f090283`，离开 `0x7f090062`；string `0x7f110124`；R/N",
+    "acceptance": "设备型号/地址正确；离开回连接页；“关闭会话”和“断开ADB”必须在产品规格中分别定义，原版最终语义需D。",
+    "implementation_status": "implemented",
+    "runtime_status": "tested-on-emulator-partial",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java"
+    ],
+    "related_mock_suites": [],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed",
+    "runtime_evidence": [
+      {
+        "candidate_sha256": "05b8ef79ba9801978c9afbc09ef1d526961499a419554375b7889ad9c460d8f5",
+        "scope": "Leave retained live ADB session",
+        "report": "build/emulator-qa/UI_QA_REPORT.md",
+        "run": "api26-initial-review"
+      }
+    ]
+  },
+  {
+    "id": "NAV-12",
+    "feature": "首次用户协议/隐私选择",
+    "evidence": "D:c.c.a.v/c/j，`accept_policy`；L:a2 button `0x7f090010`；C/R",
+    "acceptance": "自有政策可查看、拒绝、同意并记录版本；不能复用原开发者URL或声称接受原协议。拒绝后的原版行为需D。",
+    "implementation_status": "implemented",
+    "runtime_status": "tested-on-emulator-partial",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java"
+    ],
+    "related_mock_suites": [],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed",
+    "runtime_evidence": [
+      {
+        "candidate_sha256": "05b8ef79ba9801978c9afbc09ef1d526961499a419554375b7889ad9c460d8f5",
+        "scope": "Fresh refusal, relaunch, acceptance and persistence",
+        "report": "build/emulator-qa/UI_QA_REPORT.md",
+        "run": "api26-initial-review"
+      }
+    ]
+  },
+  {
+    "id": "CON-01",
+    "feature": "手动IP/端口连接",
+    "evidence": "L:a4 input `0x7f0900bf`、button `0x7f090060`；D:c.c.a.m/n/p 生成connect；C/R",
+    "acceptance": "有效 IPv4、IP:端口；不填端口时原代码补5555。成功列表只新增一次；无效输入、超时、拒绝、无路由返回可读错误。",
+    "implementation_status": "implemented",
+    "runtime_status": "tested-on-emulator-partial",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "core/src/main/java/io/github/devicebridge/core/AdbSession.java",
+      "app/src/main/java/io/github/devicebridge/android/UsbTransport.java"
+    ],
+    "related_mock_suites": [
+      "CoreTests",
+      "UiSafetyTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed",
+    "runtime_evidence": [
+      {
+        "candidate_sha256": "05b8ef79ba9801978c9afbc09ef1d526961499a419554375b7889ad9c460d8f5",
+        "scope": "Actual loopback host IP:port connection; blank endpoint rejected",
+        "report": "build/emulator-qa/UI_QA_REPORT.md",
+        "run": "api26-initial-review"
+      },
+      {
+        "candidate_sha256": "d505eaf9a5e6225e58b6645ea6580891d686c8021b79dce9d16eaa9f65759fe4",
+        "scope": "Real API19 legacy adbd wire through isolated self-loopback relay; no wireless setting changed.",
+        "report": "../device_bridge_api19_qa/API19_QA.md",
+        "run": "api19-min19-v4"
+      },
+      {
+        "candidate_sha256": "824c2751c6087c8ebb978d8bb7ac2d6b8f214d5d9d27ca0384bbbf136e973115",
+        "scope": "Production ADB legacy wire to isolated self adbd through loopback relay.",
+        "report": "../device_bridge_api19_qa/API19_QA.md",
+        "run": "api19-min19-v7"
+      },
+      {
+        "candidate_sha256": "824c2751c6087c8ebb978d8bb7ac2d6b8f214d5d9d27ca0384bbbf136e973115",
+        "scope": "Only explicit isolated self-loopback5596 connection used; noLAN scan.",
+        "report": "build/emulator-qa-v7/API26_V7_REPORT.md",
+        "run": "api26-min19-v7"
+      },
+      {
+        "candidate_sha256": "60cff683826f293861d0eab5fff004c52b8f957e35f5e19b2b62f396c3578bda",
+        "scope": "Production self-loopback ADB connection only.",
+        "report": "build/emulator-qa-v8/API26_V8_REPORT.md",
+        "run": "api26-min19-v8"
+      }
+    ]
+  },
+  {
+    "id": "CON-02",
+    "feature": "地址格式处理",
+    "evidence": "D:c.c.a.m/n：全角冒号归一化、主机名解析/IPv6分支；C/D",
+    "acceptance": "分别测试全角冒号、域名、IPv6。IPv6可见处理迹象不等于全格式支持；新实现应明确接受格式且防止输入成为shell语法。",
+    "implementation_status": "implemented",
+    "runtime_status": "not-run",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "core/src/main/java/io/github/devicebridge/core/AdbSession.java",
+      "app/src/main/java/io/github/devicebridge/android/UsbTransport.java"
+    ],
+    "related_mock_suites": [
+      "CoreTests",
+      "UiSafetyTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "CON-03",
+    "feature": "USB OTG连接及授权",
+    "evidence": "Manifest usb.host；D:ConnectActivity UsbManager/UsbDevice、x/A/y native；D:c.c.a.o/w；string `0x7f110045`；C/R/N",
+    "acceptance": "用户自有已开启USB调试设备；先USB权限，再目标端调试授权。拒绝/撤销授权、拔线不得卡死或误判为已连接。",
+    "implementation_status": "implemented",
+    "runtime_status": "not-run",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "core/src/main/java/io/github/devicebridge/core/AdbSession.java",
+      "app/src/main/java/io/github/devicebridge/android/UsbTransport.java"
+    ],
+    "related_mock_suites": [
+      "CoreTests",
+      "UiSafetyTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "CON-04",
+    "feature": "状态列表与多设备选择",
+    "evidence": "D:c.c.a.p/o、c.c.a.u3.a；L:a4列表区域；strings `0x7f110046`,`0x7f1100b9`,`0x7f110145`；C/R",
+    "acceptance": "0/1/2/>2设备、device/unauthorized/offline情况；选择项带正确transport，当前设备指令不串设备。原版普通版2台限制见PRO-03。",
+    "implementation_status": "implemented",
+    "runtime_status": "not-run",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "core/src/main/java/io/github/devicebridge/core/AdbSession.java",
+      "app/src/main/java/io/github/devicebridge/android/UsbTransport.java"
+    ],
+    "related_mock_suites": [
+      "CoreTests",
+      "UiSafetyTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "CON-05",
+    "feature": "刷新设备列表",
+    "evidence": "M:g item `0x7f090046` / string `0x7f1100ef`；D:c.c.a.p；C/R/N",
+    "acceptance": "设备插拔/网络变化后点击刷新；列表准确去重并保留有效选择，离线设备不显示正常连接。",
+    "implementation_status": "partial",
+    "runtime_status": "tested-on-emulator-partial",
+    "implementation_note": "后续源码已接入外部ADB server连续track/devices-l枚举、稳定transport_id选择及现有模块服务桥接，限显式可信端点；本地合成协议及0.1.2隔离API26自身AOSP server服务桥接已测，证据只对应原SHA；原本机daemon生命周期仍不同。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "core/src/main/java/io/github/devicebridge/core/AdbSession.java",
+      "app/src/main/java/io/github/devicebridge/android/UsbTransport.java",
+      "core/src/main/java/io/github/devicebridge/core/HostServerClient.java",
+      "core/src/main/java/io/github/devicebridge/core/AdbServerEndpoint.java",
+      "app/src/main/java/io/github/devicebridge/android/ExternalAdbController.java"
+    ],
+    "related_mock_suites": [
+      "CoreTests",
+      "UiSafetyTests",
+      "HostServerTests",
+      "AdbServerEndpointTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed",
+    "runtime_evidence": [
+      {
+        "candidate_sha256": "fb0333569047d43b57977245c487f8d08146d7d17b10825220531ec23fc7a634",
+        "scope": "Actual same-VM AOSP server shared enumeration, transport_id selection, shell info and SYNC listing.",
+        "report": "build/api26-followup-v10/RESULT.md",
+        "run": "api26-navigation-server-0.1.2-candidate01"
+      },
+      {
+        "candidate_sha256": "6711a1556a9c301dbefb93696296ebd3b2693bcb84071770d94ac9b27b4dc37f",
+        "scope": "Same-VM external server reconnect, transport_id selection, initial-load cancellation and actual SYNC/apps reads passed.",
+        "report": "build/api26-followup-v10/RESULT.md",
+        "run": "api26-navigation-server-0.1.2-candidate02"
+      }
+    ]
+  },
+  {
+    "id": "CON-06",
+    "feature": "启动/重启ADB服务",
+    "evidence": "M:g item `0x7f090047` / title `0x7f1100f8`；D:c.c.a.p 见kill-server/start-server；ConnectActivity默认端口5037；C/R/N",
+    "acceptance": "服务未启动、端口占用、重复点击；状态显示启动中/完成/失败，重启后的会话失效有明确反馈。",
+    "implementation_status": "partial",
+    "runtime_status": "tested-on-emulator-partial",
+    "implementation_note": "外部服务管理已接入刷新/重连/仅断本应用及明确确认后的停止，并区分拒绝/接受停止/未知；公开协议不能远程启动，未实现原版本机kill+start。不得称一键重启一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "core/src/main/java/io/github/devicebridge/core/AdbSession.java",
+      "app/src/main/java/io/github/devicebridge/android/UsbTransport.java",
+      "core/src/main/java/io/github/devicebridge/core/HostServerClient.java",
+      "core/src/main/java/io/github/devicebridge/core/AdbServerEndpoint.java",
+      "app/src/main/java/io/github/devicebridge/android/ExternalAdbController.java"
+    ],
+    "related_mock_suites": [
+      "CoreTests",
+      "UiSafetyTests",
+      "HostServerTests",
+      "AdbServerEndpointTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed",
+    "runtime_evidence": [
+      {
+        "candidate_sha256": "fb0333569047d43b57977245c487f8d08146d7d17b10825220531ec23fc7a634",
+        "scope": "Actual stop warning inspected and CANCELLED; no real daemon stop/restart executed.",
+        "report": "build/api26-followup-v10/RESULT.md",
+        "run": "api26-navigation-server-0.1.2-candidate01"
+      }
+    ]
+  },
+  {
+    "id": "CON-07",
+    "feature": "无线调试配对入口及输入",
+    "evidence": "M:g item `0x7f090045` / title `0x7f1100ce`；D:c.c.a.t/p；strings `0x7f1100cd`,`0x7f1100e2`；C/R",
+    "acceptance": "输入配对地址:端口与配对码，空值阻止提交；正确/错误/过期码都有终态反馈，不把配对码写入普通日志。",
+    "implementation_status": "implemented",
+    "runtime_status": "tested-on-emulator-partial",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "core/src/main/java/io/github/devicebridge/core/AdbSession.java",
+      "app/src/main/java/io/github/devicebridge/android/UsbTransport.java",
+      "core/src/main/java/io/github/devicebridge/core/PairingClient.java"
+    ],
+    "related_mock_suites": [
+      "CoreTests",
+      "UiSafetyTests",
+      "PairingTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed",
+    "runtime_evidence": [
+      {
+        "candidate_sha256": "05b8ef79ba9801978c9afbc09ef1d526961499a419554375b7889ad9c460d8f5",
+        "scope": "Blank input and repeated pairing cancellation; no Android11 pairing target involved",
+        "report": "build/emulator-qa/UI_QA_REPORT.md",
+        "run": "api26-initial-review"
+      },
+      {
+        "candidate_sha256": "61e2e94e0e2c774ce9c83a7c533f2233a5b64589d6cb76f31df8d5e7cd2b5f97",
+        "scope": "Unmodified APK production TLS1.3 mutual-cert loopback, matching exporter, SPAKE/HKDF/AES-GCM all pass on default Dalvik JIT; not Android11 adbd end-to-end pairing.",
+        "report": "../device_bridge_api19_qa/API19_QA.md",
+        "run": "api19-min19-v5"
+      },
+      {
+        "candidate_sha256": "824c2751c6087c8ebb978d8bb7ac2d6b8f214d5d9d27ca0384bbbf136e973115",
+        "scope": "Unmodified unified APK DEX/default Dalvik JIT TLS1.3 mutual cert/data/matching64-byte exporter plus SPAKE2/HKDF/AES-GCM pass; no real Android11 adbd target.",
+        "report": "../device_bridge_api19_qa/API19_QA.md",
+        "run": "api19-min19-v7"
+      }
+    ]
+  },
+  {
+    "id": "CON-08",
+    "feature": "Android 11+配对后单独连接",
+    "evidence": "string/ex `0x7f1100d0`；D:c.c.a.t生成pair，p处理成功失败；C/R",
+    "acceptance": "提示配对与连接是两步；配对完成后用无线调试连接端口连接，不混用配对端口；无自动连接承诺。",
+    "implementation_status": "implemented",
+    "runtime_status": "not-run",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "core/src/main/java/io/github/devicebridge/core/AdbSession.java",
+      "app/src/main/java/io/github/devicebridge/android/UsbTransport.java",
+      "core/src/main/java/io/github/devicebridge/core/PairingClient.java"
+    ],
+    "related_mock_suites": [
+      "CoreTests",
+      "UiSafetyTests",
+      "PairingTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "CON-09",
+    "feature": "局域网扫描与发现列表",
+    "evidence": "D:c.c.a.e/l/q：本机网段、TCP5555尝试、发现对话框；strings `0x7f110102`,`0x7f110075`,`0x7f1100b8`；C",
+    "acceptance": "仅在用户选择的自有局域网启动；无Wi-Fi、零结果、多结果、取消、限时完成均验收。原扫描入口图标/并发策略需D；静态代码不是mDNS全面发现。",
+    "implementation_status": "implemented",
+    "runtime_status": "tested-on-emulator-partial",
+    "implementation_note": "本机IPv4前缀建议+用户核对确认后探测/24端口5555已接入；真实LAN和取消负载尚未运行验收。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "core/src/main/java/io/github/devicebridge/core/AdbSession.java",
+      "app/src/main/java/io/github/devicebridge/android/UsbTransport.java"
+    ],
+    "related_mock_suites": [
+      "CoreTests",
+      "UiSafetyTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed",
+    "runtime_evidence": [
+      {
+        "candidate_sha256": "60cff683826f293861d0eab5fff004c52b8f957e35f5e19b2b62f396c3578bda",
+        "scope": "Passive interface prefix suggestion and Cancel verified; no LAN scan executed.",
+        "report": "build/emulator-qa-v8/API26_V8_REPORT.md",
+        "run": "api26-min19-v8"
+      }
+    ]
+  },
+  {
+    "id": "CON-10",
+    "feature": "连接历史/自动补全",
+    "evidence": "L:a4 AutoCompleteTextView；D:c.c.a.i“历史记录为空”；ConnectActivity SharedPreferences字段；C/R/N",
+    "acceptance": "连接成功后是否入历史、排序、持久化与清理方式需D。独立实现可提供可删除历史，不保存敏感配对码。",
+    "implementation_status": "implemented",
+    "runtime_status": "not-run",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "core/src/main/java/io/github/devicebridge/core/AdbSession.java",
+      "app/src/main/java/io/github/devicebridge/android/UsbTransport.java"
+    ],
+    "related_mock_suites": [
+      "CoreTests",
+      "UiSafetyTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "CON-11",
+    "feature": "连接错误/重复连接/授权状态反馈",
+    "evidence": "D:c.c.a.p/w：failed to connect/authenticate、already connected、timeout/refused/no route、unauthorized；C",
+    "acceptance": "拒绝/超时/重复连接均结束loading、正确说明原因，可重试或取消，不显示假成功。",
+    "implementation_status": "implemented",
+    "runtime_status": "tested-on-emulator-partial",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "core/src/main/java/io/github/devicebridge/core/AdbSession.java",
+      "app/src/main/java/io/github/devicebridge/android/UsbTransport.java"
+    ],
+    "related_mock_suites": [
+      "CoreTests",
+      "UiSafetyTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed",
+    "runtime_evidence": [
+      {
+        "candidate_sha256": "05b8ef79ba9801978c9afbc09ef1d526961499a419554375b7889ad9c460d8f5",
+        "scope": "Connection refusal and missing USB error paths",
+        "report": "build/emulator-qa/UI_QA_REPORT.md",
+        "run": "api26-initial-review"
+      }
+    ]
+  },
+  {
+    "id": "CON-12",
+    "feature": "USB拔出反馈",
+    "evidence": "string/hs `0x7f11013a`；Connect/Main BroadcastReceiver字段；R/N",
+    "acceptance": "拔线后中止相关任务并更新状态；实际广播处理 native 待D，不把该字符串单独当完成实现。",
+    "implementation_status": "implemented",
+    "runtime_status": "not-run",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "core/src/main/java/io/github/devicebridge/core/AdbSession.java",
+      "app/src/main/java/io/github/devicebridge/android/UsbTransport.java"
+    ],
+    "related_mock_suites": [
+      "CoreTests",
+      "UiSafetyTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "CON-13",
+    "feature": "Fastboot与设置快捷入口",
+    "evidence": "M:g items `0x7f09003e`,`0x7f090048`；Manifest对应Activity；R/N",
+    "acceptance": "未连ADB时也能进入对应页；Fastboot页独立识别USB模式，详见FB。",
+    "implementation_status": "implemented",
+    "runtime_status": "tested-on-emulator-partial",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "core/src/main/java/io/github/devicebridge/core/AdbSession.java",
+      "app/src/main/java/io/github/devicebridge/android/UsbTransport.java"
+    ],
+    "related_mock_suites": [
+      "CoreTests",
+      "UiSafetyTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed",
+    "runtime_evidence": [
+      {
+        "candidate_sha256": "05b8ef79ba9801978c9afbc09ef1d526961499a419554375b7889ad9c460d8f5",
+        "scope": "Fastboot and settings shortcuts; no Fastboot hardware connected",
+        "report": "build/emulator-qa/UI_QA_REPORT.md",
+        "run": "api26-initial-review"
+      }
+    ]
+  },
+  {
+    "id": "INFO-01",
+    "feature": "概览：厂商/型号、Android版本、屏幕分辨率、CPU、RAM、存储总量/可用及图形",
+    "evidence": "D:c.c.a.v3.j0.e；L:bm `0x7f0c0056`；C/R",
+    "acceptance": "至少两种厂商设备；读取值来自当前设备，XML中Xiaomi/Android11/4GB仅占位。字节单位和进度百分比一致。",
+    "implementation_status": "implemented",
+    "runtime_status": "tested-on-emulator-partial",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "app/src/main/java/io/github/devicebridge/android/DeviceInfoView.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceCommands.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceParsers.java"
+    ],
+    "related_mock_suites": [
+      "DomainTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed",
+    "runtime_evidence": [
+      {
+        "candidate_sha256": "05b8ef79ba9801978c9afbc09ef1d526961499a419554375b7889ad9c460d8f5",
+        "scope": "Actual model/API26/x86/resolution/memory/storage card",
+        "report": "build/emulator-qa/UI_QA_REPORT.md",
+        "run": "api26-initial-review"
+      }
+    ]
+  },
+  {
+    "id": "INFO-02",
+    "feature": "系统：产品代号、序列号、API、安全补丁、Fingerprint",
+    "evidence": "D:v3.j0.a lines163–169；string IDs `0x7f1100ea`,`0x7f11010c`,`0x7f11010a`；C",
+    "acceptance": "字段缺失以未知/未提供呈现，不能显示上一设备数据；序列号不默认上传外部服务。",
+    "implementation_status": "implemented",
+    "runtime_status": "tested-on-emulator-partial",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "app/src/main/java/io/github/devicebridge/android/DeviceInfoView.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceCommands.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceParsers.java"
+    ],
+    "related_mock_suites": [
+      "DomainTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed",
+    "runtime_evidence": [
+      {
+        "candidate_sha256": "05b8ef79ba9801978c9afbc09ef1d526961499a419554375b7889ad9c460d8f5",
+        "scope": "Read actual getprop system fields",
+        "report": "build/emulator-qa/UI_QA_REPORT.md",
+        "run": "api26-initial-review"
+      },
+      {
+        "candidate_sha256": "d505eaf9a5e6225e58b6645ea6580891d686c8021b79dce9d16eaa9f65759fe4",
+        "scope": "Actual SDK19 properties read.",
+        "report": "../device_bridge_api19_qa/API19_QA.md",
+        "run": "api19-min19-v4"
+      }
+    ]
+  },
+  {
+    "id": "INFO-03",
+    "feature": "CPU架构、核心数、指令集",
+    "evidence": "D:v3.j0.d.L0、j0.a；strings `0x7f1100e9`,`0x7f11004b`,`0x7f11001b`；C",
+    "acceptance": "对多核、异构、缺少Processor字段的输出正确解析，展示受支持ABIs。",
+    "implementation_status": "implemented",
+    "runtime_status": "tested-on-emulator-partial",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "app/src/main/java/io/github/devicebridge/android/DeviceInfoView.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceCommands.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceParsers.java"
+    ],
+    "related_mock_suites": [
+      "DomainTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed",
+    "runtime_evidence": [
+      {
+        "candidate_sha256": "05b8ef79ba9801978c9afbc09ef1d526961499a419554375b7889ad9c460d8f5",
+        "scope": "Read actual CPU/ABI fields",
+        "report": "build/emulator-qa/UI_QA_REPORT.md",
+        "run": "api26-initial-review"
+      }
+    ]
+  },
+  {
+    "id": "INFO-04",
+    "feature": "屏幕：像素密度、PPI、估算英寸",
+    "evidence": "D:v3.j0.d.N0、j0.a；strings `0x7f110106`,`0x7f110107`；C",
+    "acceptance": "显示物理/覆盖值来源，大小是估算需标示；旋转、缺失PPI/无覆盖density不崩溃。",
+    "implementation_status": "implemented",
+    "runtime_status": "not-run",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "app/src/main/java/io/github/devicebridge/android/DeviceInfoView.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceCommands.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceParsers.java"
+    ],
+    "related_mock_suites": [
+      "DomainTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "INFO-05",
+    "feature": "存储：系统分区与内部空间",
+    "evidence": "D:v3.j0.d.M0/P0、j0.a；strings `0x7f11012c`,`0x7f11006c`；C",
+    "acceptance": "df不同格式、容量单位、不可访问分区均有稳定结果；只读，不需要破坏性操作。",
+    "implementation_status": "implemented",
+    "runtime_status": "tested-on-emulator-partial",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "app/src/main/java/io/github/devicebridge/android/DeviceInfoView.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceCommands.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceParsers.java"
+    ],
+    "related_mock_suites": [
+      "DomainTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed",
+    "runtime_evidence": [
+      {
+        "candidate_sha256": "05b8ef79ba9801978c9afbc09ef1d526961499a419554375b7889ad9c460d8f5",
+        "scope": "Read actual emulator storage information",
+        "report": "build/emulator-qa/UI_QA_REPORT.md",
+        "run": "api26-initial-review"
+      },
+      {
+        "candidate_sha256": "61e2e94e0e2c774ce9c83a7c533f2233a5b64589d6cb76f31df8d5e7cd2b5f97",
+        "scope": "Real legacy df /data returns one rounded storage record with explicit Free/reserved-block distinction.",
+        "report": "../device_bridge_api19_qa/API19_QA.md",
+        "run": "api19-min19-v5"
+      },
+      {
+        "candidate_sha256": "824c2751c6087c8ebb978d8bb7ac2d6b8f214d5d9d27ca0384bbbf136e973115",
+        "scope": "Actual legacy df six storage records parsed with approximate/Free labels.",
+        "report": "../device_bridge_api19_qa/API19_QA.md",
+        "run": "api19-min19-v7"
+      }
+    ]
+  },
+  {
+    "id": "INFO-06",
+    "feature": "网络：移动类型、运营商、移动IP、SSID、Wi-Fi IP",
+    "evidence": "D:v3.j0.d.K0、j0.a；strings `0x7f1100b6`,`0x7f1100c9`,`0x7f11008e`,`0x7f110144`,`0x7f110142`；C",
+    "acceptance": "无SIM、无Wi-Fi、IPv6/多个地址处理；权限无法读取时明确“不可用”。",
+    "implementation_status": "implemented",
+    "runtime_status": "tested-on-emulator-partial",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "app/src/main/java/io/github/devicebridge/android/DeviceInfoView.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceCommands.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceParsers.java"
+    ],
+    "related_mock_suites": [
+      "DomainTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed",
+    "runtime_evidence": [
+      {
+        "candidate_sha256": "05b8ef79ba9801978c9afbc09ef1d526961499a419554375b7889ad9c460d8f5",
+        "scope": "Read actual network information; cellular/realWiFi not available in this AVD",
+        "report": "build/emulator-qa/UI_QA_REPORT.md",
+        "run": "api26-initial-review"
+      }
+    ]
+  },
+  {
+    "id": "INFO-07",
+    "feature": "电池：电量、供电状态、电压、温度",
+    "evidence": "D:v3.j0.a，dumpsys battery；strings `0x7f11002f`,`0x7f110030`,`0x7f110140`,`0x7f11012e`；C",
+    "acceptance": "USB/交流/无线/未充电、温度10倍换算与mV单位，字段缺失不造值。",
+    "implementation_status": "implemented",
+    "runtime_status": "tested-on-emulator-partial",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "app/src/main/java/io/github/devicebridge/android/DeviceInfoView.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceCommands.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceParsers.java"
+    ],
+    "related_mock_suites": [
+      "DomainTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed",
+    "runtime_evidence": [
+      {
+        "candidate_sha256": "05b8ef79ba9801978c9afbc09ef1d526961499a419554375b7889ad9c460d8f5",
+        "scope": "Read actual emulator battery information",
+        "report": "build/emulator-qa/UI_QA_REPORT.md",
+        "run": "api26-initial-review"
+      }
+    ]
+  },
+  {
+    "id": "INFO-08",
+    "feature": "下拉刷新与加载",
+    "evidence": "L:b9 `0x7f0c0048`；D:v3.j0.d.P/I0；C/R",
+    "acceptance": "刷新重读数据，切换设备/中断连接后丢弃旧请求结果，loading可结束。",
+    "implementation_status": "implemented",
+    "runtime_status": "tested-on-emulator-partial",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "app/src/main/java/io/github/devicebridge/android/DeviceInfoView.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceCommands.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceParsers.java"
+    ],
+    "related_mock_suites": [
+      "DomainTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed",
+    "runtime_evidence": [
+      {
+        "candidate_sha256": "df2e4223791fcba0577a07e8ed4958c01819292c9bf7eed1cda59e20e8b4656a",
+        "scope": "Cancel real information reads and continue navigation without UI resource-close crash.",
+        "report": "build/emulator-qa/UI_QA_REPORT.md",
+        "run": "api26-min19-v2"
+      }
+    ]
+  },
+  {
+    "id": "TOOLS-01",
+    "feature": "开/关无线ADB调试",
+    "evidence": "D:v3.m0.z/a/d：查询service.adb.tcp.port、tcpip5555、usb；L:bd switch `0x7f090216`；C/R",
+    "acceptance": "当前设备通过USB授权；启用后用显示地址连接验证；关闭前说明现有无线会话会丢失，取消不改变设置。",
+    "implementation_status": "partial",
+    "runtime_status": "not-run",
+    "implementation_note": "原版样式状态开关已补入后续源码，按目标实际端口属性显示；最终APK及取消流程待复验。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceCommands.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceParsers.java"
+    ],
+    "related_mock_suites": [
+      "DomainTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "TOOLS-02",
+    "feature": "屏幕截图、预览与保存",
+    "evidence": "D:v3.m0.e/l、z；string `0x7f110104`；C",
+    "acceptance": "截图拉回本机并预览；保存目录存在/不可写、重名、拔线均验收；最终文件能打开且是当前设备画面。",
+    "implementation_status": "implemented",
+    "runtime_status": "tested-on-emulator-partial",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceCommands.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceParsers.java"
+    ],
+    "related_mock_suites": [
+      "DomainTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed",
+    "runtime_evidence": [
+      {
+        "candidate_sha256": "d505eaf9a5e6225e58b6645ea6580891d686c8021b79dce9d16eaa9f65759fe4",
+        "scope": "Production screenshot capture yields decoded480x800 PNG; this covers capture, not every save/share flow.",
+        "report": "../device_bridge_api19_qa/API19_QA.md",
+        "run": "api19-min19-v4"
+      },
+      {
+        "candidate_sha256": "824c2751c6087c8ebb978d8bb7ac2d6b8f214d5d9d27ca0384bbbf136e973115",
+        "scope": "Production screenshot capture yields decoded480x800 PNG; this covers capture, not every save/share flow.",
+        "report": "../device_bridge_api19_qa/API19_QA.md",
+        "run": "api19-min19-v7"
+      }
+    ]
+  },
+  {
+    "id": "TOOLS-03",
+    "feature": "高级重启：正常、Recovery、Bootloader/Fastboot",
+    "evidence": "D:v3.m0.p/s/d；string `0x7f110020`,`0x7f1100ed`,`0x7f1100ec`；C",
+    "acceptance": "用户明确确认目标与模式后发送一次；取消零指令；测试设备重连状态，不声称所有OEM都有相同模式。",
+    "implementation_status": "implemented",
+    "runtime_status": "not-run",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceCommands.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceParsers.java"
+    ],
+    "related_mock_suites": [
+      "DomainTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "TOOLS-04",
+    "feature": "激活需要ADB权限的应用",
+    "evidence": "D:v3.m0.z/j，L:bh button `0x7f09005d`；C/R",
+    "acceptance": "按目标已安装包筛选，显示将授权/运行的具体步骤；不把“激活”混作原应用高级版授权。各第三方当前协议需独立核验。",
+    "implementation_status": "partial",
+    "runtime_status": "not-run",
+    "implementation_note": "当前官方确认4个预设，另3个保留阻塞原因，不能宣称全部一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceCommands.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceParsers.java",
+      "core/src/main/java/io/github/devicebridge/core/ActivationPresets.java"
+    ],
+    "related_mock_suites": [
+      "DomainTests",
+      "ActivationTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "TOOLS-04A",
+    "feature": "Shizuku激活适配",
+    "evidence": "D:v3.m0.z.I0，包 `moe.shizuku.privileged.api`；代码文字；C",
+    "acceptance": "仅用户已安装相应软件并要求激活；验证已运行/缺失脚本/重启失效。旧版路径是历史证据，不保证新版兼容。",
+    "implementation_status": "implemented",
+    "runtime_status": "not-run",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceCommands.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceParsers.java",
+      "core/src/main/java/io/github/devicebridge/core/ActivationPresets.java"
+    ],
+    "related_mock_suites": [
+      "DomainTests",
+      "ActivationTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "TOOLS-04B",
+    "feature": "冰箱激活适配",
+    "evidence": "同上，`com.catchingnow.icebox`；C",
+    "acceptance": "单独检查安装/授权状态；成功以目标软件状态为准，不凭shell启动返回即成功。",
+    "implementation_status": "implemented",
+    "runtime_status": "not-run",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceCommands.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceParsers.java",
+      "core/src/main/java/io/github/devicebridge/core/ActivationPresets.java"
+    ],
+    "related_mock_suites": [
+      "DomainTests",
+      "ActivationTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "TOOLS-04C",
+    "feature": "黑阈激活适配",
+    "evidence": "同上，`me.piebridge.brevent`；C",
+    "acceptance": "同前；包/版本不匹配明确提示。",
+    "implementation_status": "implemented",
+    "runtime_status": "not-run",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceCommands.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceParsers.java",
+      "core/src/main/java/io/github/devicebridge/core/ActivationPresets.java"
+    ],
+    "related_mock_suites": [
+      "DomainTests",
+      "ActivationTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "TOOLS-04D",
+    "feature": "小黑屋激活适配",
+    "evidence": "同上，`web1n.stopapp`；C",
+    "acceptance": "同前，不自动下载或执行第三方未知脚本。",
+    "implementation_status": "partial",
+    "runtime_status": "not-run",
+    "implementation_note": "当前小黑屋官方模式与原版旧starter脚本不同，独立标示。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceCommands.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceParsers.java",
+      "core/src/main/java/io/github/devicebridge/core/ActivationPresets.java"
+    ],
+    "related_mock_suites": [
+      "DomainTests",
+      "ActivationTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "TOOLS-04E",
+    "feature": "权限狗激活适配",
+    "evidence": "同上，`com.web1n.permissiondog`；C",
+    "acceptance": "同前，权限影响需用户确认。",
+    "implementation_status": "not_implemented",
+    "runtime_status": "not-run",
+    "implementation_note": "缺少当前官方权限狗激活方案，保留历史证据但不猜测执行。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceCommands.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceParsers.java",
+      "core/src/main/java/io/github/devicebridge/core/ActivationPresets.java"
+    ],
+    "related_mock_suites": [
+      "DomainTests",
+      "ActivationTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "TOOLS-04F",
+    "feature": "安装狮设备管理员/所有者适配",
+    "evidence": "同上，`com.modosa.apkinstaller`，device-owner命令；C",
+    "acceptance": "这是管理权限变化，独立明确授权与设备条件校验；不作为普通无风险激活。失败保留原因。",
+    "implementation_status": "not_implemented",
+    "runtime_status": "not-run",
+    "implementation_note": "安装狮设备所有者授权缺完整官方命令/条件/撤销依据，禁止冒险执行。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceCommands.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceParsers.java",
+      "core/src/main/java/io/github/devicebridge/core/ActivationPresets.java"
+    ],
+    "related_mock_suites": [
+      "DomainTests",
+      "ActivationTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "TOOLS-04G",
+    "feature": "Scene5激活适配",
+    "evidence": "同上，`com.omarea.vtools`；C",
+    "acceptance": "同前；新实现自主适配，不能承诺旧启动路径仍有效。",
+    "implementation_status": "not_implemented",
+    "runtime_status": "not-run",
+    "implementation_note": "Scene5当前/历史版本启动脚本适配未取得充分官方核验。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceCommands.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceParsers.java",
+      "core/src/main/java/io/github/devicebridge/core/ActivationPresets.java"
+    ],
+    "related_mock_suites": [
+      "DomainTests",
+      "ActivationTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "TOOLS-05",
+    "feature": "修改DPI",
+    "evidence": "D:v3.m0.b/u/d；string `0x7f110062`；C/R",
+    "acceptance": "展示当前值，正整数边界校验、改变前警告、取消零改动；改后读取验证，独立实现应提供恢复默认的安全方案（原版恢复入口未证实）。",
+    "implementation_status": "implemented",
+    "runtime_status": "not-run",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceCommands.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceParsers.java"
+    ],
+    "related_mock_suites": [
+      "DomainTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "TOOLS-06",
+    "feature": "修改屏幕分辨率",
+    "evidence": "D:v3.m0.c/v；L:b3 `0x7f0c0042`；C/R",
+    "acceptance": "输入宽×高；拒绝空/非整数/不合理尺寸，执行后读取验证；独立实现需预设回退方案，原版复原按钮未证实。",
+    "implementation_status": "implemented",
+    "runtime_status": "not-run",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceCommands.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceParsers.java"
+    ],
+    "related_mock_suites": [
+      "DomainTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "TOOLS-07",
+    "feature": "窗口/过渡/动画时长三种缩放",
+    "evidence": "D:v3.m0.w/d0；L:ar `0x7f0c0036`，输入IDs `0x7f09029e`,`0x7f090258`,`0x7f090052`；C/R",
+    "acceptance": "读取三种当前比例；分别改变后核对系统值；取消不提交，非法/负数/极端值拒绝。",
+    "implementation_status": "implemented",
+    "runtime_status": "not-run",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceCommands.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceParsers.java"
+    ],
+    "related_mock_suites": [
+      "DomainTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "TOOLS-08",
+    "feature": "熄屏待机：熄灭/点亮且尽量不锁屏",
+    "evidence": "D:v3.m0.h/i/z，scrcpy Server屏幕电源动作；代码文字；C",
+    "acceptance": "已授权设备验证投屏/控制状态与屏幕电源分离；按OEM限制报告结果，不将普通锁屏冒充熄屏控制。",
+    "implementation_status": "implemented",
+    "runtime_status": "not-run",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceCommands.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceParsers.java"
+    ],
+    "related_mock_suites": [
+      "DomainTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "TOOLS-09",
+    "feature": "墓碑模式/缓存应用冻结",
+    "evidence": "D:v3.m0.m/q/z，cached_apps_freezer读写；代码文字；C",
+    "acceptance": "显示支持性与当前值，选择后读回；不支持系统应禁用/说明，不能当所有Android版本可用。可选值的显示文字需继续D核对。",
+    "implementation_status": "implemented",
+    "runtime_status": "not-run",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceCommands.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceParsers.java"
+    ],
+    "related_mock_suites": [
+      "DomainTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "FILE-01",
+    "feature": "目标目录列表、进入文件夹、显示当前路径",
+    "evidence": "D:v3.k0.t.O0/n/v；L:b_ `0x7f0c0049` path `0x7f090285`；C/R",
+    "acceptance": "初始 `/sdcard`，目录/链接/普通文件清晰；空目录、权限拒绝、空格/中文/特殊字符名正确处理。",
+    "implementation_status": "implemented",
+    "runtime_status": "tested-on-emulator-partial",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "app/src/main/java/io/github/devicebridge/android/LocalFilesActivity.java",
+      "app/src/main/java/io/github/devicebridge/android/Compatibility.java",
+      "app/src/main/java/io/github/devicebridge/android/LocalSnapshot.java",
+      "core/src/main/java/io/github/devicebridge/core/SyncClient.java",
+      "core/src/main/java/io/github/devicebridge/core/VerifiedFileTransfer.java",
+      "server/src/io/github/devicebridge/server/FileCommitServer.java"
+    ],
+    "related_mock_suites": [
+      "ProtocolTests",
+      "UiSafetyTests",
+      "FileTransferTests",
+      "FileCommitServerTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed",
+    "runtime_evidence": [
+      {
+        "candidate_sha256": "05b8ef79ba9801978c9afbc09ef1d526961499a419554375b7889ad9c460d8f5",
+        "scope": "Real SYNC listing and navigation",
+        "report": "build/emulator-qa/UI_QA_REPORT.md",
+        "run": "api26-initial-review"
+      }
+    ]
+  },
+  {
+    "id": "FILE-02",
+    "feature": "返回上级、返回sdcard、下拉刷新",
+    "evidence": "D:v3.k0.t；L:b_ `0x7f090066`,`0x7f090061`；C/R",
+    "acceptance": "根目录不越界；返回保留必要滚动位置；刷新不能清空仍有效的剪贴板状态。",
+    "implementation_status": "implemented",
+    "runtime_status": "not-run",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "app/src/main/java/io/github/devicebridge/android/LocalFilesActivity.java",
+      "app/src/main/java/io/github/devicebridge/android/Compatibility.java",
+      "app/src/main/java/io/github/devicebridge/android/LocalSnapshot.java",
+      "core/src/main/java/io/github/devicebridge/core/SyncClient.java",
+      "core/src/main/java/io/github/devicebridge/core/VerifiedFileTransfer.java",
+      "server/src/io/github/devicebridge/server/FileCommitServer.java"
+    ],
+    "related_mock_suites": [
+      "ProtocolTests",
+      "UiSafetyTests",
+      "FileTransferTests",
+      "FileCommitServerTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "FILE-03",
+    "feature": "显示/隐藏点开头文件",
+    "evidence": "M:i `0x7f090169`；D:v3.k0.t.Y/I0；SET-03；C/R",
+    "acceptance": "默认按设置；切换实时重载；.hidden与非点开头项目符合选择。",
+    "implementation_status": "implemented",
+    "runtime_status": "tested-on-emulator-partial",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "app/src/main/java/io/github/devicebridge/android/LocalFilesActivity.java",
+      "app/src/main/java/io/github/devicebridge/android/Compatibility.java",
+      "app/src/main/java/io/github/devicebridge/android/LocalSnapshot.java",
+      "core/src/main/java/io/github/devicebridge/core/SyncClient.java",
+      "core/src/main/java/io/github/devicebridge/core/VerifiedFileTransfer.java",
+      "server/src/io/github/devicebridge/server/FileCommitServer.java"
+    ],
+    "related_mock_suites": [
+      "ProtocolTests",
+      "UiSafetyTests",
+      "FileTransferTests",
+      "FileCommitServerTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed",
+    "runtime_evidence": [
+      {
+        "candidate_sha256": "05b8ef79ba9801978c9afbc09ef1d526961499a419554375b7889ad9c460d8f5",
+        "scope": "Hidden-file switch and real list visibility",
+        "report": "build/emulator-qa/UI_QA_REPORT.md",
+        "run": "api26-initial-review"
+      }
+    ]
+  },
+  {
+    "id": "FILE-04",
+    "feature": "按名称、类型、时间、大小排序",
+    "evidence": "M:j items `0x7f09016a`–`0x7f09016d`；D:v3.k0.t.Y；C/R",
+    "acceptance": "同值稳定排序，目录/链接/文件混合情况下规则固定；原版升降序切换与默认顺序需D。",
+    "implementation_status": "implemented",
+    "runtime_status": "not-run",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "app/src/main/java/io/github/devicebridge/android/LocalFilesActivity.java",
+      "app/src/main/java/io/github/devicebridge/android/Compatibility.java",
+      "app/src/main/java/io/github/devicebridge/android/LocalSnapshot.java",
+      "core/src/main/java/io/github/devicebridge/core/SyncClient.java",
+      "core/src/main/java/io/github/devicebridge/core/VerifiedFileTransfer.java",
+      "server/src/io/github/devicebridge/server/FileCommitServer.java"
+    ],
+    "related_mock_suites": [
+      "ProtocolTests",
+      "UiSafetyTests",
+      "FileTransferTests",
+      "FileCommitServerTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "FILE-05",
+    "feature": "多选、全选、反选、取消选择与数量提示",
+    "evidence": "L:b_ IDs `0x7f090064`,`0x7f090065`,`0x7f0900da`；D:v3.k0.t.L0/P0/R0；C/R",
+    "acceptance": "0/1/5/6/N项各状态，选择数准确；取消恢复普通操作，不能误删。原版操作限制见PRO-04。",
+    "implementation_status": "implemented",
+    "runtime_status": "not-run",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "app/src/main/java/io/github/devicebridge/android/LocalFilesActivity.java",
+      "app/src/main/java/io/github/devicebridge/android/Compatibility.java",
+      "app/src/main/java/io/github/devicebridge/android/LocalSnapshot.java",
+      "core/src/main/java/io/github/devicebridge/core/SyncClient.java",
+      "core/src/main/java/io/github/devicebridge/core/VerifiedFileTransfer.java",
+      "server/src/io/github/devicebridge/server/FileCommitServer.java"
+    ],
+    "related_mock_suites": [
+      "ProtocolTests",
+      "UiSafetyTests",
+      "FileTransferTests",
+      "FileCommitServerTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "FILE-06",
+    "feature": "单文件打开（下载临时文件后交给本机程序）",
+    "evidence": "D:v3.k0.n/b/t.M0，FileProvider ACTION_VIEW；string `0x7f1100c2`；C",
+    "acceptance": "支持有/无默认查看器，URI权限正确；完成下载才打开，失败不打开旧文件。",
+    "implementation_status": "implemented",
+    "runtime_status": "not-run",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "app/src/main/java/io/github/devicebridge/android/LocalFilesActivity.java",
+      "app/src/main/java/io/github/devicebridge/android/Compatibility.java",
+      "app/src/main/java/io/github/devicebridge/android/LocalSnapshot.java",
+      "core/src/main/java/io/github/devicebridge/core/SyncClient.java",
+      "core/src/main/java/io/github/devicebridge/core/VerifiedFileTransfer.java",
+      "server/src/io/github/devicebridge/server/FileCommitServer.java"
+    ],
+    "related_mock_suites": [
+      "ProtocolTests",
+      "UiSafetyTests",
+      "FileTransferTests",
+      "FileCommitServerTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "FILE-07",
+    "feature": "下载单个/多个文件到本机目录",
+    "evidence": "D:v3.k0.b/j、t；L:bf download `0x7f09005b`；C/R",
+    "acceptance": "选择本机目标目录；文件内容/哈希一致，目录下载策略、覆盖确认、进度与取消有明确定义。",
+    "implementation_status": "implemented",
+    "runtime_status": "tested-on-emulator-partial",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "app/src/main/java/io/github/devicebridge/android/LocalFilesActivity.java",
+      "app/src/main/java/io/github/devicebridge/android/Compatibility.java",
+      "app/src/main/java/io/github/devicebridge/android/LocalSnapshot.java",
+      "core/src/main/java/io/github/devicebridge/core/SyncClient.java",
+      "core/src/main/java/io/github/devicebridge/core/VerifiedFileTransfer.java",
+      "server/src/io/github/devicebridge/server/FileCommitServer.java"
+    ],
+    "related_mock_suites": [
+      "ProtocolTests",
+      "UiSafetyTests",
+      "FileTransferTests",
+      "FileCommitServerTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed",
+    "runtime_evidence": [
+      {
+        "candidate_sha256": "05b8ef79ba9801978c9afbc09ef1d526961499a419554375b7889ad9c460d8f5",
+        "scope": "Production transfer fixture: 131101-byte download, exact bytes and SHA256",
+        "report": "build/emulator-qa/UI_QA_REPORT.md",
+        "run": "api26-initial-review"
+      },
+      {
+        "candidate_sha256": "df2e4223791fcba0577a07e8ed4958c01819292c9bf7eed1cda59e20e8b4656a",
+        "scope": "Production 131101-byte download matches bytes/SHA256; no cleanup warning.",
+        "report": "build/emulator-qa/UI_QA_REPORT.md",
+        "run": "api26-min19-v2"
+      },
+      {
+        "candidate_sha256": "d505eaf9a5e6225e58b6645ea6580891d686c8021b79dce9d16eaa9f65759fe4",
+        "scope": "Production download131101 bytes exactly matches SHA256.",
+        "report": "../device_bridge_api19_qa/API19_QA.md",
+        "run": "api19-min19-v4"
+      },
+      {
+        "candidate_sha256": "824c2751c6087c8ebb978d8bb7ac2d6b8f214d5d9d27ca0384bbbf136e973115",
+        "scope": "131101-byte production download, SHA256 and independent byte equality passed.",
+        "report": "../device_bridge_api19_qa/API19_QA.md",
+        "run": "api19-min19-v7"
+      },
+      {
+        "candidate_sha256": "824c2751c6087c8ebb978d8bb7ac2d6b8f214d5d9d27ca0384bbbf136e973115",
+        "scope": "131101-byte production binary download andSHA exact.",
+        "report": "build/emulator-qa-v7/API26_V7_REPORT.md",
+        "run": "api26-min19-v7"
+      },
+      {
+        "candidate_sha256": "60cff683826f293861d0eab5fff004c52b8f957e35f5e19b2b62f396c3578bda",
+        "scope": "131101-byte real production download, SHA256 and independent bytes match.",
+        "report": "build/emulator-qa-v8/API26_V8_REPORT.md",
+        "run": "api26-min19-v8"
+      }
+    ]
+  },
+  {
+    "id": "FILE-08",
+    "feature": "复制到内部选择剪贴板，粘贴到目标目录",
+    "evidence": "D:v3.k0.k/r；L:bf copy `0x7f090059`；string `0x7f1100d4`；C/R",
+    "acceptance": "源/目标含特殊字符；粘贴后源保留、内容一致；空剪贴板菜单不可点；覆盖不悄悄发生。",
+    "implementation_status": "implemented",
+    "runtime_status": "tested-on-emulator-partial",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "app/src/main/java/io/github/devicebridge/android/LocalFilesActivity.java",
+      "app/src/main/java/io/github/devicebridge/android/Compatibility.java",
+      "app/src/main/java/io/github/devicebridge/android/LocalSnapshot.java",
+      "core/src/main/java/io/github/devicebridge/core/SyncClient.java",
+      "core/src/main/java/io/github/devicebridge/core/VerifiedFileTransfer.java",
+      "server/src/io/github/devicebridge/server/FileCommitServer.java",
+      "app/src/main/java/io/github/devicebridge/android/FileCopyManager.java",
+      "server/src/io/github/devicebridge/server/FileCopyEngine.java",
+      "server/src/io/github/devicebridge/server/FileMoveEngine.java"
+    ],
+    "related_mock_suites": [
+      "ProtocolTests",
+      "UiSafetyTests",
+      "FileTransferTests",
+      "FileCommitServerTests",
+      "FileCopyEngineTests",
+      "FileMoveEngineTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed",
+    "runtime_evidence": [
+      {
+        "candidate_sha256": "824c2751c6087c8ebb978d8bb7ac2d6b8f214d5d9d27ca0384bbbf136e973115",
+        "scope": "Actual FileCopyManager six-entry ordinary nested tree includes empty directory, Chinese/space/quote names and131101-byte data. Each receipt/hash checked; independentSYNC bytes match. Retry existing destination leaves it unchanged. JournalProbe9 checks pass.",
+        "report": "../device_bridge_api19_qa/API19_QA.md",
+        "run": "api19-min19-v7"
+      },
+      {
+        "candidate_sha256": "824c2751c6087c8ebb978d8bb7ac2d6b8f214d5d9d27ca0384bbbf136e973115",
+        "scope": "Six-entry production recursivecopy, empty/nested dirs,65539-byte binary and Chinese/space/quote filename; receipts and independentSYNC bytes exact. Existing directory/file conflicts preserved.",
+        "report": "build/emulator-qa-v7/API26_V7_REPORT.md",
+        "run": "api26-min19-v7"
+      },
+      {
+        "candidate_sha256": "60cff683826f293861d0eab5fff004c52b8f957e35f5e19b2b62f396c3578bda",
+        "scope": "Production six-entry ordinary tree copy; receipts, SHA256 and independent SYNC bytes match; existing file/directory conflicts preserved.",
+        "report": "build/emulator-qa-v8/API26_V8_REPORT.md",
+        "run": "api26-min19-v8"
+      }
+    ]
+  },
+  {
+    "id": "FILE-09",
+    "feature": "剪切后粘贴移动",
+    "evidence": "D:v3.k0.g/r；L:bf cut `0x7f09005a`；C/R",
+    "acceptance": "成功后源消失、目标完整；跨存储/目标存在/中断时不误报成功，不丢失待移动源。",
+    "implementation_status": "partial",
+    "runtime_status": "tested-on-emulator-partial",
+    "implementation_note": "现代移动已增加精确对象/文件hash后置核验；API<23移动明确拒绝，跨文件系统结果保持UNKNOWN。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "app/src/main/java/io/github/devicebridge/android/LocalFilesActivity.java",
+      "app/src/main/java/io/github/devicebridge/android/Compatibility.java",
+      "app/src/main/java/io/github/devicebridge/android/LocalSnapshot.java",
+      "core/src/main/java/io/github/devicebridge/core/SyncClient.java",
+      "core/src/main/java/io/github/devicebridge/core/VerifiedFileTransfer.java",
+      "server/src/io/github/devicebridge/server/FileCommitServer.java",
+      "app/src/main/java/io/github/devicebridge/android/FileCopyManager.java",
+      "server/src/io/github/devicebridge/server/FileCopyEngine.java",
+      "server/src/io/github/devicebridge/server/FileMoveEngine.java"
+    ],
+    "related_mock_suites": [
+      "ProtocolTests",
+      "UiSafetyTests",
+      "FileTransferTests",
+      "FileCommitServerTests",
+      "FileCopyEngineTests",
+      "FileMoveEngineTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed",
+    "runtime_evidence": [
+      {
+        "candidate_sha256": "824c2751c6087c8ebb978d8bb7ac2d6b8f214d5d9d27ca0384bbbf136e973115",
+        "scope": "API19 move explicitly NOT_EXECUTED and source unchanged; not a functioning legacy move acceptance.",
+        "report": "../device_bridge_api19_qa/API19_QA.md",
+        "run": "api19-min19-v7"
+      },
+      {
+        "candidate_sha256": "824c2751c6087c8ebb978d8bb7ac2d6b8f214d5d9d27ca0384bbbf136e973115",
+        "scope": "Actual same-filesystem ordinary file and directory moves VERIFIED, source absent and destination bytes checked; existing targetsNOT_EXECUTED with both sides preserved. No cleanup warning.",
+        "report": "build/emulator-qa-v7/API26_V7_REPORT.md",
+        "run": "api26-min19-v7"
+      },
+      {
+        "candidate_sha256": "60cff683826f293861d0eab5fff004c52b8f957e35f5e19b2b62f396c3578bda",
+        "scope": "Production same-filesystem file and directory moves VERIFIED; exact source absence/destination bytes verified; existing targets preserved.",
+        "report": "build/emulator-qa-v8/API26_V8_REPORT.md",
+        "run": "api26-min19-v8"
+      }
+    ]
+  },
+  {
+    "id": "FILE-10",
+    "feature": "删除及确认",
+    "evidence": "D:v3.k0.u/s/a；string `0x7f110127`；C",
+    "acceptance": "列出目标及不可恢复风险再确认；取消不执行；部分失败逐项报告。原版存在递归删除，不默认作为无风险操作。",
+    "implementation_status": "implemented",
+    "runtime_status": "tested-on-emulator-partial",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "app/src/main/java/io/github/devicebridge/android/LocalFilesActivity.java",
+      "app/src/main/java/io/github/devicebridge/android/Compatibility.java",
+      "app/src/main/java/io/github/devicebridge/android/LocalSnapshot.java",
+      "core/src/main/java/io/github/devicebridge/core/SyncClient.java",
+      "core/src/main/java/io/github/devicebridge/core/VerifiedFileTransfer.java",
+      "server/src/io/github/devicebridge/server/FileCommitServer.java"
+    ],
+    "related_mock_suites": [
+      "ProtocolTests",
+      "UiSafetyTests",
+      "FileTransferTests",
+      "FileCommitServerTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed",
+    "runtime_evidence": [
+      {
+        "candidate_sha256": "05b8ef79ba9801978c9afbc09ef1d526961499a419554375b7889ad9c460d8f5",
+        "scope": "Delete confirmation cancelled, no deletion executed",
+        "report": "build/emulator-qa/UI_QA_REPORT.md",
+        "run": "api26-initial-review"
+      },
+      {
+        "candidate_sha256": "824c2751c6087c8ebb978d8bb7ac2d6b8f214d5d9d27ca0384bbbf136e973115",
+        "scope": "Production rm-r with quoted absolute ordinary fixture path deletes only that created fixture; no path-mutation/escape testing.",
+        "report": "../device_bridge_api19_qa/API19_QA.md",
+        "run": "api19-min19-v7"
+      }
+    ]
+  },
+  {
+    "id": "FILE-11",
+    "feature": "单文件重命名",
+    "evidence": "D:v3.k0.s/c；D:b.s.m.F；string `0x7f1100f4`；C",
+    "acceptance": "恰好1项；>1项拒绝，空/路径分隔符/同名冲突校验；成功后列表与实际名称一致。",
+    "implementation_status": "partial",
+    "runtime_status": "tested-on-emulator-partial",
+    "implementation_note": "现代重命名加入精确后置核验；API<23仍有兼容缺口，不去掉无覆盖保护。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "app/src/main/java/io/github/devicebridge/android/LocalFilesActivity.java",
+      "app/src/main/java/io/github/devicebridge/android/Compatibility.java",
+      "app/src/main/java/io/github/devicebridge/android/LocalSnapshot.java",
+      "core/src/main/java/io/github/devicebridge/core/SyncClient.java",
+      "core/src/main/java/io/github/devicebridge/core/VerifiedFileTransfer.java",
+      "server/src/io/github/devicebridge/server/FileCommitServer.java",
+      "app/src/main/java/io/github/devicebridge/android/FileCopyManager.java",
+      "server/src/io/github/devicebridge/server/FileCopyEngine.java",
+      "server/src/io/github/devicebridge/server/FileMoveEngine.java"
+    ],
+    "related_mock_suites": [
+      "ProtocolTests",
+      "UiSafetyTests",
+      "FileTransferTests",
+      "FileCommitServerTests",
+      "FileCopyEngineTests",
+      "FileMoveEngineTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed",
+    "runtime_evidence": [
+      {
+        "candidate_sha256": "824c2751c6087c8ebb978d8bb7ac2d6b8f214d5d9d27ca0384bbbf136e973115",
+        "scope": "Same-file-system rename/move primitives above verified; all UI rename dialogs not separately exercised.",
+        "report": "build/emulator-qa-v7/API26_V7_REPORT.md",
+        "run": "api26-min19-v7"
+      },
+      {
+        "candidate_sha256": "60cff683826f293861d0eab5fff004c52b8f957e35f5e19b2b62f396c3578bda",
+        "scope": "Production same-filesystem move/rename primitives verified; not every UI rename flow.",
+        "report": "build/emulator-qa-v8/API26_V8_REPORT.md",
+        "run": "api26-min19-v8"
+      }
+    ]
+  },
+  {
+    "id": "FILE-12",
+    "feature": "单文件详情",
+    "evidence": "D:b.s.m.E、v3.k0.s；L:b6 `0x7f0c0045`；C/R",
+    "acceptance": "路径、类型、权限、所有者、组、大小、修改时间；>1项拒绝，链接与未知类型明确。",
+    "implementation_status": "implemented",
+    "runtime_status": "tested-on-emulator-partial",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "app/src/main/java/io/github/devicebridge/android/LocalFilesActivity.java",
+      "app/src/main/java/io/github/devicebridge/android/Compatibility.java",
+      "app/src/main/java/io/github/devicebridge/android/LocalSnapshot.java",
+      "core/src/main/java/io/github/devicebridge/core/SyncClient.java",
+      "core/src/main/java/io/github/devicebridge/core/VerifiedFileTransfer.java",
+      "server/src/io/github/devicebridge/server/FileCommitServer.java"
+    ],
+    "related_mock_suites": [
+      "ProtocolTests",
+      "UiSafetyTests",
+      "FileTransferTests",
+      "FileCommitServerTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed",
+    "runtime_evidence": [
+      {
+        "candidate_sha256": "05b8ef79ba9801978c9afbc09ef1d526961499a419554375b7889ad9c460d8f5",
+        "scope": "Actual file properties retrieved",
+        "report": "build/emulator-qa/UI_QA_REPORT.md",
+        "run": "api26-initial-review"
+      },
+      {
+        "candidate_sha256": "824c2751c6087c8ebb978d8bb7ac2d6b8f214d5d9d27ca0384bbbf136e973115",
+        "scope": "Actual MetadataServer kernel stat returns regular mode81b6, size131101, mtime/uid/gid.",
+        "report": "../device_bridge_api19_qa/API19_QA.md",
+        "run": "api19-min19-v7"
+      },
+      {
+        "candidate_sha256": "60cff683826f293861d0eab5fff004c52b8f957e35f5e19b2b62f396c3578bda",
+        "scope": "Own ordinary file details and raw stat UI displayed.",
+        "report": "build/emulator-qa-v8/API26_V8_REPORT.md",
+        "run": "api26-min19-v8"
+      }
+    ]
+  },
+  {
+    "id": "FILE-13",
+    "feature": "新建文件夹",
+    "evidence": "D:v3.k0.t$e/r/c；string `0x7f11004d`；C",
+    "acceptance": "当前目录+名称；新目录存在且空；已有同名、权限不足、特殊字符正确反馈。",
+    "implementation_status": "implemented",
+    "runtime_status": "tested-on-emulator-partial",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "app/src/main/java/io/github/devicebridge/android/LocalFilesActivity.java",
+      "app/src/main/java/io/github/devicebridge/android/Compatibility.java",
+      "app/src/main/java/io/github/devicebridge/android/LocalSnapshot.java",
+      "core/src/main/java/io/github/devicebridge/core/SyncClient.java",
+      "core/src/main/java/io/github/devicebridge/core/VerifiedFileTransfer.java",
+      "server/src/io/github/devicebridge/server/FileCommitServer.java"
+    ],
+    "related_mock_suites": [
+      "ProtocolTests",
+      "UiSafetyTests",
+      "FileTransferTests",
+      "FileCommitServerTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed",
+    "runtime_evidence": [
+      {
+        "candidate_sha256": "824c2751c6087c8ebb978d8bb7ac2d6b8f214d5d9d27ca0384bbbf136e973115",
+        "scope": "Production ordinary mkdir and fixture cleanup pass.",
+        "report": "../device_bridge_api19_qa/API19_QA.md",
+        "run": "api19-min19-v7"
+      }
+    ]
+  },
+  {
+    "id": "FILE-14",
+    "feature": "新建空文件",
+    "evidence": "同上；string `0x7f11004c`；C",
+    "acceptance": "创建后大小0；不得静默覆盖同名文件；失败保持原内容。",
+    "implementation_status": "implemented",
+    "runtime_status": "tested-on-emulator-partial",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "app/src/main/java/io/github/devicebridge/android/LocalFilesActivity.java",
+      "app/src/main/java/io/github/devicebridge/android/Compatibility.java",
+      "app/src/main/java/io/github/devicebridge/android/LocalSnapshot.java",
+      "core/src/main/java/io/github/devicebridge/core/SyncClient.java",
+      "core/src/main/java/io/github/devicebridge/core/VerifiedFileTransfer.java",
+      "server/src/io/github/devicebridge/server/FileCommitServer.java"
+    ],
+    "related_mock_suites": [
+      "ProtocolTests",
+      "UiSafetyTests",
+      "FileTransferTests",
+      "FileCommitServerTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed",
+    "runtime_evidence": [
+      {
+        "candidate_sha256": "824c2751c6087c8ebb978d8bb7ac2d6b8f214d5d9d27ca0384bbbf136e973115",
+        "scope": "Exclusive zero-byte upload/hash creates empty file.",
+        "report": "../device_bridge_api19_qa/API19_QA.md",
+        "run": "api19-min19-v7"
+      },
+      {
+        "candidate_sha256": "60cff683826f293861d0eab5fff004c52b8f957e35f5e19b2b62f396c3578bda",
+        "scope": "Normal cancellation and pending-confirmation rotation left no output. Rotation logged WindowLeaked in v8; fixed and separately retested in v9.",
+        "report": "build/emulator-qa-v8/API26_V8_REPORT.md",
+        "run": "api26-min19-v8"
+      },
+      {
+        "candidate_sha256": "89bc4d8a0805d965c6bf217c69575875f0c08a0bd593975bd7a4526c77efe20f",
+        "scope": "Actual pending create confirmation→rotation dismisses dialog without output; normal Cancel produces no file; normal Confirm creates zero-byte file verified by independent SYNC and SHA256. Three callback-count fixtures also pass; no WindowLeaked in final log.",
+        "report": "build/emulator-qa-v9/API26_V9_DIALOG_REPORT.md",
+        "run": "api26-dialog-v9"
+      }
+    ]
+  },
+  {
+    "id": "FILE-15",
+    "feature": "从本机上传",
+    "evidence": "D:v3.k0.t$e/r；FilePicker/Main.onActivityResult后续native；string `0x7f110138`；C/R/N",
+    "acceptance": "选本机文件→目标当前目录；多文件hash一致，空间不足/断线有明确部分结果。最终上传执行路径D。",
+    "implementation_status": "implemented",
+    "runtime_status": "tested-on-emulator-partial",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "app/src/main/java/io/github/devicebridge/android/LocalFilesActivity.java",
+      "app/src/main/java/io/github/devicebridge/android/Compatibility.java",
+      "app/src/main/java/io/github/devicebridge/android/LocalSnapshot.java",
+      "core/src/main/java/io/github/devicebridge/core/SyncClient.java",
+      "core/src/main/java/io/github/devicebridge/core/VerifiedFileTransfer.java",
+      "server/src/io/github/devicebridge/server/FileCommitServer.java"
+    ],
+    "related_mock_suites": [
+      "ProtocolTests",
+      "UiSafetyTests",
+      "FileTransferTests",
+      "FileCommitServerTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed",
+    "runtime_evidence": [
+      {
+        "candidate_sha256": "05b8ef79ba9801978c9afbc09ef1d526961499a419554375b7889ad9c460d8f5",
+        "scope": "Production upload 131101 bytes, exact bytes/SHA256; existing file refusal; precommit cancellation",
+        "report": "build/emulator-qa/UI_QA_REPORT.md",
+        "run": "api26-initial-review"
+      },
+      {
+        "candidate_sha256": "df2e4223791fcba0577a07e8ed4958c01819292c9bf7eed1cda59e20e8b4656a",
+        "scope": "Production 131101-byte upload matches SHA256; existing ordinary file unchanged; precommit cancellation leaves no destination.",
+        "report": "build/emulator-qa/UI_QA_REPORT.md",
+        "run": "api26-min19-v2"
+      },
+      {
+        "candidate_sha256": "d505eaf9a5e6225e58b6645ea6580891d686c8021b79dce9d16eaa9f65759fe4",
+        "scope": "Production upload131101 bytes, ordinary existing destination refusal and precommit cancellation pass; fixture cleanup0.",
+        "report": "../device_bridge_api19_qa/API19_QA.md",
+        "run": "api19-min19-v4"
+      },
+      {
+        "candidate_sha256": "824c2751c6087c8ebb978d8bb7ac2d6b8f214d5d9d27ca0384bbbf136e973115",
+        "scope": "131101-byte production upload/hash, existing ordinary file preservation, precommit cancellation passed.",
+        "report": "../device_bridge_api19_qa/API19_QA.md",
+        "run": "api19-min19-v7"
+      },
+      {
+        "candidate_sha256": "824c2751c6087c8ebb978d8bb7ac2d6b8f214d5d9d27ca0384bbbf136e973115",
+        "scope": "131101-byte production upload andSHA; existing-file unchanged; precommitcancelNOT_COMMITTED and nofinaltarget.",
+        "report": "build/emulator-qa-v7/API26_V7_REPORT.md",
+        "run": "api26-min19-v7"
+      },
+      {
+        "candidate_sha256": "60cff683826f293861d0eab5fff004c52b8f957e35f5e19b2b62f396c3578bda",
+        "scope": "Production upload/hash, ordinary no-overwrite, precommit cancellation NOT_COMMITTED with no final target.",
+        "report": "build/emulator-qa-v8/API26_V8_REPORT.md",
+        "run": "api26-min19-v8"
+      }
+    ]
+  },
+  {
+    "id": "FILE-16",
+    "feature": "本机通用文件/文件夹/APK/镜像选择器",
+    "evidence": "D:FilePickerActivity.x/onClick/onBackPressed；L:a7 `0x7f0c0021`；C/R",
+    "acceptance": "各picker_mode对应选择范围；返回/取消不得当选中；目录记忆恢复，权限拒绝可重试；不要沿用旧版随意全盘权限模式。",
+    "implementation_status": "implemented",
+    "runtime_status": "tested-on-emulator-partial",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "app/src/main/java/io/github/devicebridge/android/LocalFilesActivity.java",
+      "app/src/main/java/io/github/devicebridge/android/Compatibility.java",
+      "app/src/main/java/io/github/devicebridge/android/LocalSnapshot.java",
+      "core/src/main/java/io/github/devicebridge/core/SyncClient.java",
+      "core/src/main/java/io/github/devicebridge/core/VerifiedFileTransfer.java",
+      "server/src/io/github/devicebridge/server/FileCommitServer.java"
+    ],
+    "related_mock_suites": [
+      "ProtocolTests",
+      "UiSafetyTests",
+      "FileTransferTests",
+      "FileCommitServerTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed",
+    "runtime_evidence": [
+      {
+        "candidate_sha256": "df2e4223791fcba0577a07e8ed4958c01819292c9bf7eed1cda59e20e8b4656a",
+        "scope": "Actual picker file and directory tokens plus queued-confirmation cancellation: three ordinary cases pass.",
+        "report": "build/emulator-qa/UI_QA_REPORT.md",
+        "run": "api26-min19-v2"
+      }
+    ]
+  },
+  {
+    "id": "FILE-17",
+    "feature": "本机列表排序与上次目录",
+    "evidence": "D:FilePickerActivity.A/B/z，`last_used_directory{mode}`；C",
+    "acceptance": "中文/英文名称，文件夹优先逻辑核对；上次目录不存在时安全退回允许根目录。",
+    "implementation_status": "implemented",
+    "runtime_status": "not-run",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "app/src/main/java/io/github/devicebridge/android/LocalFilesActivity.java",
+      "app/src/main/java/io/github/devicebridge/android/Compatibility.java",
+      "app/src/main/java/io/github/devicebridge/android/LocalSnapshot.java",
+      "core/src/main/java/io/github/devicebridge/core/SyncClient.java",
+      "core/src/main/java/io/github/devicebridge/core/VerifiedFileTransfer.java",
+      "server/src/io/github/devicebridge/server/FileCommitServer.java"
+    ],
+    "related_mock_suites": [
+      "ProtocolTests",
+      "UiSafetyTests",
+      "FileTransferTests",
+      "FileCommitServerTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "APP-01",
+    "feature": "应用列表：图标/名称/包名/启用状态",
+    "evidence": "D:v3.i0.p/q/r/v；L:bj `0x7f0c0053`；C/R/N",
+    "acceptance": "目标设备读取列表；无图标有占位，加载完成后同包不重复，停用标记正确。详尽列表加载有native部分。",
+    "implementation_status": "implemented",
+    "runtime_status": "tested-on-emulator-partial",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceCommands.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceParsers.java"
+    ],
+    "related_mock_suites": [
+      "DomainTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed",
+    "runtime_evidence": [
+      {
+        "candidate_sha256": "05b8ef79ba9801978c9afbc09ef1d526961499a419554375b7889ad9c460d8f5",
+        "scope": "Real Android System labels and icon metadata; no package-only fallback",
+        "report": "build/emulator-qa/UI_QA_REPORT.md",
+        "run": "api26-initial-review"
+      },
+      {
+        "candidate_sha256": "df2e4223791fcba0577a07e8ed4958c01819292c9bf7eed1cda59e20e8b4656a",
+        "scope": "Real labels/icons return; metadata helper/ART workspaces cleaned with audit.",
+        "report": "build/emulator-qa/UI_QA_REPORT.md",
+        "run": "api26-min19-v2"
+      },
+      {
+        "candidate_sha256": "d505eaf9a5e6225e58b6645ea6580891d686c8021b79dce9d16eaa9f65759fe4",
+        "scope": "Bundled production helper returns69 packages with real Chinese label and PNG icon.",
+        "report": "../device_bridge_api19_qa/API19_QA.md",
+        "run": "api19-min19-v4"
+      },
+      {
+        "candidate_sha256": "824c2751c6087c8ebb978d8bb7ac2d6b8f214d5d9d27ca0384bbbf136e973115",
+        "scope": "Actual metadata helper package labels/icons and launcher metadata read.",
+        "report": "../device_bridge_api19_qa/API19_QA.md",
+        "run": "api19-min19-v7"
+      }
+    ]
+  },
+  {
+    "id": "APP-02",
+    "feature": "四类筛选：系统、第三方、启用、禁用",
+    "evidence": "M:b IDs `0x7f090160`,`0x7f090161`,`0x7f09015f`,`0x7f09015e`；D:v3.i0.r.Y；C/R",
+    "acceptance": "四开关组合与真值一致，清空条件显示空态，不混淆两个维度。",
+    "implementation_status": "implemented",
+    "runtime_status": "not-run",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceCommands.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceParsers.java"
+    ],
+    "related_mock_suites": [
+      "DomainTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "APP-03",
+    "feature": "按包名、名称、启用状态排序",
+    "evidence": "M:e IDs `0x7f09015b`,`0x7f090159`,`0x7f090162`；D:v3.i0.r.Y；C/R",
+    "acceptance": "同名、多语言、缺失标签及停用项稳定排序。",
+    "implementation_status": "implemented",
+    "runtime_status": "not-run",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceCommands.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceParsers.java"
+    ],
+    "related_mock_suites": [
+      "DomainTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "APP-04",
+    "feature": "“只加载包名”快速模式",
+    "evidence": "M:c `0x7f09015a`；D:v3.i0.r.Y；C/R/N",
+    "acceptance": "开启后无需完整图标/标签helper即可列包；切换与刷新正确；原版具体数据退化范围D。",
+    "implementation_status": "implemented",
+    "runtime_status": "not-run",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceCommands.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceParsers.java"
+    ],
+    "related_mock_suites": [
+      "DomainTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "APP-05",
+    "feature": "刷新应用列表",
+    "evidence": "M:c `0x7f09015c`；D:v3.i0.r.Y；C/R",
+    "acceptance": "安装/卸载/启停后刷新反映实际状态，失败不抹掉可信旧数据而假报空列表。",
+    "implementation_status": "implemented",
+    "runtime_status": "not-run",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceCommands.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceParsers.java"
+    ],
+    "related_mock_suites": [
+      "DomainTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "APP-06",
+    "feature": "按关键词搜索应用",
+    "evidence": "M:d `0x7f0901e5`；D:v3.i0.r.Y；L:aa说明；C/R/N",
+    "acceptance": "包名与名称的匹配规则明示；空查询恢复筛选；原版高级版门槛的实际菜单创建分支native，见PRO-02。",
+    "implementation_status": "implemented",
+    "runtime_status": "not-run",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceCommands.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceParsers.java"
+    ],
+    "related_mock_suites": [
+      "DomainTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "APP-07",
+    "feature": "详情：包名、APK大小、版本名、系统应用、min/target SDK、首次安装/更新、启动Activity",
+    "evidence": "D:v3.i0.f/v；string `0x7f110022`；C",
+    "acceptance": "选中一个包；值来自该包，时间本地化且不造数据；版本code虽模型读取但未在详情UI证实显示。",
+    "implementation_status": "implemented",
+    "runtime_status": "tested-on-emulator-partial",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceCommands.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceParsers.java"
+    ],
+    "related_mock_suites": [
+      "DomainTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed",
+    "runtime_evidence": [
+      {
+        "candidate_sha256": "05b8ef79ba9801978c9afbc09ef1d526961499a419554375b7889ad9c460d8f5",
+        "scope": "Actual version/minSdk/targetSdk fields shown",
+        "report": "build/emulator-qa/UI_QA_REPORT.md",
+        "run": "api26-initial-review"
+      },
+      {
+        "candidate_sha256": "d505eaf9a5e6225e58b6645ea6580891d686c8021b79dce9d16eaa9f65759fe4",
+        "scope": "API19 unavailable minSdk is explicitly marked, not a fabricated value.",
+        "report": "../device_bridge_api19_qa/API19_QA.md",
+        "run": "api19-min19-v4"
+      }
+    ]
+  },
+  {
+    "id": "APP-08",
+    "feature": "在目标设备启动应用",
+    "evidence": "D:v3.i0.a/f（am start），string `0x7f110089`；C",
+    "acceptance": "有可启动Activity且已启用才可点；成功以目标打开为准；无launcher/停用项明确禁用。",
+    "implementation_status": "implemented",
+    "runtime_status": "not-run",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceCommands.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceParsers.java"
+    ],
+    "related_mock_suites": [
+      "DomainTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "APP-09",
+    "feature": "启用/停用应用",
+    "evidence": "D:v3.i0.a/f/s；strings `0x7f110064`,`0x7f11005a`；C",
+    "acceptance": "准确显示当前状态，系统应用额外风险提示；确认后执行并刷新，取消零改动。",
+    "implementation_status": "implemented",
+    "runtime_status": "not-run",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceCommands.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceParsers.java"
+    ],
+    "related_mock_suites": [
+      "DomainTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "APP-10",
+    "feature": "卸载应用，可尝试保留数据",
+    "evidence": "D:v3.i0.f/t，pm uninstall、-k、API21+user0分支；string `0x7f110135`,`0x7f110086`；C",
+    "acceptance": "明确目标用户与包名；系统应用单独警告；“保留数据”不保证所有系统支持。取消不卸载，结果读取核对。",
+    "implementation_status": "implemented",
+    "runtime_status": "tested-on-emulator-partial",
+    "implementation_note": "安装/卸载策略按目标SDK固定：API19/20明确全部用户；API21+限定用户0。分包在API<21拒绝，单split/无法判定manifest也不得在旧目标误当base安装。对应真实包变更需独立运行证据。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceCommands.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceParsers.java",
+      "core/src/main/java/io/github/devicebridge/core/PackageCommandStrategy.java",
+      "core/src/main/java/io/github/devicebridge/core/ApkManifestInspector.java"
+    ],
+    "related_mock_suites": [
+      "DomainTests",
+      "PackageCommandStrategyTests",
+      "ApkManifestInspectorTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed",
+    "runtime_evidence": [
+      {
+        "candidate_sha256": "60cff683826f293861d0eab5fff004c52b8f957e35f5e19b2b62f396c3578bda",
+        "scope": "Actual production UI uninstall of only newly created zero-permission/no-code fixture: all-user scope shown, Cancel preserves it, Confirm returns pm Success and independent query proves absence.",
+        "report": "../device_bridge_api19_qa/package_v8/result-readable.txt",
+        "run": "api19-package-v8"
+      }
+    ]
+  },
+  {
+    "id": "APP-11",
+    "feature": "清除应用数据",
+    "evidence": "D:v3.i0.f/u（pm clear）；strings `0x7f11003d`,`0x7f11004f`；C",
+    "acceptance": "明确不可恢复的数据影响并确认；应用退出/数据重置实际验证，失败不报完成。",
+    "implementation_status": "implemented",
+    "runtime_status": "not-run",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceCommands.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceParsers.java"
+    ],
+    "related_mock_suites": [
+      "DomainTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "APP-12",
+    "feature": "下载安装包/导出APK",
+    "evidence": "D:v3.i0.a/f，FilePicker mode2；string `0x7f11005d`；C/N",
+    "acceptance": "选择保存目录，导出文件可被解析且属于所选包；split APK/多APK未证实支持，需明示限制。实际回传处理native待D。",
+    "implementation_status": "implemented",
+    "runtime_status": "not-run",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceCommands.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceParsers.java"
+    ],
+    "related_mock_suites": [
+      "DomainTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "APP-13",
+    "feature": "从本机APK文件安装",
+    "evidence": "D:v3.i0.j/o；string `0x7f11003b`；L:a7；C/R/N",
+    "acceptance": "选择可读APK，展示包名版本并确认；签名不兼容、降级、空间不足等错误可读；安装完成后列表核实。",
+    "implementation_status": "implemented",
+    "runtime_status": "tested-on-emulator-partial",
+    "implementation_note": "安装/卸载策略按目标SDK固定：API19/20明确全部用户；API21+限定用户0。分包在API<21拒绝，单split/无法判定manifest也不得在旧目标误当base安装。对应真实包变更需独立运行证据。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceCommands.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceParsers.java",
+      "core/src/main/java/io/github/devicebridge/core/PackageCommandStrategy.java",
+      "core/src/main/java/io/github/devicebridge/core/ApkManifestInspector.java"
+    ],
+    "related_mock_suites": [
+      "DomainTests",
+      "PackageCommandStrategyTests",
+      "ApkManifestInspectorTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed",
+    "runtime_evidence": [
+      {
+        "candidate_sha256": "60cff683826f293861d0eab5fff004c52b8f957e35f5e19b2b62f396c3578bda",
+        "scope": "Actual production UI installs only newly created zero-permission/no-code fixture on API19: all-user scope shown, Cancel leaves package absent/no stage; Confirm returns pm Success and independent query verifies fixture and zero permissions.",
+        "report": "../device_bridge_api19_qa/package_v8/result-readable.txt",
+        "run": "api19-package-v8"
+      }
+    ]
+  },
+  {
+    "id": "APP-14",
+    "feature": "从本机已安装应用选择并安装到目标",
+    "evidence": "Manifest AppPickerActivity；D:c.c.a.b返回selectedAPK_return；D:v3.i0.j/o；C/R/N",
+    "acceptance": "选中本机应用后确认目标安装；无源APK/分包情况不虚假成功；原版高级版门槛见PRO-05。",
+    "implementation_status": "implemented",
+    "runtime_status": "tested-on-emulator-partial",
+    "implementation_note": "0.1.1热修已整合：后台本机PackageManager列表/真实图标/搜索/选择、固定包版本和完整base/splits快照/hash；0.1.1及0.1.2候选01各有API26普通UI证据，0.1.2候选02只改触摸类未重跑选择器全套，API30/OEM权限仍受阻。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceCommands.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceParsers.java",
+      "core/src/main/java/io/github/devicebridge/core/PackageCommandStrategy.java",
+      "core/src/main/java/io/github/devicebridge/core/ApkManifestInspector.java"
+    ],
+    "related_mock_suites": [
+      "DomainTests",
+      "PackageCommandStrategyTests",
+      "ApkManifestInspectorTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed",
+    "runtime_evidence": [
+      {
+        "candidate_sha256": "60cff683826f293861d0eab5fff004c52b8f957e35f5e19b2b62f396c3578bda",
+        "scope": "API19 multi-split selection and a single real split manifest rejected before transfer; this validates refusal, not old-OS split support.",
+        "report": "../device_bridge_api19_qa/package_v8/result-readable.txt",
+        "run": "api19-package-v8"
+      },
+      {
+        "candidate_sha256": "c140b3684bb164bead7c72c297d3871662417d5d0b142be8945e23abf8009a18",
+        "scope": "Actual production local PackageManager list of 89 apps; light/dark real icons, long Chinese, search/empty, selection, fixed APK SHA256 confirmation and cancellation; Back/reopen and rotation recoverable; no API30/OEM acceptance. Only 0.1.1 hash, not proof for later 0.1.2 merge.",
+        "report": "../device_bridge_hotfix_localapps/build/api26-qa/RESULT.md",
+        "run": "api26-local-app-hotfix-0.1.1"
+      },
+      {
+        "candidate_sha256": "fb0333569047d43b57977245c487f8d08146d7d17b10825220531ec23fc7a634",
+        "scope": "Actual local 89-app icon list, Chinese search/empty, selection, fixed SHA review and cancellation; no modern OEM verification.",
+        "report": "build/api26-followup-v10/RESULT.md",
+        "run": "api26-navigation-server-0.1.2-candidate01"
+      }
+    ]
+  },
+  {
+    "id": "APP-15",
+    "feature": "恢复已移除的系统应用",
+    "evidence": "M:c `0x7f09015d`；D:v3.i0.r.Y/l/m，install-existing；C/R",
+    "acceptance": "列可恢复差集，用户选包并确认；仅仍存在系统镜像的包可恢复，不承诺恢复数据/下载新包。",
+    "implementation_status": "implemented",
+    "runtime_status": "tested-on-emulator-partial",
+    "implementation_note": "已移除系统包恢复仅在API26+使用官方install-existing；低版本明确说明不可用，未改用猜测命令。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceCommands.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceParsers.java",
+      "core/src/main/java/io/github/devicebridge/core/PackageCommandStrategy.java",
+      "core/src/main/java/io/github/devicebridge/core/ApkManifestInspector.java"
+    ],
+    "related_mock_suites": [
+      "DomainTests",
+      "PackageCommandStrategyTests",
+      "ApkManifestInspectorTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed",
+    "runtime_evidence": [
+      {
+        "candidate_sha256": "60cff683826f293861d0eab5fff004c52b8f957e35f5e19b2b62f396c3578bda",
+        "scope": "API19 restore explicitly rejected before transfer; no install-existing support claimed.",
+        "report": "../device_bridge_api19_qa/package_v8/result-readable.txt",
+        "run": "api19-package-v8"
+      }
+    ]
+  },
+  {
+    "id": "PROC-01",
+    "feature": "设备RAM总量、已用、可用及进度",
+    "evidence": "D:v3.l0.l/d/j；L:br `0x7f0c005b`；C/R",
+    "acceptance": "读取当前meminfo；单位换算与合计一致，不能使用4GB占位值。",
+    "implementation_status": "implemented",
+    "runtime_status": "tested-on-emulator-partial",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceCommands.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceParsers.java"
+    ],
+    "related_mock_suites": [
+      "DomainTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed",
+    "runtime_evidence": [
+      {
+        "candidate_sha256": "05b8ef79ba9801978c9afbc09ef1d526961499a419554375b7889ad9c460d8f5",
+        "scope": "Summarized RAM no longer crowds out process list",
+        "report": "build/emulator-qa/UI_QA_REPORT.md",
+        "run": "api26-initial-review"
+      },
+      {
+        "candidate_sha256": "df2e4223791fcba0577a07e8ed4958c01819292c9bf7eed1cda59e20e8b4656a",
+        "scope": "Measured memory summary renders and leaves space for process rows.",
+        "report": "build/emulator-qa/UI_QA_REPORT.md",
+        "run": "api26-min19-v2"
+      },
+      {
+        "candidate_sha256": "61e2e94e0e2c774ce9c83a7c533f2233a5b64589d6cb76f31df8d5e7cd2b5f97",
+        "scope": "Target ActivityManager available-memory measurement renders when old kernel lacks MemAvailable.",
+        "report": "../device_bridge_api19_qa/API19_QA.md",
+        "run": "api19-min19-v5"
+      }
+    ]
+  },
+  {
+    "id": "PROC-02",
+    "feature": "应用/进程内存列表与标识",
+    "evidence": "D:v3.l0.k/j；L:bs `0x7f0c005c`；C/R",
+    "acceptance": "应用名/包名/内存/图标正确；查不到应用信息时可降级展示原进程。",
+    "implementation_status": "implemented",
+    "runtime_status": "tested-on-emulator-partial",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceCommands.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceParsers.java"
+    ],
+    "related_mock_suites": [
+      "DomainTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed",
+    "runtime_evidence": [
+      {
+        "candidate_sha256": "05b8ef79ba9801978c9afbc09ef1d526961499a419554375b7889ad9c460d8f5",
+        "scope": "Multiple actual process groups visible",
+        "report": "build/emulator-qa/UI_QA_REPORT.md",
+        "run": "api26-initial-review"
+      },
+      {
+        "candidate_sha256": "df2e4223791fcba0577a07e8ed4958c01819292c9bf7eed1cda59e20e8b4656a",
+        "scope": "Actual process list and labels/icons display.",
+        "report": "build/emulator-qa/UI_QA_REPORT.md",
+        "run": "api26-min19-v2"
+      },
+      {
+        "candidate_sha256": "61e2e94e0e2c774ce9c83a7c533f2233a5b64589d6cb76f31df8d5e7cd2b5f97",
+        "scope": "Legacy read-only ps fallback returns76 processes; unlabelled task-state prefix defect observed and separately fixed in v6 source.",
+        "report": "../device_bridge_api19_qa/API19_QA.md",
+        "run": "api19-min19-v5"
+      },
+      {
+        "candidate_sha256": "824c2751c6087c8ebb978d8bb7ac2d6b8f214d5d9d27ca0384bbbf136e973115",
+        "scope": "Actual ps84 process names without old unlabelled state-prefix defect.",
+        "report": "../device_bridge_api19_qa/API19_QA.md",
+        "run": "api19-min19-v7"
+      }
+    ]
+  },
+  {
+    "id": "PROC-03",
+    "feature": "多进程展开/折叠",
+    "evidence": "D:v3.l0.j.j、l0.b；C",
+    "acceptance": "同一应用多进程展开不重复，折叠后恢复；刷新中不错位操作。",
+    "implementation_status": "implemented",
+    "runtime_status": "not-run",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceCommands.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceParsers.java"
+    ],
+    "related_mock_suites": [
+      "DomainTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "PROC-04",
+    "feature": "终止应用/进程",
+    "evidence": "D:v3.l0.a/j.i（实际为am force-stop包）；string `0x7f110122`；C",
+    "acceptance": "正确称为强制停止应用，系统进程确认；不能宣称任意PID kill。确认后进程消失或说明系统重启它。",
+    "implementation_status": "implemented",
+    "runtime_status": "not-run",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceCommands.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceParsers.java"
+    ],
+    "related_mock_suites": [
+      "DomainTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "PROC-05",
+    "feature": "下拉刷新",
+    "evidence": "D:v3.l0.l/i；L:bb `0x7f0c004b`；C/R",
+    "acceptance": "重新获取内存而非固定定时假数据，断线/无权限终态明确。",
+    "implementation_status": "implemented",
+    "runtime_status": "not-run",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceCommands.java",
+      "core/src/main/java/io/github/devicebridge/core/DeviceParsers.java"
+    ],
+    "related_mock_suites": [
+      "DomainTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "CMD-01",
+    "feature": "交互命令输入和输出",
+    "evidence": "D:v3.f0.L0/M0、v3.j；L:b8 `0x7f0c0047` input `0x7f09011e` / run `0x7f0900bc`；C/R/N",
+    "acceptance": "在指定设备会话执行用户输入；空值拒绝、输出流持续显示、退出码/错误分色正确。底层q3 native需自主实现。",
+    "implementation_status": "implemented",
+    "runtime_status": "tested-on-emulator-partial",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "core/src/main/java/io/github/devicebridge/core/InteractiveShell.java"
+    ],
+    "related_mock_suites": [
+      "CoreTests",
+      "InteractiveShellTests",
+      "LegacyShellTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed",
+    "runtime_evidence": [
+      {
+        "candidate_sha256": "05b8ef79ba9801978c9afbc09ef1d526961499a419554375b7889ad9c460d8f5",
+        "scope": "Real persistent PTY cd/pwd, environment across inputs, Ctrl-C then continued input",
+        "report": "build/emulator-qa/UI_QA_REPORT.md",
+        "run": "api26-initial-review"
+      },
+      {
+        "candidate_sha256": "df2e4223791fcba0577a07e8ed4958c01819292c9bf7eed1cda59e20e8b4656a",
+        "scope": "Persistent PTY cwd/variable/Ctrl-C/subsequent input passed.",
+        "report": "build/emulator-qa/UI_QA_REPORT.md",
+        "run": "api26-min19-v2"
+      },
+      {
+        "candidate_sha256": "d505eaf9a5e6225e58b6645ea6580891d686c8021b79dce9d16eaa9f65759fe4",
+        "scope": "Legacy persistent PTY cwd/variables/Ctrl-C/continued input pass.",
+        "report": "../device_bridge_api19_qa/API19_QA.md",
+        "run": "api19-min19-v4"
+      },
+      {
+        "candidate_sha256": "61e2e94e0e2c774ce9c83a7c533f2233a5b64589d6cb76f31df8d5e7cd2b5f97",
+        "scope": "Actual UI echo output and green real prompt render; clear preserves current prompt; switch away/re-enter opens a fresh prompt. Legacy PTY merges stderr, so remote error text is not falsely inferred red.",
+        "report": "../device_bridge_api19_qa/API19_QA.md",
+        "run": "api19-min19-v5"
+      },
+      {
+        "candidate_sha256": "824c2751c6087c8ebb978d8bb7ac2d6b8f214d5d9d27ca0384bbbf136e973115",
+        "scope": "Real persistent PTY cd/pwd/variables/CtrlC and continued input pass.",
+        "report": "../device_bridge_api19_qa/API19_QA.md",
+        "run": "api19-min19-v7"
+      },
+      {
+        "candidate_sha256": "824c2751c6087c8ebb978d8bb7ac2d6b8f214d5d9d27ca0384bbbf136e973115",
+        "scope": "Real persistent PTYcwd/variables/CtrlC and continuedinput; UIvariable/clear-preservesprompt/leave-reopen passed.",
+        "report": "build/emulator-qa-v7/API26_V7_REPORT.md",
+        "run": "api26-min19-v7"
+      },
+      {
+        "candidate_sha256": "60cff683826f293861d0eab5fff004c52b8f957e35f5e19b2b62f396c3578bda",
+        "scope": "Real persistent PTY cwd/variables/Ctrl-C/continued command passed.",
+        "report": "build/emulator-qa-v8/API26_V8_REPORT.md",
+        "run": "api26-min19-v8"
+      },
+      {
+        "candidate_sha256": "fb0333569047d43b57977245c487f8d08146d7d17b10825220531ec23fc7a634",
+        "scope": "Actual old PTY exited on leave, fresh PID on return, draft/transcript retained and no command replay.",
+        "report": "build/api26-followup-v10/RESULT.md",
+        "run": "api26-navigation-server-0.1.2-candidate01"
+      },
+      {
+        "candidate_sha256": "6711a1556a9c301dbefb93696296ebd3b2693bcb84071770d94ac9b27b4dc37f",
+        "scope": "Terminal echo, draft/transcript revisit and input protection passed.",
+        "report": "build/api26-followup-v10/RESULT.md",
+        "run": "api26-navigation-server-0.1.2-candidate02"
+      }
+    ]
+  },
+  {
+    "id": "CMD-02",
+    "feature": "上下命令历史",
+    "evidence": "L:b8 buttons `0x7f09005f`,`0x7f09005e`；D:v3.g/h/f0；C/R",
+    "acceptance": "执行多条后前后浏览不越界，选择后可编辑；原版跨会话保存历史未证实。",
+    "implementation_status": "implemented",
+    "runtime_status": "not-run",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "core/src/main/java/io/github/devicebridge/core/InteractiveShell.java"
+    ],
+    "related_mock_suites": [
+      "CoreTests",
+      "InteractiveShellTests",
+      "LegacyShellTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "CMD-03",
+    "feature": "clear、exit及提示符处理",
+    "evidence": "D:v3.f0.L0/M0/Y；C",
+    "acceptance": "clear只清UI相应部分，exit结束当前shell可再启动；提示符来源/当前目录正确，不拿旧输出当新命令完成。",
+    "implementation_status": "implemented",
+    "runtime_status": "tested-on-emulator-partial",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "core/src/main/java/io/github/devicebridge/core/InteractiveShell.java"
+    ],
+    "related_mock_suites": [
+      "CoreTests",
+      "InteractiveShellTests",
+      "LegacyShellTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed",
+    "runtime_evidence": [
+      {
+        "candidate_sha256": "05b8ef79ba9801978c9afbc09ef1d526961499a419554375b7889ad9c460d8f5",
+        "scope": "Production PTY exit0 verified",
+        "report": "build/emulator-qa/UI_QA_REPORT.md",
+        "run": "api26-initial-review"
+      },
+      {
+        "candidate_sha256": "df2e4223791fcba0577a07e8ed4958c01819292c9bf7eed1cda59e20e8b4656a",
+        "scope": "Actual PTY exit0 and restart/new command passed before v5 rendering update.",
+        "report": "build/emulator-qa/UI_QA_REPORT.md",
+        "run": "api26-min19-v2"
+      },
+      {
+        "candidate_sha256": "d505eaf9a5e6225e58b6645ea6580891d686c8021b79dce9d16eaa9f65759fe4",
+        "scope": "Legacy PTY shutdown retains unknown exit(-1), not a guessed0.",
+        "report": "../device_bridge_api19_qa/API19_QA.md",
+        "run": "api19-min19-v4"
+      },
+      {
+        "candidate_sha256": "61e2e94e0e2c774ce9c83a7c533f2233a5b64589d6cb76f31df8d5e7cd2b5f97",
+        "scope": "Actual UI exit closes PTY with honest unknown legacy status; subsequent echo starts a new terminal.",
+        "report": "../device_bridge_api19_qa/API19_QA.md",
+        "run": "api19-min19-v5"
+      },
+      {
+        "candidate_sha256": "824c2751c6087c8ebb978d8bb7ac2d6b8f214d5d9d27ca0384bbbf136e973115",
+        "scope": "Actual legacy exit retains unknown status instead of inventing0.",
+        "report": "../device_bridge_api19_qa/API19_QA.md",
+        "run": "api19-min19-v7"
+      },
+      {
+        "candidate_sha256": "824c2751c6087c8ebb978d8bb7ac2d6b8f214d5d9d27ca0384bbbf136e973115",
+        "scope": "Cleanexit, UIexit-newPTY, unknownlegacy distinction unchanged.",
+        "report": "build/emulator-qa-v7/API26_V7_REPORT.md",
+        "run": "api26-min19-v7"
+      },
+      {
+        "candidate_sha256": "60cff683826f293861d0eab5fff004c52b8f957e35f5e19b2b62f396c3578bda",
+        "scope": "Real clean PTY exit passed.",
+        "report": "build/emulator-qa-v8/API26_V8_REPORT.md",
+        "run": "api26-min19-v8"
+      }
+    ]
+  },
+  {
+    "id": "CMD-04",
+    "feature": "清空输出与重启终端菜单",
+    "evidence": "M:f items `0x7f090163`,`0x7f090165`；D:v3.f0.Y；C/R",
+    "acceptance": "清空不重发危险命令；重启新会话并显示新状态，不累积后台进程。",
+    "implementation_status": "implemented",
+    "runtime_status": "tested-on-emulator-partial",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "core/src/main/java/io/github/devicebridge/core/InteractiveShell.java"
+    ],
+    "related_mock_suites": [
+      "CoreTests",
+      "InteractiveShellTests",
+      "LegacyShellTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed",
+    "runtime_evidence": [
+      {
+        "candidate_sha256": "df2e4223791fcba0577a07e8ed4958c01819292c9bf7eed1cda59e20e8b4656a",
+        "scope": "Restart terminal and continued input passed before v5 rendering update.",
+        "report": "build/emulator-qa/UI_QA_REPORT.md",
+        "run": "api26-min19-v2"
+      },
+      {
+        "candidate_sha256": "61e2e94e0e2c774ce9c83a7c533f2233a5b64589d6cb76f31df8d5e7cd2b5f97",
+        "scope": "Leave/re-entry and new command after exit pass.",
+        "report": "../device_bridge_api19_qa/API19_QA.md",
+        "run": "api19-min19-v5"
+      },
+      {
+        "candidate_sha256": "824c2751c6087c8ebb978d8bb7ac2d6b8f214d5d9d27ca0384bbbf136e973115",
+        "scope": "Actual restartmenu/newcommands after rotations and exits passed.",
+        "report": "build/emulator-qa-v7/API26_V7_REPORT.md",
+        "run": "api26-min19-v7"
+      }
+    ]
+  },
+  {
+    "id": "CMD-05",
+    "feature": "保存快捷命令并填回输入",
+    "evidence": "M:f `0x7f090164`；D:v3.f0.Y、v3.a/b；pref quick_commands；C/R",
+    "acceptance": "新增后重启应用仍保留；点击快捷项只填入输入，用户再运行；包含分号/换行等字符不得破坏存储格式。原版普通版最多3条见PRO-06。",
+    "implementation_status": "implemented",
+    "runtime_status": "not-run",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "core/src/main/java/io/github/devicebridge/core/InteractiveShell.java"
+    ],
+    "related_mock_suites": [
+      "CoreTests",
+      "InteractiveShellTests",
+      "LegacyShellTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "CMD-06",
+    "feature": "长按删除已保存快捷命令",
+    "evidence": "D:v3.f0.Y绑定v3.k，D:c.c.a.y3.c设置长按，D:c.c.a.y3.b移除条目并重写quick_commands；C",
+    "acceptance": "长按已有项后列表与持久化同步减少；“添加命令”占位不被删除；删除最后一条、重启恢复、长按不得误执行命令。",
+    "implementation_status": "implemented",
+    "runtime_status": "not-run",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "core/src/main/java/io/github/devicebridge/core/InteractiveShell.java"
+    ],
+    "related_mock_suites": [
+      "CoreTests",
+      "InteractiveShellTests",
+      "LegacyShellTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "CMD-07",
+    "feature": "直接编辑已保存快捷命令",
+    "evidence": "未找到明确编辑菜单或处理器；S/D",
+    "acceptance": "可将命令填入输入后修改运行，但未证实原地更新保存项；若另加编辑功能标明为独立改进。",
+    "implementation_status": "reference_uncertain",
+    "runtime_status": "not-run",
+    "implementation_note": "静态证据不足或范围不明确；保留原验收说明，不臆造原版功能。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java",
+      "core/src/main/java/io/github/devicebridge/core/InteractiveShell.java"
+    ],
+    "related_mock_suites": [
+      "CoreTests",
+      "InteractiveShellTests",
+      "LegacyShellTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "SCR-01",
+    "feature": "分辨率选择：原始、自动、1080p/720p/540p/360p",
+    "evidence": "D:v3.h0/w/m/p；L:bc `0x7f0c004c`；arrays `0x7f030006`,`0x7f030007`；C/R",
+    "acceptance": "每档正确传入视频最大尺寸，竖屏/横屏比例正确；“p”在代码按短边换算最大边，需实机验证最终尺寸，不强行理解固定宽高。",
+    "implementation_status": "implemented",
+    "runtime_status": "not-run",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/ScreenActivity.java",
+      "app/src/main/java/io/github/devicebridge/android/ScreenController.java",
+      "core/src/main/java/io/github/devicebridge/core/ScrcpyProtocol.java"
+    ],
+    "related_mock_suites": [
+      "ScreenProtocolTests",
+      "ScreenshotCaptureTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "SCR-02",
+    "feature": "码率12/8/6/4/2/1Mbps",
+    "evidence": "D:v3.h0/r/m/p；arrays `0x7f030000`,`0x7f030001`；C/R",
+    "acceptance": "默认索引1即8Mbps；切换参数生效；不能把选择值当实际网络码率承诺。",
+    "implementation_status": "implemented",
+    "runtime_status": "not-run",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/ScreenActivity.java",
+      "app/src/main/java/io/github/devicebridge/android/ScreenController.java",
+      "core/src/main/java/io/github/devicebridge/core/ScrcpyProtocol.java"
+    ],
+    "related_mock_suites": [
+      "ScreenProtocolTests",
+      "ScreenshotCaptureTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "SCR-03",
+    "feature": "保持原始比例或拉伸",
+    "evidence": "D:v3.h0/b0/p、RemoteActivity.z；array `0x7f030008`；C/R",
+    "acceptance": "显示方式改变时触控坐标仍映射到正确位置；黑边不注入越界触摸。",
+    "implementation_status": "implemented",
+    "runtime_status": "not-run",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/ScreenActivity.java",
+      "app/src/main/java/io/github/devicebridge/android/ScreenController.java",
+      "core/src/main/java/io/github/devicebridge/core/ScrcpyProtocol.java"
+    ],
+    "related_mock_suites": [
+      "ScreenProtocolTests",
+      "ScreenshotCaptureTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "SCR-04",
+    "feature": "导航栏悬浮/底部/不显示",
+    "evidence": "D:v3.h0/c0/p；array `0x7f030005`；L:a9 nav containers `0x7f0901d2`,`0x7f0901d3`；C/R/N",
+    "acceptance": "三档对应可见控件；悬浮可拖动且不阻挡关键内容，显示/隐藏切换不终止会话。原版绑定初始化native需D。",
+    "implementation_status": "implemented",
+    "runtime_status": "not-run",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/ScreenActivity.java",
+      "app/src/main/java/io/github/devicebridge/android/ScreenController.java",
+      "core/src/main/java/io/github/devicebridge/core/ScrcpyProtocol.java"
+    ],
+    "related_mock_suites": [
+      "ScreenProtocolTests",
+      "ScreenshotCaptureTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "SCR-05",
+    "feature": "全屏显示",
+    "evidence": "L:bc checkbox `0x7f09007b`；D:v3.p、RemoteActivity.onWindowFocusChanged；C/R",
+    "acceptance": "进入/离开全屏，系统栏和返回行为正确；旋转/后台恢复后状态一致。兼容模式中不启用此传参。",
+    "implementation_status": "implemented",
+    "runtime_status": "not-run",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/ScreenActivity.java",
+      "app/src/main/java/io/github/devicebridge/android/ScreenController.java",
+      "core/src/main/java/io/github/devicebridge/core/ScrcpyProtocol.java"
+    ],
+    "related_mock_suites": [
+      "ScreenProtocolTests",
+      "ScreenshotCaptureTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "SCR-06",
+    "feature": "熄屏控制",
+    "evidence": "L:bc checkbox `0x7f09007d`；D:v3.p turnScreenOff；C/R/N",
+    "acceptance": "连接时目标物理屏幕熄灭而控制继续；退出后的恢复策略明确并验证，原版恢复细节待D。",
+    "implementation_status": "implemented",
+    "runtime_status": "not-run",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/ScreenActivity.java",
+      "app/src/main/java/io/github/devicebridge/android/ScreenController.java",
+      "core/src/main/java/io/github/devicebridge/core/ScrcpyProtocol.java"
+    ],
+    "related_mock_suites": [
+      "ScreenProtocolTests",
+      "ScreenshotCaptureTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "SCR-07",
+    "feature": "兼容模式与低API回退",
+    "evidence": "L:bc checkbox `0x7f09007c`；M:k `0x7f09016f`；D:v3.h0.K0/o、RemoteActivity.onResume；C/R",
+    "acceptance": "低版本提示，禁用不适用分辨率/码率等；以截图轮询+input方式控制；没有承诺与视频模式相同性能。",
+    "implementation_status": "implemented",
+    "runtime_status": "tested-on-emulator-partial",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/ScreenActivity.java",
+      "app/src/main/java/io/github/devicebridge/android/ScreenController.java",
+      "core/src/main/java/io/github/devicebridge/core/ScrcpyProtocol.java"
+    ],
+    "related_mock_suites": [
+      "ScreenProtocolTests",
+      "ScreenshotCaptureTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed",
+    "runtime_evidence": [
+      {
+        "candidate_sha256": "05b8ef79ba9801978c9afbc09ef1d526961499a419554375b7889ad9c460d8f5",
+        "scope": "Compatibility screenshot stream displayed 480x800 on API26",
+        "report": "build/emulator-qa/UI_QA_REPORT.md",
+        "run": "api26-initial-review"
+      },
+      {
+        "candidate_sha256": "df2e4223791fcba0577a07e8ed4958c01819292c9bf7eed1cda59e20e8b4656a",
+        "scope": "Real 480x800 compatibility screenshot stream; normal H264 not passed.",
+        "report": "build/emulator-qa/UI_QA_REPORT.md",
+        "run": "api26-min19-v2"
+      },
+      {
+        "candidate_sha256": "d505eaf9a5e6225e58b6645ea6580891d686c8021b79dce9d16eaa9f65759fe4",
+        "scope": "Old adbd unsupported exec automatically falls back to reserved PNG+SYNC; decoded480x800, no cleanup warning.",
+        "report": "../device_bridge_api19_qa/API19_QA.md",
+        "run": "api19-min19-v4"
+      },
+      {
+        "candidate_sha256": "824c2751c6087c8ebb978d8bb7ac2d6b8f214d5d9d27ca0384bbbf136e973115",
+        "scope": "Reserved PNG+SYNC fallback decodes480x800; no cleanup warnings.",
+        "report": "../device_bridge_api19_qa/API19_QA.md",
+        "run": "api19-min19-v7"
+      }
+    ]
+  },
+  {
+    "id": "SCR-08",
+    "feature": "渲染全部帧",
+    "evidence": "M:k高级设置 `0x7f090171`；L:bx checkbox `0x7f09007e`；D:v3.h0.Y/t/p；C/R",
+    "acceptance": "勾选参数正确传递，取消允许丢过期帧；延迟/帧率通过真实会话测，不从静态常量推断。",
+    "implementation_status": "implemented",
+    "runtime_status": "not-run",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/ScreenActivity.java",
+      "app/src/main/java/io/github/devicebridge/android/ScreenController.java",
+      "core/src/main/java/io/github/devicebridge/core/ScrcpyProtocol.java"
+    ],
+    "related_mock_suites": [
+      "ScreenProtocolTests",
+      "ScreenshotCaptureTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "SCR-09",
+    "feature": "保持设备唤醒（隐藏项）",
+    "evidence": "L:bx checkbox `0x7f09007f` 默认GONE；D:v3.h0.Y/d0/p stayAwake；C/R/D",
+    "acceptance": "代码传参存在，但最终用户可见性未知；列为条件功能，不能把隐藏项当主界面必有开关。启用需验证退出恢复。",
+    "implementation_status": "implemented",
+    "runtime_status": "not-run",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/ScreenActivity.java",
+      "app/src/main/java/io/github/devicebridge/android/ScreenController.java",
+      "core/src/main/java/io/github/devicebridge/core/ScrcpyProtocol.java"
+    ],
+    "related_mock_suites": [
+      "ScreenProtocolTests",
+      "ScreenshotCaptureTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "SCR-10",
+    "feature": "控制帮助",
+    "evidence": "M:k `0x7f090170`；D:v3.h0.Y；string `0x7f1100f3`；C/R",
+    "acceptance": "提示部分OEM需允许模拟点击；显示-only时正确诊断，不索取无关权限。",
+    "implementation_status": "implemented",
+    "runtime_status": "not-run",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/ScreenActivity.java",
+      "app/src/main/java/io/github/devicebridge/android/ScreenController.java",
+      "core/src/main/java/io/github/devicebridge/core/ScrcpyProtocol.java"
+    ],
+    "related_mock_suites": [
+      "ScreenProtocolTests",
+      "ScreenshotCaptureTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "SCR-11",
+    "feature": "保存常用远控参数",
+    "evidence": "D:v3.h0.P、v3.p，pref remote_settings；C",
+    "acceptance": "模式/分辨率/码率/比例/导航/全屏/熄屏7项重启后恢复；renderAll/stayAwake在此串中未持久化，不应称已证实保存。",
+    "implementation_status": "implemented",
+    "runtime_status": "not-run",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/ScreenActivity.java",
+      "app/src/main/java/io/github/devicebridge/android/ScreenController.java",
+      "core/src/main/java/io/github/devicebridge/core/ScrcpyProtocol.java"
+    ],
+    "related_mock_suites": [
+      "ScreenProtocolTests",
+      "ScreenshotCaptureTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "SCR-12",
+    "feature": "视频投屏",
+    "evidence": "D:RemoteActivity.onResume、c.c.a.w3.h；L:a9 SurfaceView `0x7f090213`；C/R/N",
+    "acceptance": "独立、合规取得的服务端与解码器；首帧、持续播放、旋转、断网、重连都验收。原APK打包资产不得直接拷进新产品。",
+    "implementation_status": "implemented",
+    "runtime_status": "tested-on-emulator-partial",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/ScreenActivity.java",
+      "app/src/main/java/io/github/devicebridge/android/ScreenController.java",
+      "core/src/main/java/io/github/devicebridge/core/ScrcpyProtocol.java"
+    ],
+    "related_mock_suites": [
+      "ScreenProtocolTests",
+      "ScreenshotCaptureTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed",
+    "runtime_evidence": [
+      {
+        "candidate_sha256": "948e2cc6f39082520f6e10bc2b2b6092b4e5b091406b0d2a9dcd79910673968e",
+        "scope": "Actual bundled scrcpy H264 encoding and production TextureView decoding: two runs yielded4 and3 frames at encoded360x640. New generated displayed frame preserved. This does not pass Back control or exit lifecycle.",
+        "report": "../device_bridge_api24_qa/README.md",
+        "run": "api24-arm-min19-v6"
+      }
+    ]
+  },
+  {
+    "id": "SCR-13",
+    "feature": "触摸/拖动/多指消息",
+    "evidence": "D:ControlView.onTouchEvent/a/b/c；C",
+    "acceptance": "单击、拖动、长按和多指手势在视频模式均核对；原反编译对pointer动作存在还原不可靠处，不能仅由代码宣称所有手势已可用。",
+    "implementation_status": "implemented",
+    "runtime_status": "not-run",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/ScreenActivity.java",
+      "app/src/main/java/io/github/devicebridge/android/ScreenController.java",
+      "core/src/main/java/io/github/devicebridge/core/ScrcpyProtocol.java"
+    ],
+    "related_mock_suites": [
+      "ScreenProtocolTests",
+      "ScreenshotCaptureTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "SCR-14",
+    "feature": "兼容模式单击/滑动/按键",
+    "evidence": "D:ControlView兼容分支，RemoteActivity.y；C",
+    "acceptance": "截图触控位置与屏幕比例一致；input tap/swipe/keyevent准确；不额外承诺兼容模式多指。",
+    "implementation_status": "implemented",
+    "runtime_status": "not-run",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/ScreenActivity.java",
+      "app/src/main/java/io/github/devicebridge/android/ScreenController.java",
+      "core/src/main/java/io/github/devicebridge/core/ScrcpyProtocol.java"
+    ],
+    "related_mock_suites": [
+      "ScreenProtocolTests",
+      "ScreenshotCaptureTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "SCR-15",
+    "feature": "返回、主页、最近任务按键",
+    "evidence": "D:c.c.a.h1/n1→4，d1→3，k1/s1→187；RemoteActivity.y；C/R",
+    "acceptance": "可见导航按钮各发送正确事件一次，按住/重复点击不卡死；隐藏导航时仍能退出。",
+    "implementation_status": "implemented",
+    "runtime_status": "not-run",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/ScreenActivity.java",
+      "app/src/main/java/io/github/devicebridge/android/ScreenController.java",
+      "core/src/main/java/io/github/devicebridge/core/ScrcpyProtocol.java"
+    ],
+    "related_mock_suites": [
+      "ScreenProtocolTests",
+      "ScreenshotCaptureTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "SCR-16",
+    "feature": "退出确认、后台停止与释放",
+    "evidence": "D:RemoteActivity.x/A/onStop/onResume；string `0x7f11002c`；C",
+    "acceptance": "返回询问；取消继续；确认释放decoder/socket/shell，后台前后不泄漏重复会话。原版server与物理屏幕恢复完整性D。",
+    "implementation_status": "implemented",
+    "runtime_status": "tested-on-emulator-partial",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/ScreenActivity.java",
+      "app/src/main/java/io/github/devicebridge/android/ScreenController.java",
+      "core/src/main/java/io/github/devicebridge/core/ScrcpyProtocol.java"
+    ],
+    "related_mock_suites": [
+      "ScreenProtocolTests",
+      "ScreenshotCaptureTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed",
+    "runtime_evidence": [
+      {
+        "candidate_sha256": "05b8ef79ba9801978c9afbc09ef1d526961499a419554375b7889ad9c460d8f5",
+        "scope": "Exit confirmation cancel continues, confirmed exit retains ADB connection",
+        "report": "build/emulator-qa/UI_QA_REPORT.md",
+        "run": "api26-initial-review"
+      },
+      {
+        "candidate_sha256": "df2e4223791fcba0577a07e8ed4958c01819292c9bf7eed1cda59e20e8b4656a",
+        "scope": "Cancel exit keeps stream; confirmed exit returns with ADB retained.",
+        "report": "build/emulator-qa/UI_QA_REPORT.md",
+        "run": "api26-min19-v2"
+      },
+      {
+        "candidate_sha256": "824c2751c6087c8ebb978d8bb7ac2d6b8f214d5d9d27ca0384bbbf136e973115",
+        "scope": "Isolated workspace cleanup only: actual scrcpy odex/vdex generated after list_displays, productioncleanup removeddirectory withoutwarning and repeatedcleanup idempotent. This does not pass screenvideo exit lifecycle.",
+        "report": "build/emulator-qa-v7/API26_V7_REPORT.md",
+        "run": "api26-min19-v7"
+      },
+      {
+        "candidate_sha256": "60cff683826f293861d0eab5fff004c52b8f957e35f5e19b2b62f396c3578bda",
+        "scope": "Production owned ScreenServerWorkspace cleanup after actual scrcpy display listing and ART odex/vdex generation; removed/idempotent/no warnings. No video lifecycle acceptance.",
+        "report": "build/emulator-qa-v8/API26_V8_REPORT.md",
+        "run": "api26-min19-v8"
+      }
+    ]
+  },
+  {
+    "id": "FB-01",
+    "feature": "独立Fastboot页面及USB识别",
+    "evidence": "Manifest FastbootActivity；L:a5 `0x7f0c001f`；UsbManager/Connection字段与native处理；D:c.c.a.p0“非fastboot设备”；C/R/N",
+    "acceptance": "未插、权限拒绝、普通ADB设备、Fastboot设备分别正确显示；拔线终止当前交互。",
+    "implementation_status": "implemented",
+    "runtime_status": "tested-on-emulator-partial",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/FastbootActivity.java",
+      "core/src/main/java/io/github/devicebridge/core/FastbootClient.java"
+    ],
+    "related_mock_suites": [
+      "ProtocolTests",
+      "UiSafetyTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed",
+    "runtime_evidence": [
+      {
+        "candidate_sha256": "60cff683826f293861d0eab5fff004c52b8f957e35f5e19b2b62f396c3578bda",
+        "scope": "Disconnected UI guard only, no physical device or Fastboot command.",
+        "report": "build/emulator-qa-v8/API26_V8_REPORT.md",
+        "run": "api26-min19-v8"
+      }
+    ]
+  },
+  {
+    "id": "FB-02",
+    "feature": "读取设备信息",
+    "evidence": "D:c.c.a.k0，getvar all/oem device-info；L:a5信息区 `0x7f0900ca`；C/R",
+    "acceptance": "只读查询显示原始输出及支持字段；OEM不支持命令时明确失败，不能推断解锁状态。",
+    "implementation_status": "implemented",
+    "runtime_status": "not-run",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/FastbootActivity.java",
+      "core/src/main/java/io/github/devicebridge/core/FastbootClient.java"
+    ],
+    "related_mock_suites": [
+      "ProtocolTests",
+      "UiSafetyTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "FB-03",
+    "feature": "选择镜像文件",
+    "evidence": "L:a5 path `0x7f09011f`；D:c.c.a.e0 → FilePicker mode4；C/R",
+    "acceptance": "只选择可读镜像，取消保留原选择或清空规则明确；大小/路径展示，空选择不刷写。",
+    "implementation_status": "implemented",
+    "runtime_status": "not-run",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/FastbootActivity.java",
+      "core/src/main/java/io/github/devicebridge/core/FastbootClient.java"
+    ],
+    "related_mock_suites": [
+      "ProtocolTests",
+      "UiSafetyTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "FB-04",
+    "feature": "分区选择：recovery、boot、自定义",
+    "evidence": "L:a5 spinner `0x7f0900e2`；array `0x7f030002`；D:c.c.a.i0/y/c0；C/R",
+    "acceptance": "自定义分区需输入有效名称并明确设备/slot；原版A/B slot、动态分区完整支持未证实。",
+    "implementation_status": "implemented",
+    "runtime_status": "not-run",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/FastbootActivity.java",
+      "core/src/main/java/io/github/devicebridge/core/FastbootClient.java"
+    ],
+    "related_mock_suites": [
+      "ProtocolTests",
+      "UiSafetyTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "FB-05",
+    "feature": "刷入镜像及覆盖风险确认",
+    "evidence": "L:a5 button `0x7f0900ce`；D:c.c.a.z/j0 → fastboot flash；C/R/N",
+    "acceptance": "仅专用可恢复测试设备、备份方案和明确授权；确认展示设备/文件/分区及数据覆盖；取消零命令，进度/失败真实。无需刷写即可先用模拟协议验收UI。",
+    "implementation_status": "implemented",
+    "runtime_status": "not-run",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/FastbootActivity.java",
+      "core/src/main/java/io/github/devicebridge/core/FastbootClient.java"
+    ],
+    "related_mock_suites": [
+      "ProtocolTests",
+      "UiSafetyTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "FB-06",
+    "feature": "自定义Fastboot命令与输出",
+    "evidence": "L:a5 input `0x7f0900c6`、run `0x7f0900c8`；FastbootActivity核心native；R/N",
+    "acceptance": "手工命令发送至选中设备；阻止空输入，多行输出/错误/超时终态；危险命令在新实现中单独确认。",
+    "implementation_status": "implemented",
+    "runtime_status": "not-run",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/FastbootActivity.java",
+      "core/src/main/java/io/github/devicebridge/core/FastbootClient.java"
+    ],
+    "related_mock_suites": [
+      "ProtocolTests",
+      "UiSafetyTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "FB-07",
+    "feature": "重启设备",
+    "evidence": "D:c.c.a.n0/l0（fastboot reboot）；代码文字；C",
+    "acceptance": "确认后发送一次，取消不重启，设备离开Fastboot视为预期状态，后续重新识别ADB。",
+    "implementation_status": "implemented",
+    "runtime_status": "not-run",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/FastbootActivity.java",
+      "core/src/main/java/io/github/devicebridge/core/FastbootClient.java"
+    ],
+    "related_mock_suites": [
+      "ProtocolTests",
+      "UiSafetyTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "FB-08",
+    "feature": "清空输出、重启终端与“免ROOT运行”",
+    "evidence": "M:h IDs `0x7f090166`,`0x7f090167`,`0x7f090168`；FastbootActivity.onOptionsItemSelected native；R/N",
+    "acceptance": "菜单可达且切换模式有明确反馈；免root功能依赖独立实现USB fastboot传输，原版授权门槛见PRO-01，不能绕过原校验。",
+    "implementation_status": "implemented",
+    "runtime_status": "not-run",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/FastbootActivity.java",
+      "core/src/main/java/io/github/devicebridge/core/FastbootClient.java"
+    ],
+    "related_mock_suites": [
+      "ProtocolTests",
+      "UiSafetyTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "FB-09",
+    "feature": "首次风险提示可选择不再显示",
+    "evidence": "D:c.c.a.x pref show_fastboot_dialog；C/N",
+    "acceptance": "默认展示安全提示，用户选择与持久化正确；具体原文/首次触发逻辑native待D，不省略新实现的重要风险确认。",
+    "implementation_status": "implemented",
+    "runtime_status": "not-run",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/FastbootActivity.java",
+      "core/src/main/java/io/github/devicebridge/core/FastbootClient.java"
+    ],
+    "related_mock_suites": [
+      "ProtocolTests",
+      "UiSafetyTests"
+    ],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "SET-01",
+    "feature": "高级版入口与状态摘要",
+    "evidence": "X:b `0x7f140001` key unlock_advanced；D:SettingsActivity.onResume、$a/$e；C/R/N",
+    "acceptance": "显示本产品自有授权状态；无原版订单/服务器调用；返回时更新状态。授权商业模式另定。",
+    "implementation_status": "product_boundary",
+    "runtime_status": "not-run",
+    "implementation_note": "新应用不使用原付费身份/授权服务器；自行提供可实现功能。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/SettingsActivity.java"
+    ],
+    "related_mock_suites": [],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "SET-02",
+    "feature": "截图保存目录选择",
+    "evidence": "X:b key screencap_path；D:SettingsActivity.onActivityResult、$a/$b；C/R",
+    "acceptance": "选择可写目录后立即更新摘要，截图确实保存于此。XML摘要 `/sdcard/Pictures`，Java缺省externalCacheDir，两者不一致，初装实际默认需D。",
+    "implementation_status": "implemented",
+    "runtime_status": "tested-on-emulator-partial",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/SettingsActivity.java"
+    ],
+    "related_mock_suites": [],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed",
+    "runtime_evidence": [
+      {
+        "candidate_sha256": "df2e4223791fcba0577a07e8ed4958c01819292c9bf7eed1cda59e20e8b4656a",
+        "scope": "Screenshot save document picker reached; cancel returned without writing.",
+        "report": "build/emulator-qa/UI_QA_REPORT.md",
+        "run": "api26-min19-v2"
+      }
+    ]
+  },
+  {
+    "id": "SET-03",
+    "feature": "默认显示隐藏文件",
+    "evidence": "X:b key show_hide_files / title `0x7f110051`；D:v3.k0.t读取false缺省；C/R",
+    "acceptance": "重启后生效；开/关摘要正确，仍可在文件页临时切换。",
+    "implementation_status": "implemented",
+    "runtime_status": "tested-on-emulator-partial",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/SettingsActivity.java"
+    ],
+    "related_mock_suites": [],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed",
+    "runtime_evidence": [
+      {
+        "candidate_sha256": "05b8ef79ba9801978c9afbc09ef1d526961499a419554375b7889ad9c460d8f5",
+        "scope": "Show-hidden preference persisted through force-stop",
+        "report": "build/emulator-qa/UI_QA_REPORT.md",
+        "run": "api26-initial-review"
+      }
+    ]
+  },
+  {
+    "id": "SET-04",
+    "feature": "连接后默认模块（7项）",
+    "evidence": "X:b key default_fragment；arrays `0x7f030003`,`0x7f030004`；C/R/N",
+    "acceptance": "分别选择索引0–6后重新进设备打开对应页；XML defaultValue=\"true\"与数值entryValues不一致，首次默认需D而非照抄异常值。",
+    "implementation_status": "implemented",
+    "runtime_status": "tested-on-emulator-partial",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/SettingsActivity.java"
+    ],
+    "related_mock_suites": [],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed",
+    "runtime_evidence": [
+      {
+        "candidate_sha256": "05b8ef79ba9801978c9afbc09ef1d526961499a419554375b7889ad9c460d8f5",
+        "scope": "Default module persisted through force-stop",
+        "report": "build/emulator-qa/UI_QA_REPORT.md",
+        "run": "api26-initial-review"
+      }
+    ]
+  },
+  {
+    "id": "SET-05",
+    "feature": "清除本应用缓存与大小摘要",
+    "evidence": "X:b clear_cache；D:SettingsActivity$a$a、b.s.m.u/k；C/R",
+    "acceptance": "显示缓存大小；确认产品范围后只删缓存，不删授权记录/用户下载/截图；完成后大小更新。原版是否另确认需D。",
+    "implementation_status": "implemented",
+    "runtime_status": "not-run",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/SettingsActivity.java"
+    ],
+    "related_mock_suites": [],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "SET-06",
+    "feature": "上次崩溃日志查看、复制",
+    "evidence": "X:b show_log；D:SettingsActivity$a$c/$c$a，内部crash.log；C/R",
+    "acceptance": "有/无日志两态；复制成功、可关闭；敏感地址/配对码/凭据应脱敏，不自动发送外部邮箱。",
+    "implementation_status": "implemented",
+    "runtime_status": "not-run",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/SettingsActivity.java"
+    ],
+    "related_mock_suites": [],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "SET-07",
+    "feature": "联系作者/反馈支持页",
+    "evidence": "X:b contact_author；Manifest FeedbackActivity；L:a6/L:bu `0x7f0c0020`,`0x7f0c005e`；C/R/N",
+    "acceptance": "独立应用使用自己的支持渠道；显示信息可复制/发送需用户动作；不能沿用原作者身份、邮箱或收款码。",
+    "implementation_status": "product_boundary",
+    "runtime_status": "not-run",
+    "implementation_note": "新开发主体没有已配置外部反馈渠道，不能冒充原开发者。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/SettingsActivity.java"
+    ],
+    "related_mock_suites": [],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "SET-08",
+    "feature": "关于：名称与版本",
+    "evidence": "X:b about_app；Manifest AboutActivity；L:a2 `0x7f0c001c`；C/R/N",
+    "acceptance": "显示新包真实版本、品牌，按钮可返回；不能把资源版本占位字符串1.0当上传版本。",
+    "implementation_status": "implemented",
+    "runtime_status": "tested-on-emulator-partial",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/SettingsActivity.java"
+    ],
+    "related_mock_suites": [],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed",
+    "runtime_evidence": [
+      {
+        "candidate_sha256": "05b8ef79ba9801978c9afbc09ef1d526961499a419554375b7889ad9c460d8f5",
+        "scope": "About callback checked",
+        "report": "build/emulator-qa/UI_QA_REPORT.md",
+        "run": "api26-initial-review"
+      }
+    ]
+  },
+  {
+    "id": "SET-09",
+    "feature": "开源许可展示",
+    "evidence": "L:a2 button `0x7f09000f`；D:AboutActivity.x读raw `0x7f100001`，c.c.a.a；C/R",
+    "acceptance": "使用自行采用组件的准确许可证/NOTICE，离线可看，不以原包许可清单代替自有SBOM。",
+    "implementation_status": "implemented",
+    "runtime_status": "tested-on-emulator-partial",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/SettingsActivity.java"
+    ],
+    "related_mock_suites": [],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed",
+    "runtime_evidence": [
+      {
+        "candidate_sha256": "05b8ef79ba9801978c9afbc09ef1d526961499a419554375b7889ad9c460d8f5",
+        "scope": "Offline license list opened",
+        "report": "build/emulator-qa/UI_QA_REPORT.md",
+        "run": "api26-initial-review"
+      }
+    ]
+  },
+  {
+    "id": "SET-10",
+    "feature": "用户协议与隐私政策展示",
+    "evidence": "L:a2 button `0x7f090010`；D:c.c.a.j/v/c；C/R/N",
+    "acceptance": "有本产品政策、版本、访问失败状态；首次同意与查看政策是不同动作，禁止复用原域名/政策。",
+    "implementation_status": "implemented",
+    "runtime_status": "not-run",
+    "implementation_note": "独立代码已接入；未由代码存在推导运行或完全一致。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/SettingsActivity.java"
+    ],
+    "related_mock_suites": [],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "SET-11",
+    "feature": "支持开发/捐赠入口",
+    "evidence": "L:bu `0x7f0900d0`，支付宝按钮 `0x7f090067`初始GONE；L:at `0x7f0c0038`扫码图；R/N",
+    "acceptance": "是否保留由新产品决定；支付方式/价格/商户必须由新主体配置；原版二维码保存string不能证明现行支付可用。",
+    "implementation_status": "product_boundary",
+    "runtime_status": "not-run",
+    "implementation_note": "未指定新主体收款信息，不复制原收款码。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/SettingsActivity.java"
+    ],
+    "related_mock_suites": [],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "PRO-01",
+    "feature": "免root Fastboot，文案标“实验性”",
+    "evidence": "L:aa `0x7f0c0025`、L:bv `0x7f0c005f`，M:h；R/N。核心Fastboot与授权分支native，不能静态核实实际阻止范围。",
+    "acceptance": "独立USB Host传输和公开Fastboot协议实现，无需原付费接口；自有授权只控制自有能力，验证普通/允许态，不能修改原校验。",
+    "implementation_status": "implemented",
+    "runtime_status": "not-run",
+    "implementation_note": "独立应用提供对应能力，不人为加入原商业数量限制；原授权门槛不复用。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java"
+    ],
+    "related_mock_suites": [],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "PRO-02",
+    "feature": "应用搜索宣称高级版",
+    "evidence": "L:aa + M:d；D:v3.i0.r菜单构建native；R/N。查询处理存在，不足以证明所有普通版搜索行为。",
+    "acceptance": "用本地列表独立搜索；确定自有免费/收费策略。验收查询准确性与自有策略，不使用原授权标志。",
+    "implementation_status": "implemented",
+    "runtime_status": "not-run",
+    "implementation_note": "独立应用提供对应能力，不人为加入原商业数量限制；原授权门槛不复用。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java"
+    ],
+    "related_mock_suites": [],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "PRO-03",
+    "feature": "普通版最多同时2台设备，高级不限此上限",
+    "evidence": "L:aa；D:c.c.a.m第17行、p第75/80行有 `E.size()<2` / `J()`判断；C/R。J本身native。",
+    "acceptance": "独立会话管理；2与3台边界、断开释放名额、各transport隔离；若不设商业上限也仍应有系统资源边界。",
+    "implementation_status": "implemented",
+    "runtime_status": "not-run",
+    "implementation_note": "独立应用提供对应能力，不人为加入原商业数量限制；原授权门槛不复用。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java"
+    ],
+    "related_mock_suites": [],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "PRO-04",
+    "feature": "普通版文件多选操作最多5项，高级不限此上限",
+    "evidence": "L:aa；D:FilePickerActivity.onClick；v3.k0.a/g/j/k对>5项判断；C/R。不是仅在显示选择数时限制。",
+    "acceptance": "自主决定限制；测试5/6项、本机选择与目标删除/下载/复制/剪切各入口，不保留隐蔽原授权依赖。",
+    "implementation_status": "implemented",
+    "runtime_status": "not-run",
+    "implementation_note": "独立应用提供对应能力，不人为加入原商业数量限制；原授权门槛不复用。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java"
+    ],
+    "related_mock_suites": [],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "PRO-05",
+    "feature": "从本机已安装应用选APK安装宣称高级版",
+    "evidence": "L:aa；Manifest AppPicker；D:v3.i0.j入口、o处理native；C/R/N。原版付费阻断位置尚未证实。",
+    "acceptance": "自主读取用户选中的本机包文件并按现代包可见性/分包规则处理；不复用原辅助包。",
+    "implementation_status": "implemented",
+    "runtime_status": "not-run",
+    "implementation_note": "独立应用提供对应能力，不人为加入原商业数量限制；原授权门槛不复用。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java"
+    ],
+    "related_mock_suites": [],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "PRO-06",
+    "feature": "保存3条以上快捷命令需高级版",
+    "evidence": "D:v3.b 判断列表size<=3（另含“添加命令”项），明确提示“解锁高级版才能保存3个以上命令”；D:v3.a；C。L:aa的笼统“保存快捷命令”不意味着普通版0条。",
+    "acceptance": "独立偏好存储和命令列表；0/1/3/4条、重启持久化、空命令处理测试；若不限数量明确作为自有策略。",
+    "implementation_status": "implemented",
+    "runtime_status": "not-run",
+    "implementation_note": "独立应用提供对应能力，不人为加入原商业数量限制；原授权门槛不复用。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java"
+    ],
+    "related_mock_suites": [],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "PRO-07",
+    "feature": "支付、用支付单号解锁、取消解锁与状态",
+    "evidence": "L:aa IDs `0x7f09006a`,`0x7f09006b`,`0x7f09006c`,`0x7f090287`；L:b2 input `0x7f090121`；UnlockActivity全部核心native；R/N。金额为占位 `¥ ---`，当前价格未知。",
+    "acceptance": "默认不接原服务器、不收原订单号、不重用设备绑定/密钥/签名；只做自有状态界面或另设计授权。需要原版已购状态的动态核对，只能由合法持有人正常使用。",
+    "implementation_status": "product_boundary",
+    "runtime_status": "not-run",
+    "implementation_note": "原支付订单/授权后台不复用、不冒充，也不绕过原校验。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java"
+    ],
+    "related_mock_suites": [],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "PRO-08",
+    "feature": "旧文案的设备绑定与取消解锁提醒",
+    "evidence": "L:aa：本机刷机/恢复出厂/双清/ROOT/BL前先取消、订单激活数量限制、支付后24小时开通等；R/D",
+    "acceptance": "这些只是上传版本文案，不能断言当下服务承诺/设备绑定机制；新系统不复制原承诺，若设计绑定需自有可恢复/迁移机制。",
+    "implementation_status": "product_boundary",
+    "runtime_status": "not-run",
+    "implementation_note": "原商业设备授权绑定不复用，新应用拥有独立ADB身份。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java"
+    ],
+    "related_mock_suites": [],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "PRO-09",
+    "feature": "“未来高级功能”",
+    "evidence": "L:aa 文案；S",
+    "acceptance": "不计本版本已实现能力；不写进当前同功能交付验收范围。",
+    "implementation_status": "product_boundary",
+    "runtime_status": "not-run",
+    "implementation_note": "未定义的未来功能不构成可验收实现。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java"
+    ],
+    "related_mock_suites": [],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "UNC-01",
+    "feature": "L:ba“正在开发中...”",
+    "evidence": "孤立占位资源不能否定已存在的进程管理代码；不得把它新增为独立页面要求。",
+    "acceptance": "",
+    "implementation_status": "reference_uncertain",
+    "runtime_status": "not-run",
+    "implementation_note": "静态证据不足或范围不明确；保留原验收说明，不臆造原版功能。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java"
+    ],
+    "related_mock_suites": [],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "UNC-02",
+    "feature": "L:bd工具页仅6项，实际v3.m0.z动态创建9项",
+    "evidence": "以实际代码入口为主；保留该差异用于动态核对，不能只靠XML复制而漏掉功能。",
+    "acceptance": "",
+    "implementation_status": "reference_resolved",
+    "runtime_status": "not-run",
+    "implementation_note": "原版有效运行截图11/12已确认动态九项工具；旧六项布局是残留，不能据此删掉三项功能。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java"
+    ],
+    "related_mock_suites": [],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "UNC-03",
+    "feature": "L:as标题为动画缩放但有Spinner",
+    "evidence": "通用/残留对话框可能动态改标题，不能独立推导第四种动画工具。",
+    "acceptance": "",
+    "implementation_status": "reference_uncertain",
+    "runtime_status": "not-run",
+    "implementation_note": "静态证据不足或范围不明确；保留原验收说明，不臆造原版功能。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java"
+    ],
+    "related_mock_suites": [],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "UNC-04",
+    "feature": "string中“保存二维码”“1.0”、Material日期/密码/搜索无障碍文案",
+    "evidence": "不证明二维码导出、版本1.0、日历、账户密码管理或语音搜索等产品功能。",
+    "acceptance": "",
+    "implementation_status": "reference_uncertain",
+    "runtime_status": "not-run",
+    "implementation_note": "静态证据不足或范围不明确；保留原验收说明，不臆造原版功能。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java"
+    ],
+    "related_mock_suites": [],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "UNC-05",
+    "feature": "资源菜单j父标题为“test”",
+    "evidence": "子项明确是文件排序；最终可见父标题需运行核对，新产品应使用清晰名称。",
+    "acceptance": "",
+    "implementation_status": "reference_uncertain",
+    "runtime_status": "not-run",
+    "implementation_note": "静态证据不足或范围不明确；保留原验收说明，不臆造原版功能。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java"
+    ],
+    "related_mock_suites": [],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "UNC-06",
+    "feature": "本机ADB、自身控制、IPv6、连接历史细节",
+    "evidence": "有本机标记、地址处理或类字段，但是否可在所有设备运行和入口位置都需D。",
+    "acceptance": "",
+    "implementation_status": "reference_uncertain",
+    "runtime_status": "not-run",
+    "implementation_note": "静态证据不足或范围不明确；保留原验收说明，不臆造原版功能。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java"
+    ],
+    "related_mock_suites": [],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "UNC-07",
+    "feature": "截图、投屏不等于录屏/录音",
+    "evidence": "未从本次明确入口证实音频转发、录屏文件保存、远控剪贴板同步；不能把scrcpy库可能具备的能力全算进产品。",
+    "acceptance": "",
+    "implementation_status": "reference_uncertain",
+    "runtime_status": "not-run",
+    "implementation_note": "静态证据不足或范围不明确；保留原验收说明，不臆造原版功能。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java"
+    ],
+    "related_mock_suites": [],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "UNC-08",
+    "feature": "文件详情权限列不等于chmod/chown编辑器",
+    "evidence": "已证明显示属性；没有找到明确用户可操作的权限编辑入口，不计证实功能。",
+    "acceptance": "",
+    "implementation_status": "reference_uncertain",
+    "runtime_status": "not-run",
+    "implementation_note": "静态证据不足或范围不明确；保留原验收说明，不臆造原版功能。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java"
+    ],
+    "related_mock_suites": [],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "UNC-09",
+    "feature": "应用清除缓存",
+    "evidence": "string/az用于本应用设置缓存；应用详情动作代码列的是清数据、卸载、启停、导出等，未证实逐应用单独清缓存按钮。",
+    "acceptance": "",
+    "implementation_status": "reference_uncertain",
+    "runtime_status": "not-run",
+    "implementation_note": "静态证据不足或范围不明确；保留原验收说明，不臆造原版功能。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java"
+    ],
+    "related_mock_suites": [],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "UNC-10",
+    "feature": "Fastboot A/B槽位、解锁Bootloader、擦除/格式化、fastbootd",
+    "evidence": "自定义命令框不等于有专门、安全、兼容的GUI工作流，未证实就不算现成专属功能。",
+    "acceptance": "",
+    "implementation_status": "reference_uncertain",
+    "runtime_status": "not-run",
+    "implementation_note": "静态证据不足或范围不明确；保留原验收说明，不臆造原版功能。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java"
+    ],
+    "related_mock_suites": [],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "UNC-11",
+    "feature": "授权服务当前价格、可用性、支付商户和退款条款",
+    "evidence": "未访问原服务且当前材料不提供可靠现状，不能承诺购买可用或代付。",
+    "acceptance": "",
+    "implementation_status": "reference_uncertain",
+    "runtime_status": "not-run",
+    "implementation_note": "静态证据不足或范围不明确；保留原验收说明，不臆造原版功能。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java"
+    ],
+    "related_mock_suites": [],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  },
+  {
+    "id": "UNC-12",
+    "feature": "精准视觉复制",
+    "evidence": "本次没有原版运行截图或屏幕录制；XML只能近似结构、字号和边距，不能宣称像素级复刻已具备验收依据。",
+    "acceptance": "",
+    "implementation_status": "reference_uncertain",
+    "runtime_status": "not-run",
+    "implementation_note": "已有19张有效原版运行截图及XML，可作几何/流程对照；尚未完成全部画面与弹窗逐像素验收，原静态清单的无截图说明已由动态证据更新。",
+    "implementation_sources": [
+      "app/src/main/java/io/github/devicebridge/android/MainActivity.java"
+    ],
+    "related_mock_suites": [],
+    "physical_device_status": "not-run",
+    "reference_parity": "not-confirmed"
+  }
+]

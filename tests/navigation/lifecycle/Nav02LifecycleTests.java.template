@@ -1,0 +1,181 @@
+import io.github.devicebridge.core.OperationScope;
+import io.github.devicebridge.core.RetainedModuleState;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.function.Consumer;
+
+/** In-memory source-fragment tests; no Android runtime, filesystem fixtures, sockets or devices. */
+public final class Nav02LifecycleTests extends Activity {
+    private final List<Future<?>> tasks=new ArrayList<>();
+    private final List<OperationScope> scopes=new ArrayList<>();
+    private final Map<OperationScope,ProgressDialog> progressDialogs=new IdentityHashMap<>();
+    private final RetainedModuleState<AdbSession> moduleState=new RetainedModuleState<>();
+    private final ModulePage[] modulePages=new ModulePage[7];
+    private ModulePage buildingPage;
+    private int page,generation,restores,refreshes;
+    private AdbSession viewSession,fileDataSession;
+    private int fileDataGeneration;
+    private boolean hidden,destroyed,finishing;
+    private final Preferences prefs=new Preferences();
+    private final Set<String> selected=new HashSet<>();
+    private final List<String> fileEntries=new ArrayList<>();
+    private Object fileAdapter,fileCount;
+    private Pager modulePager=new Pager();
+    private final List<ProgressDialog> ownedDialogs=new ArrayList<>();
+    private boolean isFinishing(){return finishing;}
+    private boolean isDestroyed(){return destroyed;}
+    private void ownDialog(ProgressDialog dialog){ownedDialogs.add(dialog);dialog.onDismiss=()->ownedDialogs.remove(dialog);}
+    private void restoreModuleScroll(ModulePage page){if(page.ready)restores++;}
+    private void showDevice(int index){refreshes++;page=index;}
+
+    /* PRODUCTION_FRAGMENTS */
+
+    private static int checks;
+    private static void check(boolean ok,String label){if(!ok)throw new AssertionError(label);checks++;}
+    private static Nav02LifecycleTests fixture(int index){
+        BridgeRuntime.reset();Nav02LifecycleTests value=new Nav02LifecycleTests();
+        value.page=index;value.generation=10;value.viewSession=BridgeRuntime.session();
+        value.moduleState.bind(value.viewSession,7,index);
+        value.buildingPage=value.modulePages[index]=new ModulePage(new LinearLayout(),value.moduleState.pageToken(index));
+        return value;
+    }
+    private void revisit(){moduleState.activate((page+1)%7);moduleState.activate(page);generation++;}
+    private ProgressDialog activeDialog(){return progressDialogs.values().iterator().next();}
+    private void assertDetached(String label){check(scopes.isEmpty()&&tasks.isEmpty()&&progressDialogs.isEmpty()&&ownedDialogs.isEmpty(),label);}
+    public static void main(String[] args){
+        lateInitialSuccess(false);lateInitialSuccess(true);lateInitialFailure(false);lateInitialFailure(true);
+        supersededAttemptSameActivation();queuedCancellation();cancelButtonBeforeStart();cancelledReport();
+        invalidationGates();hiddenFilterInvalidation();
+        System.out.println("NAV02 LIFECYCLE FRAGMENT TESTS: "+checks+" passed");
+    }
+    private static void lateInitialSuccess(boolean beforeNewSuccess){
+        Nav02LifecycleTests f=fixture(3);ModulePage slot=f.buildingPage;int[] accepted={0};Resource oldValue=new Resource();
+        f.workScoped("old",scope->oldValue,value->{accepted[0]+=100;});
+        BridgeRuntime.IO.runNext();Runnable oldCallback=BridgeRuntime.UI.take();f.activeDialog().cancelButton();
+        check(!slot.ready&&!slot.loading,"cancel clears its own initial attempt");f.revisit();
+        f.workScoped("new",scope->"fresh",value->{accepted[0]++;});
+        if(beforeNewSuccess){oldCallback.run();check(!slot.ready&&slot.loading,"old success cannot clear newer loading");}
+        BridgeRuntime.IO.runNext();BridgeRuntime.UI.take().run();
+        if(!beforeNewSuccess)oldCallback.run();
+        check(slot.ready&&!slot.loading,"old success cannot reset newer ready state");
+        check(accepted[0]==1&&f.restores==1,"only fresh success renders and restores scroll");
+        check(oldValue.closed,"discarded old returned resource is closed");f.assertDetached("both success attempts detach");
+    }
+    private static void lateInitialFailure(boolean beforeNewSuccess){
+        Nav02LifecycleTests f=fixture(4);ModulePage slot=f.buildingPage;int[] accepted={0};
+        f.workScoped("old",scope->{throw new Exception("synthetic failure");},value->{accepted[0]+=100;});
+        BridgeRuntime.IO.runNext();Runnable oldCallback=BridgeRuntime.UI.take();f.activeDialog().cancelButton();f.revisit();
+        f.workScoped("new",scope->"fresh",value->{accepted[0]++;});
+        if(beforeNewSuccess){oldCallback.run();check(!slot.ready&&slot.loading,"old failure cannot clear newer loading");}
+        BridgeRuntime.IO.runNext();BridgeRuntime.UI.take().run();if(!beforeNewSuccess)oldCallback.run();
+        check(slot.ready&&!slot.loading&&accepted[0]==1,"old failure cannot reset newer ready state");
+        check(Ui.messages.isEmpty(),"cancelled old error is not shown");f.assertDetached("both failure/retry attempts detach");
+    }
+    private static void supersededAttemptSameActivation(){
+        Nav02LifecycleTests f=fixture(0);ModulePage slot=f.buildingPage;int[] accepted={0};
+        f.workScoped("old",scope->"old",value->{accepted[0]+=100;});BridgeRuntime.IO.runNext();Runnable old=BridgeRuntime.UI.take();
+        f.workScoped("new",scope->"new",value->{accepted[0]++;});old.run();
+        check(!slot.ready&&slot.loading&&accepted[0]==0,"attempt identity gates same-activation superseded success");
+        BridgeRuntime.IO.runNext();BridgeRuntime.UI.take().run();check(slot.ready&&accepted[0]==1,"latest same-activation attempt completes");
+        f.workScoped("failed-old",scope->{throw new Exception("old");},value->{});BridgeRuntime.IO.runNext();old=BridgeRuntime.UI.take();
+        f.workScoped("new",scope->"new",value->{});old.run();
+        check(!slot.ready&&slot.loading&&Ui.messages.isEmpty(),"same-activation superseded failure has no UI effect");
+        BridgeRuntime.IO.runNext();BridgeRuntime.UI.take().run();
+        f.workScoped("handler-failure",scope->"value",value->{throw new IllegalStateException("handler");});
+        BridgeRuntime.IO.runNext();BridgeRuntime.UI.take().run();check(!slot.ready&&!slot.loading,"current result-handler failure remains retryable");
+        check(Ui.messages.size()==1,"current handler failure is reported");f.assertDetached("handler failure detaches");
+    }
+    private static void queuedCancellation(){
+        Nav02LifecycleTests f=fixture(2);int[] called={0};
+        for(int i=0;i<4;i++)f.workScoped("queued",scope->{called[0]++;return "unused";},value->{called[0]+=100;});
+        List<Future<?>> queued=new ArrayList<>(f.tasks);List<OperationScope> oldScopes=new ArrayList<>(f.scopes);
+        List<ProgressDialog> dialogs=new ArrayList<>(f.progressDialogs.values());
+        f.cancelScopedWork();f.assertDetached("queued lifecycle cancellation synchronously releases navigation/UI");
+        for(Future<?> task:queued)check(task.isCancelled(),"queued future cancelled");
+        for(OperationScope scope:oldScopes)check(scope.isCancelled(),"queued scope synchronously cancelled");
+        for(ProgressDialog dialog:dialogs)check(!dialog.isShowing(),"queued progress window dismissed");
+        BridgeRuntime.IO.runAll();check(called[0]==0&&BridgeRuntime.UI.callbacks.isEmpty(),"cancelled-before-start task never needs UI cleanup callback");
+        f.cancelScopedWork();f.assertDetached("repeated lifecycle cancellation is harmless");
+        f.revisit();f.workScoped("new",scope->"new",value->{called[0]++;});BridgeRuntime.IO.runNext();BridgeRuntime.UI.take().run();
+        check(called[0]==1&&f.buildingPage.ready,"new work can complete after queued cancellation");
+    }
+    private static void cancelButtonBeforeStart(){
+        Nav02LifecycleTests f=fixture(5);int[] called={0};f.workScoped("queued",scope->{called[0]++;return "unused";},value->{});
+        f.activeDialog().cancelButton();f.assertDetached("button cancellation detaches queued task immediately");
+        check(!f.buildingPage.loading&&!f.buildingPage.ready,"button cancellation marks page retryable");
+        BridgeRuntime.IO.runAll();check(called[0]==0,"button-cancelled queued job not called");
+    }
+    private static void cancelledReport(){
+        Nav02LifecycleTests f=fixture(1);f.buildingPage=null;int[] accepted={0};
+        f.workScoped("synthetic operation",scope->{scope.record("completed item");return "result";},value->{accepted[0]++;});
+        BridgeRuntime.IO.runNext();Runnable late=BridgeRuntime.UI.take();
+        f.cancelScopedWork();f.generation++;f.assertDetached("completed worker awaiting UI detaches");
+        f.workScoped("new",scope->"fresh",value->{accepted[0]++;});late.run();
+        check(f.scopes.size()==1&&f.tasks.size()==1&&f.progressDialogs.size()==1,"old cleanup does not remove fresh scope/window");
+        check(accepted[0]==0&&BridgeRuntime.get().reports.size()==1&&BridgeRuntime.get().reports.get(0).contains("completed item"),"cancelled operation still records partial result");
+        BridgeRuntime.IO.runNext();BridgeRuntime.UI.take().run();check(accepted[0]==1,"fresh operation still applies");f.assertDetached("new operation detaches");
+        f.workScoped("error report",scope->{scope.record("item before failure");throw new Exception("synthetic");},value->{});
+        BridgeRuntime.IO.runNext();late=BridgeRuntime.UI.take();f.cancelScopedWork();f.generation++;late.run();
+        check(BridgeRuntime.get().reports.size()==2&&BridgeRuntime.get().reports.get(1).contains("item before failure"),"cancelled error still records partial result");
+    }
+    private static void invalidationGates(){
+        for(int reason=0;reason<6;reason++){
+            Nav02LifecycleTests f=fixture(3);int[] accepted={0};Resource value=new Resource();
+            f.workScoped("old",scope->value,result->{accepted[0]++;});BridgeRuntime.IO.runNext();Runnable callback=BridgeRuntime.UI.take();
+            switch(reason){case 0:f.generation++;break;case 1:BridgeRuntime.current=new AdbSession();break;
+                case 2:f.moduleState.activate(4);f.moduleState.activate(3);break;case 3:f.moduleState.refresh(3);break;
+                case 4:f.destroyed=true;break;case 5:f.finishing=true;break;default:throw new AssertionError();}
+            callback.run();check(accepted[0]==0&&value.closed,"stale lifetime cannot apply result: "+reason);
+            check(!f.buildingPage.ready&&!f.buildingPage.loading,"stale lifetime settles only its own attempt: "+reason);
+            f.assertDetached("invalid lifetime releases operation: "+reason);
+        }
+    }
+    private static void hiddenFilterInvalidation(){
+        Nav02LifecycleTests f=fixture(1);ModulePage tools=f.modulePages[1];
+        ModulePage files=f.modulePages[3]=new ModulePage(new LinearLayout(),f.moduleState.pageToken(3));files.ready=true;
+        f.fileDataSession=f.viewSession;f.fileDataGeneration=7;f.fileEntries.add(".synthetic");f.selected.add(".synthetic");
+        f.fileAdapter=new Object();f.fileCount=new Object();Object oldToken=files.token;
+        RetainedModuleState.Snapshot<AdbSession> active=f.moduleState.snapshot();f.prefs.showHidden=true;f.onResume();
+        check(f.hidden&&f.page==1&&f.refreshes==0,"inactive hidden setting update does not navigate/query");
+        check(f.modulePages[3]==null&&f.moduleState.pageToken(3)!=oldToken&&f.modulePager.replaced==3,"inactive file slot and token invalidated");
+        check(f.moduleState.isCurrent(active)&&f.modulePages[1]==tools,"unrelated page activation and view preserved");
+        check(f.selected.isEmpty()&&f.fileEntries.isEmpty()&&f.fileDataSession==null&&f.fileDataGeneration==-1&&f.fileAdapter==null&&f.fileCount==null,"stale file data and selection cleared");
+        f.moduleState.activate(3);check(f.moduleState.snapshotForView(f.viewSession,3,oldToken)==null,"old file action token stays expired on revisit");
+        Object replacement=f.moduleState.pageToken(3);f.onResume();check(f.moduleState.pageToken(3)==replacement&&f.modulePager.calls==1,"unchanged preference does not invalidate again");
+        f=fixture(3);f.prefs.showHidden=true;f.onResume();check(f.refreshes==1&&f.page==3,"active file page retains explicit refresh path");
+        f=fixture(2);f.prefs.showHidden=true;BridgeRuntime.current=new AdbSession();f.onResume();
+        check(f.refreshes==1&&f.modulePager.calls==0,"changed session takes full rebuild path");
+        f=fixture(0);f.page=-1;f.modulePager=null;f.prefs.showHidden=true;f.onResume();check(f.hidden&&f.refreshes==0,"connection screen safely consumes setting change");
+    }
+}
+class Activity {protected void onResume(){}}
+class LinearLayout {}
+class ModuleScrollState {}
+class AdbSession {String target(){return "synthetic target";}}
+class Resource implements AutoCloseable {boolean closed;public void close(){closed=true;}}
+class Preferences {boolean showHidden;boolean getBoolean(String key,boolean fallback){return showHidden;}}
+class Pager {int replaced=-1,calls;void replace(int index){replaced=index;calls++;}}
+class DialogInterface {static final int BUTTON_NEGATIVE=-2;interface Listener {void onClick(Object dialog,int button);}}
+class ProgressDialog {
+    boolean showing;DialogInterface.Listener cancel;Runnable onDismiss;
+    ProgressDialog(Object owner){}void setMessage(String text){}void setCancelable(boolean value){}void setIndeterminate(boolean value){}
+    void setButton(int button,String text,DialogInterface.Listener listener){cancel=listener;}
+    void show(){showing=true;}boolean isShowing(){return showing;}
+    void dismiss(){showing=false;if(onDismiss!=null)onDismiss.run();}void cancelButton(){cancel.onClick(this,-2);dismiss();}
+}
+class Toast {static final int LENGTH_LONG=1;static Toast makeText(Object owner,String message,int length){return new Toast();}void show(){}}
+class Ui {static final List<String> messages=new ArrayList<>();static void message(Object owner,String title,String text){messages.add(title+":"+text);}}
+class ManualExecutor extends AbstractExecutorService {
+    final Deque<Runnable> queue=new ArrayDeque<>();boolean stopped;
+    public void execute(Runnable runnable){queue.addLast(runnable);}void runNext(){queue.removeFirst().run();}void runAll(){while(!queue.isEmpty())runNext();}
+    public void shutdown(){stopped=true;}public List<Runnable> shutdownNow(){stopped=true;List<Runnable> old=new ArrayList<>(queue);queue.clear();return old;}
+    public boolean isShutdown(){return stopped;}public boolean isTerminated(){return stopped&&queue.isEmpty();}public boolean awaitTermination(long n,TimeUnit unit){return isTerminated();}
+}
+class QueueUi {final Deque<Runnable> callbacks=new ArrayDeque<>();void post(Runnable callback){callbacks.addLast(callback);}Runnable take(){return callbacks.removeFirst();}}
+class BridgeRuntime {
+    static final ManualExecutor IO=new ManualExecutor();static final QueueUi UI=new QueueUi();static final Executor CLOSERS=Runnable::run;
+    static AdbSession current;static final BridgeRuntime INSTANCE=new BridgeRuntime();final List<String> reports=new ArrayList<>();
+    static BridgeRuntime get(){return INSTANCE;}static AdbSession session(){return current;}void report(String text){reports.add(text);}
+    String takeReports(){String text=String.join("\n",reports);reports.clear();return text;}
+    static void reset(){IO.queue.clear();UI.callbacks.clear();INSTANCE.reports.clear();Ui.messages.clear();current=new AdbSession();}
+}

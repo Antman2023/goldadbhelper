@@ -1,0 +1,27 @@
+Runtime dependency: org.conscrypt:conscrypt-android:2.5.3
+Source: https://repo.maven.apache.org/maven2/org/conscrypt/conscrypt-android/2.5.3/conscrypt-android-2.5.3.aar
+Archive SHA-256: 551ae4e301c571760d1791e647db6ed1dcb10d34dcae7aa12b67f220f2ce98d1
+Conscrypt source/tag: https://github.com/google/conscrypt/tree/fd209de6167201e4f3bca5b99c6db9f08d1843c6 (2.5.3)
+Licenses: Apache-2.0; NOTICE retains Harmony and Netty notices.
+
+The bundled org/conscrypt/conscrypt.properties declares BoringSSL revision
+49f0329110a1d93a5febc2bceceedc655d995420. Its complete LICENSE was retrieved
+from https://github.com/google/boringssl/blob/49f0329110a1d93a5febc2bceceedc655d995420/LICENSE
+and is retained as BORINGSSL-LICENSE (OpenSSL/SSLeay/ISC notices).
+
+Test-only dependency: org.conscrypt:conscrypt-openjdk-uber:2.5.2
+Source: https://repo.maven.apache.org/maven2/org/conscrypt/conscrypt-openjdk-uber/2.5.2/conscrypt-openjdk-uber-2.5.2.jar
+Archive SHA-256: eaf537d98e033d0f0451cd1b8cc74e02d7b55ec882da63c88060d806ba89c348
+This artifact is not included in the APK. It declares the same BoringSSL revision.
+
+Runtime native libraries were extracted from the official AAR, not the reference
+APK: arm64-v8a, armeabi-v7a, x86 and x86_64. No hidden Android API bypass is used.
+
+API19-21 exporter adapter (application code, dependency archive unchanged):
+Conscrypt's KitKatPlatformOpenSSLSocketImplAdapter wraps its actual TLS socket,
+but Conscrypt.exportKeyingMaterial accepts only the underlying Conscrypt type.
+TlsSupport unwraps only this exact bundled adapter's private final `delegate`
+field, then invokes the same public exporter on the same negotiated channel.
+A changed layout fails closed. This is reflection on the pinned app-owned
+library, not an Android hidden-API exemption or a trust/handshake bypass.
+Source: https://github.com/google/conscrypt/blob/fd209de6167201e4f3bca5b99c6db9f08d1843c6/android/src/main/java/org/conscrypt/KitKatPlatformOpenSSLSocketImplAdapter.java

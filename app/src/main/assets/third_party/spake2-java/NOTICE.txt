@@ -1,0 +1,16 @@
+This application uses SPAKE2-Java, Copyright (C) 2021 Muntashir Al-Islam,
+licensed under LGPL version 3. The upstream README and LICENSE identify LGPL-3.0;
+the upstream Gradle POM has inconsistent GPL wording. See licenses/LGPL-3.0 and
+licenses/GPL-3.0-or-later. Full corresponding library/application source and
+rebuild instructions accompany the APK distribution.
+
+EdDSA-Java by str4d is used for the corrected field-multiplication routine and
+is the acknowledged CC0 ancestor of the upstream Edwards25519 implementation.
+See licenses/CC0-1.0.
+
+The vendored Java source was modified for this application on 2026-10-12.
+Source locations, exact upstream revision and modifications are recorded in
+UPSTREAM_MANIFEST.json and docs/WIRELESS_PAIRING.md.
+
+libadb-android by Muntashir Al-Islam and AOSP were consulted as protocol sources;
+the new io.github.devicebridge.core pairing/TLS classes are independent code.

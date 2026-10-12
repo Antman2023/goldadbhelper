@@ -1,0 +1,21 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="io.github.devicebridge.goldenbeetle">
+  <uses-permission android:name="android.permission.INTERNET"/>
+  <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+  <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+  <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"/>
+  <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="29"/>
+  <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="29"/>
+  <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"/>
+  <uses-feature android:name="android.hardware.usb.host" android:required="false"/>
+  <uses-sdk android:minSdkVersion="19" android:targetSdkVersion="35"/>
+  <application android:name="io.github.devicebridge.android.BridgeRuntime" android:label="金甲虫ADB助手" android:icon="@drawable/ic_beetle" android:theme="@style/AppTheme" android:allowBackup="false" android:requestLegacyExternalStorage="true" android:usesCleartextTraffic="true" android:supportsRtl="true">
+    <activity android:name="io.github.devicebridge.android.MainActivity" android:exported="true" android:windowSoftInputMode="adjustResize">
+      <intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter>
+    </activity>
+    <activity android:name="io.github.devicebridge.android.ScreenActivity" android:configChanges="orientation|screenSize|keyboardHidden" android:exported="false"/>
+    <activity android:name="io.github.devicebridge.android.FastbootActivity" android:configChanges="orientation|screenSize|keyboardHidden" android:exported="false"/>
+    <activity android:name="io.github.devicebridge.android.SettingsActivity" android:exported="false"/>
+    <activity android:name="io.github.devicebridge.android.LocalFilesActivity" android:exported="false"/>
+    <provider android:name="io.github.devicebridge.android.LocalFileProvider" android:authorities="io.github.devicebridge.goldenbeetle.files" android:exported="false" android:grantUriPermissions="true"/>
+  </application>
+</manifest>

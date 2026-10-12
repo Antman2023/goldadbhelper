@@ -1,0 +1,6 @@
+f8b7cdd501ccb8955c6dd4cdb738a82e03bf07938b3de81361f43fb62e31a8c9  app/src/main/java/io/github/devicebridge/android/ExternalAdbController.java
+c50b62de5f49602c4ae4c92b0c368bf84d499042c7838d79016a4ce58850a8eb  app/src/main/java/io/github/devicebridge/android/BridgeRuntime.java
+d25adcd82e603c19057382900339f57056d544f691593e2c7c3f2cf0911296f6  core/src/main/java/io/github/devicebridge/core/AdbServerEndpoint.java
+0297c41d28a7ea56e19521718524124edd643b78aff49f42bff89db4a59989e7  core/src/main/java/io/github/devicebridge/core/HostServerClient.java
+ab375a4dbb90255f84be8b43ad8593f7d65594f37417a0399774f5671c6a5ef4  core/src/main/java/io/github/devicebridge/core/AdbSession.java
+7b215c76081ccd87fcf09b4473560f2bcd9ea885a863b022c02ed8d672592765  core/src/main/java/io/github/devicebridge/core/OperationScope.java

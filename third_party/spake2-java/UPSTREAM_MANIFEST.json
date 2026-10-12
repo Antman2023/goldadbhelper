@@ -1,0 +1,87 @@
+{
+  "component": "spake2-java (pure Java)",
+  "repository": "https://github.com/MuntashirAkon/spake2-java",
+  "revision": "7615ddd680b990e14513ebb66eac4cb0dbf82464",
+  "license": "LGPL-3.0; README and LICENSE agree, while upstream Gradle POM says GPL-3.0",
+  "retrieved": "2026-10-12",
+  "sources": [
+    {
+      "upstreamPath": "java/src/main/java/io/github/muntashirakon/crypto/ed25519/Curve.java",
+      "gitBlobSha1": "5c218f8355649035361e0186da96b56dafe6b134",
+      "upstreamBytes": 3647,
+      "localPath": "core/src/main/java/io/github/muntashirakon/crypto/ed25519/Curve.java"
+    },
+    {
+      "upstreamPath": "java/src/main/java/io/github/muntashirakon/crypto/ed25519/Ed25519.java",
+      "gitBlobSha1": "d9706ca95605c051e1fa1e50adb94998d736c2a9",
+      "upstreamBytes": 1206,
+      "localPath": "core/src/main/java/io/github/muntashirakon/crypto/ed25519/Ed25519.java"
+    },
+    {
+      "upstreamPath": "java/src/main/java/io/github/muntashirakon/crypto/ed25519/Ed25519CurveParameterSpec.java",
+      "gitBlobSha1": "3ede9f3dcabc9f24d24690950e09593c47e8954f",
+      "upstreamBytes": 2359,
+      "localPath": "core/src/main/java/io/github/muntashirakon/crypto/ed25519/Ed25519CurveParameterSpec.java"
+    },
+    {
+      "upstreamPath": "java/src/main/java/io/github/muntashirakon/crypto/ed25519/Ed25519Field.java",
+      "gitBlobSha1": "493459e92f10823e2f851486a2b2384437f5d3ae",
+      "upstreamBytes": 2688,
+      "localPath": "core/src/main/java/io/github/muntashirakon/crypto/ed25519/Ed25519Field.java"
+    },
+    {
+      "upstreamPath": "java/src/main/java/io/github/muntashirakon/crypto/ed25519/Ed25519FieldElement.java",
+      "gitBlobSha1": "11347b898082d5065e47f2c70a15d9da2f7f6272",
+      "upstreamBytes": 34956,
+      "localPath": "core/src/main/java/io/github/muntashirakon/crypto/ed25519/Ed25519FieldElement.java"
+    },
+    {
+      "upstreamPath": "java/src/main/java/io/github/muntashirakon/crypto/ed25519/Ed25519LittleEndianEncoding.java",
+      "gitBlobSha1": "d4609913bf50cb7622b25d93d9850b36acbb208f",
+      "upstreamBytes": 8679,
+      "localPath": "core/src/main/java/io/github/muntashirakon/crypto/ed25519/Ed25519LittleEndianEncoding.java"
+    },
+    {
+      "upstreamPath": "java/src/main/java/io/github/muntashirakon/crypto/ed25519/FieldElement.java",
+      "gitBlobSha1": "f85a23c9fc17a5ac16da0010eb5e4a14472e184b",
+      "upstreamBytes": 1798,
+      "localPath": "core/src/main/java/io/github/muntashirakon/crypto/ed25519/FieldElement.java"
+    },
+    {
+      "upstreamPath": "java/src/main/java/io/github/muntashirakon/crypto/ed25519/GroupElement.java",
+      "gitBlobSha1": "4f8e9faa6879c1b46fad5da9b8588289bcb1e737",
+      "upstreamBytes": 39306,
+      "localPath": "core/src/main/java/io/github/muntashirakon/crypto/ed25519/GroupElement.java"
+    },
+    {
+      "upstreamPath": "java/src/main/java/io/github/muntashirakon/crypto/ed25519/Utils.java",
+      "gitBlobSha1": "904c073135c257dc6c74bf3e4bfd8476facb8aaa",
+      "upstreamBytes": 2640,
+      "localPath": "core/src/main/java/io/github/muntashirakon/crypto/ed25519/Utils.java"
+    },
+    {
+      "upstreamPath": "java/src/main/java/io/github/muntashirakon/crypto/spake2/Spake2Context.java",
+      "gitBlobSha1": "6f05577472b1676eaefe7675794972f7c26c1cc3",
+      "upstreamBytes": 36648,
+      "localPath": "core/src/main/java/io/github/muntashirakon/crypto/spake2/Spake2Context.java"
+    },
+    {
+      "upstreamPath": "java/src/main/java/io/github/muntashirakon/crypto/spake2/Spake2Role.java",
+      "gitBlobSha1": "4b462f1484c0e30629dc47e777a5bac5a080a2ca",
+      "upstreamBytes": 209,
+      "localPath": "core/src/main/java/io/github/muntashirakon/crypto/spake2/Spake2Role.java"
+    },
+    {
+      "upstreamPath": "java/src/main/java/io/github/muntashirakon/crypto/x25519/x25519Scalar.java",
+      "gitBlobSha1": "3caac754fdaa2452ab65c72d4299008060e64fca",
+      "upstreamBytes": 11152,
+      "localPath": "core/src/main/java/io/github/muntashirakon/crypto/x25519/x25519Scalar.java"
+    }
+  ],
+  "patches": [
+    "Remove every System.out diagnostic in Spake2Context and GroupElement; erase temporary random private-key bytes.",
+    "Correct Curve.fromBytesNegateVarTime sign-bit extraction for signed Java byte.",
+    "Replace Ed25519FieldElement.multiply with CC0 EdDSA-Java signed-radix method from revision e0ac35769db8553fb714b09f0d3f3d2b001fd033; the fork's unsigned routine violates signed field-element invariants and failed independent scalar-multiply tests.",
+    "Refactor Ed25519FieldElement multiply, square and squareAndDouble to accumulate the same signed-radix coefficients directly into ten long array limbs and share the unchanged twelve signed carries. Removes the Android 4.4 x86 Dalvik JIT virtual-register overflow without secret-dependent control flow or BigInteger production arithmetic. Added test-only fixed vectors and independent integer-oracle/boundary checks in core/src/test/java/io/github/muntashirakon/crypto/ed25519/FieldArithmeticTests.java."
+  ]
+}

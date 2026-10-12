@@ -1,0 +1,12 @@
+{
+  "total": 150,
+  "status_counts": {
+    "implemented": 120,
+    "partial": 8,
+    "not_implemented": 3,
+    "reference_uncertain": 12,
+    "product_boundary": 6,
+    "reference_resolved": 1
+  },
+  "warning": "Implemented means source integrated only. Test-suite association does not prove every feature accepted. APK is a development build; full parity is not established."
+}

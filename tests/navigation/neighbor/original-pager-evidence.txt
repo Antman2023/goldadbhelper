@@ -1,0 +1,240 @@
+
+## Bundled ViewPager constructor, x := 1
+
+Original dexdump lines 99523-99563
+
+99523:      locals        :
+99524:
+99525:    #1              : (in Landroidx/viewpager/widget/ViewPager;)
+99526:      name          : '<init>'
+99527:      type          : '(Landroid/content/Context;Landroid/util/AttributeSet;)V'
+99528:      access        : 0x10001 (PUBLIC CONSTRUCTOR)
+99529:      code          -
+99530:      registers     : 6
+99531:      ins           : 3
+99532:      outs          : 3
+99533:      insns size    : 177 16-bit code units
+99534:0e5394:                                        |[0e5394] androidx.viewpager.widget.ViewPager.<init>:(Landroid/content/Context;Landroid/util/AttributeSet;)V
+99535:0e53a4: 7030 6607 4305                         |0000: invoke-direct {v3, v4, v5}, Landroid/view/ViewGroup;.<init>:(Landroid/content/Context;Landroid/util/AttributeSet;)V // method@0766
+99536:0e53aa: 2204 f70a                              |0003: new-instance v4, Ljava/util/ArrayList; // type@0af7
+99537:0e53ae: 7010 7e3c 0400                         |0005: invoke-direct {v4}, Ljava/util/ArrayList;.<init>:()V // method@3c7e
+99538:0e53b4: 5b34 fc05                              |0008: iput-object v4, v3, Landroidx/viewpager/widget/ViewPager;.c:Ljava/util/ArrayList; // field@05fc
+99539:0e53b8: 2204 de02                              |000a: new-instance v4, Landroidx/viewpager/widget/ViewPager$e; // type@02de
+99540:0e53bc: 7010 0a16 0400                         |000c: invoke-direct {v4}, Landroidx/viewpager/widget/ViewPager$e;.<init>:()V // method@160a
+99541:0e53c2: 5b34 fe05                              |000f: iput-object v4, v3, Landroidx/viewpager/widget/ViewPager;.d:Landroidx/viewpager/widget/ViewPager$e; // field@05fe
+99542:0e53c6: 2204 8c00                              |0011: new-instance v4, Landroid/graphics/Rect; // type@008c
+99543:0e53ca: 7010 e202 0400                         |0013: invoke-direct {v4}, Landroid/graphics/Rect;.<init>:()V // method@02e2
+99544:0e53d0: 5b34 0006                              |0016: iput-object v4, v3, Landroidx/viewpager/widget/ViewPager;.e:Landroid/graphics/Rect; // field@0600
+99545:0e53d4: 12f4                                   |0018: const/4 v4, #int -1 // #ff
+99546:0e53d6: 5934 0306                              |0019: iput v4, v3, Landroidx/viewpager/widget/ViewPager;.h:I // field@0603
+99547:0e53da: 1205                                   |001b: const/4 v5, #int 0 // #0
+99548:0e53dc: 5b35 0406                              |001c: iput-object v5, v3, Landroidx/viewpager/widget/ViewPager;.i:Landroid/os/Parcelable; // field@0604
+99549:0e53e0: 5b35 0506                              |001e: iput-object v5, v3, Landroidx/viewpager/widget/ViewPager;.j:Ljava/lang/ClassLoader; // field@0605
+99550:0e53e4: 1405 ffff 7fff                         |0020: const v5, #float -3.40282e+38 // #ff7fffff
+99551:0e53ea: 5935 0d06                              |0023: iput v5, v3, Landroidx/viewpager/widget/ViewPager;.r:F // field@060d
+99552:0e53ee: 1405 ffff 7f7f                         |0025: const v5, #float 3.40282e+38 // #7f7fffff
+99553:0e53f4: 5935 0e06                              |0028: iput v5, v3, Landroidx/viewpager/widget/ViewPager;.s:F // field@060e
+99554:0e53f8: 1215                                   |002a: const/4 v5, #int 1 // #1
+99555:0e53fa: 5935 1306                              |002b: iput v5, v3, Landroidx/viewpager/widget/ViewPager;.x:I // field@0613
+99556:0e53fe: 5934 e905                              |002d: iput v4, v3, Landroidx/viewpager/widget/ViewPager;.H:I // field@05e9
+99557:0e5402: 5c35 f105                              |002f: iput-boolean v5, v3, Landroidx/viewpager/widget/ViewPager;.P:Z // field@05f1
+99558:0e5406: 2204 dc02                              |0031: new-instance v4, Landroidx/viewpager/widget/ViewPager$c; // type@02dc
+99559:0e540a: 7020 0816 3400                         |0033: invoke-direct {v4, v3}, Landroidx/viewpager/widget/ViewPager$c;.<init>:(Landroidx/viewpager/widget/ViewPager;)V // method@1608
+99560:0e5410: 5b34 f705                              |0036: iput-object v4, v3, Landroidx/viewpager/widget/ViewPager;.V:Ljava/lang/Runnable; // field@05f7
+99561:0e5414: 1204                                   |0038: const/4 v4, #int 0 // #0
+99562:0e5416: 5934 f805                              |0039: iput v4, v3, Landroidx/viewpager/widget/ViewPager;.W:I // field@05f8
+99563:0e541a: 6e20 1908 4300                         |003b: invoke-virtual {v3, v4}, Landroid/view/ViewGroup;.setWillNotDraw:(Z)V // method@0819
+
+## Getter returns x
+
+Original dexdump lines 100813-100826
+
+100813:    #23              : (in Landroidx/viewpager/widget/ViewPager;)
+100814:      name          : 'getOffscreenPageLimit'
+100815:      type          : '()I'
+100816:      access        : 0x0001 (PUBLIC)
+100817:      code          -
+100818:      registers     : 2
+100819:      ins           : 1
+100820:      outs          : 0
+100821:      insns size    : 3 16-bit code units
+100822:0e624c:                                        |[0e624c] androidx.viewpager.widget.ViewPager.getOffscreenPageLimit:()I
+100823:0e625c: 5210 1306                              |0000: iget v0, v1, Landroidx/viewpager/widget/ViewPager;.x:I // field@0613
+100824:0e6260: 0f00                                   |0002: return v0
+100825:      catches       : (none)
+100826:      positions     :
+
+## Populate bounds current - x through current + x
+
+Original dexdump lines 102412-102455
+
+102412:0e752c: 0201 1200                              |0002: move/from16 v1, v18
+102413:0e7530: 5202 0206                              |0004: iget v2, v0, Landroidx/viewpager/widget/ViewPager;.g:I // field@0602
+102414:0e7534: 3212 0900                              |0006: if-eq v2, v1, 000f // +0009
+102415:0e7538: 6e20 4116 2000                         |0008: invoke-virtual {v0, v2}, Landroidx/viewpager/widget/ViewPager;.j:(I)Landroidx/viewpager/widget/ViewPager$e; // method@1641
+102416:0e753e: 0c02                                   |000b: move-result-object v2
+102417:0e7540: 5901 0206                              |000c: iput v1, v0, Landroidx/viewpager/widget/ViewPager;.g:I // field@0602
+102418:0e7544: 2802                                   |000e: goto 0010 // +0002
+102419:0e7546: 1202                                   |000f: const/4 v2, #int 0 // #0
+102420:0e7548: 5401 0106                              |0010: iget-object v1, v0, Landroidx/viewpager/widget/ViewPager;.f:Lb/z/a/a; // field@0601
+102421:0e754c: 3901 0300                              |0012: if-nez v1, 0015 // +0003
+102422:0e7550: 0e00                                   |0014: return-void
+102423:0e7552: 5501 1206                              |0015: iget-boolean v1, v0, Landroidx/viewpager/widget/ViewPager;.w:Z // field@0612
+102424:0e7556: 3801 0300                              |0017: if-eqz v1, 001a // +0003
+102425:0e755a: 0e00                                   |0019: return-void
+102426:0e755c: 7401 b407 1100                         |001a: invoke-virtual/range {v17}, Landroid/view/ViewGroup;.getWindowToken:()Landroid/os/IBinder; // method@07b4
+102427:0e7562: 0c01                                   |001d: move-result-object v1
+102428:0e7564: 3901 0300                              |001e: if-nez v1, 0021 // +0003
+102429:0e7568: 0e00                                   |0020: return-void
+102430:0e756a: 5401 0106                              |0021: iget-object v1, v0, Landroidx/viewpager/widget/ViewPager;.f:Lb/z/a/a; // field@0601
+102431:0e756e: 6e20 5128 0100                         |0023: invoke-virtual {v1, v0}, Lb/z/a/a;.d:(Landroid/view/ViewGroup;)V // method@2851
+102432:0e7574: 5201 1306                              |0026: iget v1, v0, Landroidx/viewpager/widget/ViewPager;.x:I // field@0613
+102433:0e7578: 5203 0206                              |0028: iget v3, v0, Landroidx/viewpager/widget/ViewPager;.g:I // field@0602
+102434:0e757c: b113                                   |002a: sub-int/2addr v3, v1
+102435:0e757e: 1204                                   |002b: const/4 v4, #int 0 // #0
+102436:0e7580: 7120 743b 3400                         |002c: invoke-static {v4, v3}, Ljava/lang/Math;.max:(II)I // method@3b74
+102437:0e7586: 0a03                                   |002f: move-result v3
+102438:0e7588: 5405 0106                              |0030: iget-object v5, v0, Landroidx/viewpager/widget/ViewPager;.f:Lb/z/a/a; // field@0601
+102439:0e758c: 6e10 5028 0500                         |0032: invoke-virtual {v5}, Lb/z/a/a;.c:()I // method@2850
+102440:0e7592: 0a05                                   |0035: move-result v5
+102441:0e7594: d806 05ff                              |0036: add-int/lit8 v6, v5, #int -1 // #ff
+102442:0e7598: 5207 0206                              |0038: iget v7, v0, Landroidx/viewpager/widget/ViewPager;.g:I // field@0602
+102443:0e759c: b017                                   |003a: add-int/2addr v7, v1
+102444:0e759e: 7120 773b 7600                         |003b: invoke-static {v6, v7}, Ljava/lang/Math;.min:(II)I // method@3b77
+102445:0e75a4: 0a01                                   |003e: move-result v1
+102446:0e75a6: 5206 fa05                              |003f: iget v6, v0, Landroidx/viewpager/widget/ViewPager;.b:I // field@05fa
+102447:0e75aa: 3365 1f03                              |0041: if-ne v5, v6, 0360 // +031f
+102448:0e75ae: 1206                                   |0043: const/4 v6, #int 0 // #0
+102449:0e75b0: 5407 fc05                              |0044: iget-object v7, v0, Landroidx/viewpager/widget/ViewPager;.c:Ljava/util/ArrayList; // field@05fc
+102450:0e75b4: 6e10 903c 0700                         |0046: invoke-virtual {v7}, Ljava/util/ArrayList;.size:()I // method@3c90
+102451:0e75ba: 0a07                                   |0049: move-result v7
+102452:0e75bc: 3576 1600                              |004a: if-ge v6, v7, 0060 // +0016
+102453:0e75c0: 5407 fc05                              |004c: iget-object v7, v0, Landroidx/viewpager/widget/ViewPager;.c:Ljava/util/ArrayList; // field@05fc
+102454:0e75c4: 6e20 883c 6700                         |004e: invoke-virtual {v7, v6}, Ljava/util/ArrayList;.get:(I)Ljava/lang/Object; // method@3c88
+102455:0e75ca: 0c07                                   |0051: move-result-object v7
+
+## Adapter obtains real fragment from MainActivity.H.a and adds/attaches
+
+Original dexdump lines 99672-99749
+
+99672:    #0              : (in Landroidx/viewpager/widget/ViewPager;)
+99673:      name          : 'a'
+99674:      type          : '(II)Landroidx/viewpager/widget/ViewPager$e;'
+99675:      access        : 0x0001 (PUBLIC)
+99676:      code          -
+99677:      registers     : 11
+99678:      ins           : 3
+99679:      outs          : 5
+99680:      insns size    : 144 16-bit code units
+99681:0e5558:                                        |[0e5558] androidx.viewpager.widget.ViewPager.a:(II)Landroidx/viewpager/widget/ViewPager$e;
+99682:0e5568: 2200 de02                              |0000: new-instance v0, Landroidx/viewpager/widget/ViewPager$e; // type@02de
+99683:0e556c: 7010 0a16 0000                         |0002: invoke-direct {v0}, Landroidx/viewpager/widget/ViewPager$e;.<init>:()V // method@160a
+99684:0e5572: 5909 d205                              |0005: iput v9, v0, Landroidx/viewpager/widget/ViewPager$e;.b:I // field@05d2
+99685:0e5576: 5481 0106                              |0007: iget-object v1, v8, Landroidx/viewpager/widget/ViewPager;.f:Lb/z/a/a; // field@0601
+99686:0e557a: 1f01 f504                              |0009: check-cast v1, Lb/m/b/w; // type@04f5
+99687:0e557e: 5412 c20d                              |000b: iget-object v2, v1, Lb/m/b/w;.e:Lb/m/b/a0; // field@0dc2
+99688:0e5582: 3902 0b00                              |000d: if-nez v2, 0018 // +000b
+99689:0e5586: 5412 c00d                              |000f: iget-object v2, v1, Lb/m/b/w;.c:Lb/m/b/r; // field@0dc0
+99690:0e558a: 2203 ba04                              |0011: new-instance v3, Lb/m/b/a; // type@04ba
+99691:0e558e: 7020 e222 2300                         |0013: invoke-direct {v3, v2}, Lb/m/b/a;.<init>:(Lb/m/b/r;)V // method@22e2
+99692:0e5594: 5b13 c20d                              |0016: iput-object v3, v1, Lb/m/b/w;.e:Lb/m/b/a0; // field@0dc2
+99693:0e5598: 8192                                   |0018: int-to-long v2, v9
+99694:0e559a: 6e10 9607 0800                         |0019: invoke-virtual {v8}, Landroid/view/ViewGroup;.getId:()I // method@0796
+99695:0e55a0: 0a04                                   |001c: move-result v4
+99696:0e55a2: 7130 5124 2403                         |001d: invoke-static {v4, v2, v3}, Lb/m/b/w;.e:(IJ)Ljava/lang/String; // method@2451
+99697:0e55a8: 0c04                                   |0020: move-result-object v4
+99698:0e55aa: 5415 c00d                              |0021: iget-object v5, v1, Lb/m/b/w;.c:Lb/m/b/r; // field@0dc0
+99699:0e55ae: 6e20 0024 4500                         |0023: invoke-virtual {v5, v4}, Lb/m/b/r;.H:(Ljava/lang/String;)Landroidx/fragment/app/Fragment; // method@2400
+99700:0e55b4: 0c04                                   |0026: move-result-object v4
+99701:0e55b6: 1215                                   |0027: const/4 v5, #int 1 // #1
+99702:0e55b8: 3804 0e00                              |0028: if-eqz v4, 0036 // +000e
+99703:0e55bc: 5419 c20d                              |002a: iget-object v9, v1, Lb/m/b/w;.e:Lb/m/b/a0; // field@0dc2
+99704:0e55c0: 2202 b804                              |002c: new-instance v2, Lb/m/b/a0$a; // type@04b8
+99705:0e55c4: 1273                                   |002e: const/4 v3, #int 7 // #7
+99706:0e55c6: 7030 d922 3204                         |002f: invoke-direct {v2, v3, v4}, Lb/m/b/a0$a;.<init>:(ILandroidx/fragment/app/Fragment;)V // method@22d9
+99707:0e55cc: 6e20 dc22 2900                         |0032: invoke-virtual {v9, v2}, Lb/m/b/a0;.b:(Lb/m/b/a0$a;)V // method@22dc
+99708:0e55d2: 2822                                   |0035: goto 0057 // +0022
+99709:0e55d4: 0714                                   |0036: move-object v4, v1
+99710:0e55d6: 1f04 fa09                              |0037: check-cast v4, Lcom/didjdk/adbhelper/MainActivity$c; // type@09fa
+99711:0e55da: 5444 c31a                              |0039: iget-object v4, v4, Lcom/didjdk/adbhelper/MainActivity$c;.h:Lcom/didjdk/adbhelper/MainActivity; // field@1ac3
+99712:0e55de: 5444 cb1a                              |003b: iget-object v4, v4, Lcom/didjdk/adbhelper/MainActivity;.H:Lc/c/a/k3; // field@1acb
+99713:0e55e2: 5444 6514                              |003d: iget-object v4, v4, Lc/c/a/k3;.a:Ljava/util/List; // field@1465
+99714:0e55e6: 7220 003d 9400                         |003f: invoke-interface {v4, v9}, Ljava/util/List;.get:(I)Ljava/lang/Object; // method@3d00
+99715:0e55ec: 0c09                                   |0042: move-result-object v9
+99716:0e55ee: 0794                                   |0043: move-object v4, v9
+99717:0e55f0: 1f04 2308                              |0044: check-cast v4, Lc/c/a/v3/g0; // type@0823
+99718:0e55f4: 5419 c20d                              |0046: iget-object v9, v1, Lb/m/b/w;.e:Lb/m/b/a0; // field@0dc2
+99719:0e55f8: 6e10 9607 0800                         |0048: invoke-virtual {v8}, Landroid/view/ViewGroup;.getId:()I // method@0796
+99720:0e55fe: 0a06                                   |004b: move-result v6
+99721:0e5600: 6e10 9607 0800                         |004c: invoke-virtual {v8}, Landroid/view/ViewGroup;.getId:()I // method@0796
+99722:0e5606: 0a07                                   |004f: move-result v7
+99723:0e5608: 7130 5124 2703                         |0050: invoke-static {v7, v2, v3}, Lb/m/b/w;.e:(IJ)Ljava/lang/String; // method@2451
+99724:0e560e: 0c02                                   |0053: move-result-object v2
+99725:0e5610: 6e55 df22 6924                         |0054: invoke-virtual {v9, v6, v4, v2, v5}, Lb/m/b/a0;.e:(ILandroidx/fragment/app/Fragment;Ljava/lang/String;I)V // method@22df
+99726:0e5616: 5419 c30d                              |0057: iget-object v9, v1, Lb/m/b/w;.f:Landroidx/fragment/app/Fragment; // field@0dc3
+99727:0e561a: 3294 1500                              |0059: if-eq v4, v9, 006e // +0015
+99728:0e561e: 1209                                   |005b: const/4 v9, #int 0 // #0
+99729:0e5620: 6e20 c811 9400                         |005c: invoke-virtual {v4, v9}, Landroidx/fragment/app/Fragment;.y0:(Z)V // method@11c8
+99730:0e5626: 5212 c10d                              |005f: iget v2, v1, Lb/m/b/w;.d:I // field@0dc1
+99731:0e562a: 3352 0a00                              |0061: if-ne v2, v5, 006b // +000a
+99732:0e562e: 5419 c20d                              |0063: iget-object v9, v1, Lb/m/b/w;.e:Lb/m/b/a0; // field@0dc2
+99733:0e5632: 6201 ef0d                              |0065: sget-object v1, Lb/o/d$b;.e:Lb/o/d$b; // field@0def
+99734:0e5636: 6e30 e122 4901                         |0067: invoke-virtual {v9, v4, v1}, Lb/m/b/a0;.g:(Landroidx/fragment/app/Fragment;Lb/o/d$b;)Lb/m/b/a0; // method@22e1
+99735:0e563c: 2804                                   |006a: goto 006e // +0004
+99736:0e563e: 6e20 7a11 9400                         |006b: invoke-virtual {v4, v9}, Landroidx/fragment/app/Fragment;.D0:(Z)V // method@117a
+99737:0e5644: 5b04 d105                              |006e: iput-object v4, v0, Landroidx/viewpager/widget/ViewPager$e;.a:Ljava/lang/Object; // field@05d1
+99738:0e5648: 5489 0106                              |0070: iget-object v9, v8, Landroidx/viewpager/widget/ViewPager;.f:Lb/z/a/a; // field@0601
+99739:0e564c: 7110 273d 0900                         |0072: invoke-static {v9}, Ljava/util/Objects;.requireNonNull:(Ljava/lang/Object;)Ljava/lang/Object; // method@3d27
+99740:0e5652: 1509 803f                              |0075: const/high16 v9, #int 1065353216 // #3f80
+99741:0e5656: 5909 d405                              |0077: iput v9, v0, Landroidx/viewpager/widget/ViewPager$e;.d:F // field@05d4
+99742:0e565a: 3a0a 1100                              |0079: if-ltz v10, 008a // +0011
+99743:0e565e: 5489 fc05                              |007b: iget-object v9, v8, Landroidx/viewpager/widget/ViewPager;.c:Ljava/util/ArrayList; // field@05fc
+99744:0e5662: 6e10 903c 0900                         |007d: invoke-virtual {v9}, Ljava/util/ArrayList;.size:()I // method@3c90
+99745:0e5668: 0a09                                   |0080: move-result v9
+99746:0e566a: 349a 0300                              |0081: if-lt v10, v9, 0084 // +0003
+99747:0e566e: 2807                                   |0083: goto 008a // +0007
+99748:0e5670: 5489 fc05                              |0084: iget-object v9, v8, Landroidx/viewpager/widget/ViewPager;.c:Ljava/util/ArrayList; // field@05fc
+99749:0e5674: 6e30 813c a900                         |0086: invoke-virtual {v9, v10, v0}, Ljava/util/ArrayList;.add:(ILjava/lang/Object;)V // method@3c81
+
+## setOffscreenPageLimit clamps below 1
+
+Original dexdump lines 103240-103277
+
+103240:      name          : 'setOffscreenPageLimit'
+103241:      type          : '(I)V'
+103242:      access        : 0x0001 (PUBLIC)
+103243:      code          -
+103244:      registers     : 5
+103245:      ins           : 2
+103246:      outs          : 2
+103247:      insns size    : 46 16-bit code units
+103248:0e7fec:                                        |[0e7fec] androidx.viewpager.widget.ViewPager.setOffscreenPageLimit:(I)V
+103249:0e7ffc: 1210                                   |0000: const/4 v0, #int 1 // #1
+103250:0e7ffe: 3504 2100                              |0001: if-ge v4, v0, 0022 // +0021
+103251:0e8002: 2201 c10a                              |0003: new-instance v1, Ljava/lang/StringBuilder; // type@0ac1
+103252:0e8006: 7010 c73b 0100                         |0005: invoke-direct {v1}, Ljava/lang/StringBuilder;.<init>:()V // method@3bc7
+103253:0e800c: 1a02 6714                              |0008: const-string v2, "Requested offscreen page limit " // string@1467
+103254:0e8010: 6e20 d13b 2100                         |000a: invoke-virtual {v1, v2}, Ljava/lang/StringBuilder;.append:(Ljava/lang/String;)Ljava/lang/StringBuilder; // method@3bd1
+103255:0e8016: 6e20 cd3b 4100                         |000d: invoke-virtual {v1, v4}, Ljava/lang/StringBuilder;.append:(I)Ljava/lang/StringBuilder; // method@3bcd
+103256:0e801c: 1a04 0001                              |0010: const-string v4, " too small; defaulting to " // string@0100
+103257:0e8020: 6e20 d13b 4100                         |0012: invoke-virtual {v1, v4}, Ljava/lang/StringBuilder;.append:(Ljava/lang/String;)Ljava/lang/StringBuilder; // method@3bd1
+103258:0e8026: 6e20 cd3b 0100                         |0015: invoke-virtual {v1, v0}, Ljava/lang/StringBuilder;.append:(I)Ljava/lang/StringBuilder; // method@3bcd
+103259:0e802c: 6e10 d83b 0100                         |0018: invoke-virtual {v1}, Ljava/lang/StringBuilder;.toString:()Ljava/lang/String; // method@3bd8
+103260:0e8032: 0c04                                   |001b: move-result-object v4
+103261:0e8034: 1a01 1a17                              |001c: const-string v1, "ViewPager" // string@171a
+103262:0e8038: 7120 7205 4100                         |001e: invoke-static {v1, v4}, Landroid/util/Log;.w:(Ljava/lang/String;Ljava/lang/String;)I // method@0572
+103263:0e803e: 1214                                   |0021: const/4 v4, #int 1 // #1
+103264:0e8040: 5230 1306                              |0022: iget v0, v3, Landroidx/viewpager/widget/ViewPager;.x:I // field@0613
+103265:0e8044: 3204 0900                              |0024: if-eq v4, v0, 002d // +0009
+103266:0e8048: 5934 1306                              |0026: iput v4, v3, Landroidx/viewpager/widget/ViewPager;.x:I // field@0613
+103267:0e804c: 5234 0206                              |0028: iget v4, v3, Landroidx/viewpager/widget/ViewPager;.g:I // field@0602
+103268:0e8050: 6e20 5316 4300                         |002a: invoke-virtual {v3, v4}, Landroidx/viewpager/widget/ViewPager;.q:(I)V // method@1653
+103269:0e8056: 0e00                                   |002d: return-void
+103270:      catches       : (none)
+103271:      positions     :
+103272:        0x0028 line=1
+103273:      locals        :
+103274:        0x0000 - 0x002e reg=3 this Landroidx/viewpager/widget/ViewPager;
+103275:        0x0000 - 0x002e reg=4 (null) I
+103276:
+103277:    #52              : (in Landroidx/viewpager/widget/ViewPager;)

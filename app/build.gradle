@@ -1,0 +1,19 @@
+plugins { id 'com.android.application' }
+android {
+    namespace 'io.github.devicebridge.android'
+    compileSdk 35
+    defaultConfig {
+        applicationId 'io.github.devicebridge.goldenbeetle'
+        minSdk 19
+        multiDexEnabled true
+        targetSdk 35
+        versionCode 4
+        versionName '0.1.3-dev'
+    }
+    compileOptions { coreLibraryDesugaringEnabled true; sourceCompatibility JavaVersion.VERSION_1_8; targetCompatibility JavaVersion.VERSION_1_8 }
+}
+dependencies {
+    implementation project(':core')
+    implementation files('libs/conscrypt-android-2.5.3.jar', 'libs/multidex-2.0.1.jar')
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs_nio:2.1.5'
+}

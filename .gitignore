@@ -1,0 +1,48 @@
+# Build outputs and local Android/Gradle state
+build/
+.gradle/
+.kotlin/
+.cxx/
+.externalNativeBuild/
+local.properties
+captures/
+*.apk
+*.aab
+*.apks
+*.dex
+*.class
+
+# Signing keys and local credentials
+*.keystore
+*.jks
+*.p12
+*.pfx
+*.pem
+*.key
+.env
+.env.*
+!.env.example
+credentials.json
+service-account*.json
+.aws/
+.codex/
+.agents/
+
+# IDE and OS files
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Python caches and environments
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Temporary files
+*.log
+*.tmp
+*.bak

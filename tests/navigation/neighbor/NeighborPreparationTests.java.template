@@ -1,0 +1,175 @@
+package io.github.devicebridge.android;
+import android.view.View;
+import android.animation.ValueAnimator;
+import android.content.Context;
+import io.github.devicebridge.core.OperationScope;
+import io.github.devicebridge.core.RetainedModuleState;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.function.Consumer;
+
+/** Actual source fragments and actual pager; Android widgets and page builders are explicit doubles. */
+public final class NeighborPreparationTests extends Context {
+    private static final String[] TABS={"info","tools","remote","files","apps","processes","terminal"};
+    private static final String INPUT_METHOD_SERVICE="input";
+    private final List<Future<?>> tasks=new ArrayList<>();
+    private final List<OperationScope> scopes=new ArrayList<>();
+    private final Map<OperationScope,ProgressDialog> progressDialogs=new IdentityHashMap<>();
+    private final RetainedModuleState<AdbSession> moduleState=new RetainedModuleState<>();
+    private final ModulePage[] modulePages=new ModulePage[7];
+    private final ModuleScrollState[] restoredScroll=new ModuleScrollState[7];
+    private ModulePage buildingPage;
+    private int page,generation,terminalStarts,terminalCloses,toolbars;
+    private AdbSession viewSession,fileDataSession,appDataSession;
+    private int fileDataGeneration=-1,appDataGeneration=-1;
+    private boolean destroyed,finishing,terminalExitRequested;
+    private LinearLayout content,moduleTabIcons=new LinearLayout(this);
+    private HorizontalScrollView moduleTabs=new HorizontalScrollView(this);
+    private RetainedModulePager modulePager;
+    private TerminalRenderer terminalRenderer;
+    private TerminalRenderer.Output terminalOutput;
+    private final int[] builds=new int[7],reads=new int[7],results=new int[7];
+    private final boolean[] failNext=new boolean[7];
+    private final List<AdbSession> readTargets=new ArrayList<>();
+    private final List<ProgressDialog> ownedDialogs=new ArrayList<>();
+    private boolean isFinishing(){return finishing;}
+    private boolean isDestroyed(){return destroyed;}
+    private Object getSystemService(String name){return new android.view.inputmethod.InputMethodManager();}
+    private void ownDialog(ProgressDialog dialog){ownedDialogs.add(dialog);dialog.onDismiss=()->ownedDialogs.remove(dialog);}
+    private void restoreModuleScroll(ModulePage entry){}
+    private void moduleToolbar(){toolbars++;}
+    private void closeTerminal(){terminalCloses++;}
+    private void sendTerminal(String value){terminalStarts++;}
+    private boolean deviceFrameCurrent(){return modulePager!=null&&BridgeRuntime.session()==viewSession&&!destroyed&&!finishing;}
+    // Android page builders are doubles. extract.py separately checks their real source ownership/IO contracts.
+    private void build(LinearLayout body,int index){builds[index]++;body.addView(new View(this),new LinearLayout.LayoutParams(-1,-1));}
+    private void read(LinearLayout body,int index){
+        build(body,index);AdbSession captured=viewSession;
+        initialModuleRead("synthetic read "+index,()->{reads[index]++;readTargets.add(captured);if(failNext[index]){failNext[index]=false;throw new Exception("synthetic failure");}return "result "+index;},value->{results[index]++;body.rendered=value;if(index==3){fileDataSession=captured;fileDataGeneration=generation;}if(index==4){appDataSession=captured;appDataGeneration=generation;}});
+    }
+    private void information(LinearLayout body){read(body,0);}private void tools(LinearLayout body){read(body,1);}
+    private void remote(LinearLayout body){build(body,2);}private void files(LinearLayout body){read(body,3);}
+    private void apps(LinearLayout body){read(body,4);}private void processes(LinearLayout body){read(body,5);}
+    private void terminal(LinearLayout body){build(body,6);terminalRenderer=new TerminalRenderer();}
+
+    /* PRODUCTION_FRAGMENTS */
+
+    private static int checks;
+    private static void check(boolean ok,String label){if(!ok)throw new AssertionError(label);checks++;}
+    private static NeighborPreparationTests fixture(int index){
+        BridgeRuntime.reset();NeighborPreparationTests f=new NeighborPreparationTests();f.page=index;f.generation=10;
+        f.viewSession=BridgeRuntime.session();f.moduleState.bind(f.viewSession,7,index);
+        for(int i=0;i<7;i++)f.moduleTabIcons.addView(new View(f),new LinearLayout.LayoutParams(-1,-1));
+        f.modulePager=new RetainedModulePager(f,7,new RetainedModulePager.Pages(){
+            public View view(int at){return f.modulePage(at).view;}
+            public boolean canNavigate(){return f.deviceFrameCurrent()&&f.scopes.isEmpty();}
+            public void committed(int at){f.activateModule(at);}
+        });
+        f.modulePager.show(index);f.activateModule(index);return f;
+    }
+    private ProgressDialog dialog(){return progressDialogs.values().iterator().next();}
+    private void drain(){BridgeRuntime.IO.runAll();while(!BridgeRuntime.UI.callbacks.isEmpty())BridgeRuntime.UI.take().run();}
+    private void select(int index){modulePager.select(index,true);ValueAnimator.latest.finish();}
+    public static void main(String[] args){
+        firstViewsAndCancel();activeReadUnaffected();nonAdjacentAndTerminal();failedReadRetry();cancelledReadRetry();refreshAndSession();inputOwnership();
+        System.out.println("NEIGHBOR PREPARATION FRAGMENT TESTS: "+checks+" passed");
+    }
+    private static void firstViewsAndCancel(){
+        NeighborPreparationTests f=fixture(2);LinearLayout active=f.content;int gen=f.generation;
+        RetainedModuleState.Snapshot<AdbSession> snapshot=f.moduleState.snapshot();
+        check(f.modulePages[1]!=null&&f.modulePages[3]!=null&&f.modulePages[4]==null,"exactly adjacent slots prepared before first drag");
+        check(f.modulePages[3].view.getChildCount()>0&&f.modulePages[3].initialRead!=null,"first neighbor is constructed view with deferred read");
+        check(BridgeRuntime.IO.queue.isEmpty()&&f.scopes.isEmpty()&&f.ownedDialogs.isEmpty(),"view preparation starts zero reads/dialogs");
+        f.modulePager.drag(-100);check(f.modulePages[3].view.getTranslationX()==220,"first neighbor is immediately positioned with actual view");
+        f.modulePager.release(2);ValueAnimator.latest.finish();f.modulePager.drag(-60);f.modulePager.cancelMotion();
+        f.modulePage(4);f.startModuleRead(f.modulePages[3]);f.startModuleRead(f.modulePages[4]);
+        check(f.page==2&&f.generation==gen&&f.content==active&&f.moduleState.isCurrent(snapshot),"cancel/app prebuild preserves active page/content/generation/snapshot");
+        check(f.reads[3]==0&&f.reads[4]==0&&BridgeRuntime.IO.queue.isEmpty(),"cancel and explicit app prebuild do no I/O");
+        LinearLayout neighbor=f.modulePages[3].view;f.select(3);
+        check(f.page==3&&f.content==neighbor&&f.generation==gen+1&&f.builds[3]==1,"commit activates same prepared neighbor exactly once");
+        check(f.scopes.size()==1&&BridgeRuntime.IO.queue.size()==1,"commit schedules one initial read");
+        f.startModuleRead(f.modulePages[3]);check(BridgeRuntime.IO.queue.size()==1,"loading page cannot double enqueue");
+        f.drain();check(f.reads[3]==1&&f.results[3]==1&&f.modulePages[3].ready,"only committed initial read completes");
+        f.select(2);f.select(3);check(f.content==neighbor&&f.reads[3]==1&&BridgeRuntime.IO.queue.isEmpty(),"revisit retains exact view/result without rereading");
+        check(f.fileDataGeneration==f.generation,"retained file result rebinds active generation");
+    }
+    private static void activeReadUnaffected(){
+        NeighborPreparationTests f=fixture(5);LinearLayout active=f.content;int gen=f.generation;OperationScope scope=f.scopes.get(0);Future<?> task=f.tasks.get(0);
+        check(f.modulePages[4]!=null&&f.modulePages[6]!=null&&f.terminalStarts==0,"process page prebuilds terminal without starting it");
+        check(f.page==5&&f.content==active&&f.generation==gen&&f.reads[4]==0&&f.reads[6]==0,"terminal/app previews do not change process activation");
+        f.modulePage(3);f.modulePager.drag(30);f.modulePager.cancelMotion();
+        check(!scope.isCancelled()&&!task.isCancelled()&&f.scopes.size()==1,"preview/cancel does not cancel live process initial read");
+        f.drain();check(f.results[5]==1&&active.rendered.equals("result 5")&&f.modulePages[3].view.rendered==null,"live read renders only its captured view");
+    }
+    private static void nonAdjacentAndTerminal(){
+        NeighborPreparationTests f=fixture(2);f.select(6);
+        check(f.page==6&&f.terminalStarts==1&&f.reads[5]==0&&f.builds[6]==1,"nonadjacent selection starts terminal only at commit");
+        f.select(5);check(f.terminalCloses==1&&f.terminalStarts==1,"leaving terminal closes once and starts no replacement");
+        f.drain();f.select(6);check(f.terminalStarts==2&&f.builds[6]==1,"terminal revisit opens fresh connection on retained view");
+    }
+    private static void failedReadRetry(){
+        NeighborPreparationTests f=fixture(2);f.failNext[3]=true;f.select(3);LinearLayout old=f.content;f.drain();
+        check(!f.modulePages[3].ready&&!f.modulePages[3].loading&&f.scopes.isEmpty(),"failed initial read is retryable and detached");
+        f.select(2);f.select(3);f.drain();check(f.reads[3]==2&&f.results[3]==1&&f.content==old&&f.modulePages[3].ready,"revisit retries failed read once using same captured view");
+    }
+    private static void cancelledReadRetry(){
+        NeighborPreparationTests f=fixture(2);f.select(3);f.dialog().cancelButton();
+        check(!f.modulePages[3].loading&&!f.modulePages[3].ready&&f.scopes.isEmpty(),"queued initial cancellation synchronously clears loading");
+        f.select(2);f.select(3);f.drain();check(f.reads[3]==1&&f.results[3]==1,"cancelled queued attempt performs no I/O; revisit runs one fresh read");
+        f.select(4);BridgeRuntime.IO.runAll();Runnable stale=BridgeRuntime.UI.take();f.dialog().cancelButton();f.select(3);f.select(4);f.drain();stale.run();
+        check(f.reads[4]==2&&f.results[4]==1&&f.modulePages[4].ready,"late cancelled callback cannot render or reset newer ready attempt");
+    }
+    private static void refreshAndSession(){
+        NeighborPreparationTests f=fixture(2);ModulePage stale=f.modulePages[3];Object token=stale.token;
+        f.moduleState.refresh(3);f.modulePages[3]=null;f.modulePager.replace(3);
+        check(f.modulePages[3]!=stale&&f.moduleState.pageToken(3)!=token&&f.reads[3]==0,"refresh replaces inactive preview slot without starting read");
+        check(!stale.view.dispatchTouchEvent(new MotionEvent()),"refreshed old preview cannot act");
+        f.startModuleRead(stale);check(BridgeRuntime.IO.queue.isEmpty(),"refreshed old slot cannot start its deferred read");
+        f.select(3);BridgeRuntime.IO.runAll();Runnable callback=BridgeRuntime.UI.take();LinearLayout old=f.content;
+        BridgeRuntime.current=new AdbSession();callback.run();
+        check(f.results[3]==0&&old.rendered==null&&!f.modulePages[3].loading,"changed-session callback is discarded and settles own attempt");
+        check(f.readTargets.get(0)==f.viewSession&&f.readTargets.get(0)!=BridgeRuntime.current,"deferred read keeps original bound target");
+        f.modulePager.drag(-100);check(f.page==3&&f.modulePager.selected()==3,"session loss cannot commit preview");
+        f=fixture(2);f.select(3);BridgeRuntime.IO.runAll();callback=BridgeRuntime.UI.take();f.destroyed=true;f.cancelScopedWork();f.moduleState.invalidate();f.modulePager.dispose();callback.run();
+        check(f.results[3]==0&&f.scopes.isEmpty()&&f.modulePager.getChildCount()==0,"destroyed host discards callback and detaches all previews");
+    }
+    private static void inputOwnership(){
+        NeighborPreparationTests f=fixture(2);LinearLayout preview=f.modulePages[3].view;
+        check(!preview.dispatchTouchEvent(new MotionEvent())&&!preview.dispatchKeyEvent(new KeyEvent())&&!preview.onRequestFocusInDescendants(0,new Rect()),"inactive prepared widgets reject touch/key/focus");
+        check(f.content.dispatchTouchEvent(new MotionEvent())&&f.content.dispatchKeyEvent(new KeyEvent()),"active widgets remain interactive");
+        f.select(3);f.drain();check(preview.dispatchTouchEvent(new MotionEvent())&&preview.onRequestFocusInDescendants(0,new Rect()),"same widgets become interactive only after commit");
+    }
+}
+class LinearLayout extends android.widget.FrameLayout {
+    static final int VERTICAL=1;String rendered;LinearLayout(Context context){super(context);}void setOrientation(int orientation){}
+    public boolean dispatchTouchEvent(MotionEvent event){return true;}public boolean dispatchKeyEvent(KeyEvent event){return true;}
+    protected boolean onRequestFocusInDescendants(int direction,Rect rect){return true;}
+}
+class HorizontalScrollView extends LinearLayout {HorizontalScrollView(Context context){super(context);}void post(Runnable task){task.run();}void smoothScrollTo(int x,int y){}}
+class MotionEvent {}class KeyEvent {}class Rect {}class ModuleScrollState {}
+class TerminalRenderer {void append(TerminalTranscript.Text text){}static class Output {void flush(){}}}
+class TerminalTranscript {static final int NORMAL=0;static class Text {static Text plain(String s,int style){return new Text();}}}
+class AdbSession {String target(){return "synthetic target";}}
+class DialogInterface {static final int BUTTON_NEGATIVE=-2;interface Listener {void onClick(Object dialog,int button);}}
+class ProgressDialog {
+    boolean showing;DialogInterface.Listener cancel;Runnable onDismiss;
+    ProgressDialog(Object owner){}void setMessage(String text){}void setCancelable(boolean value){}void setIndeterminate(boolean value){}
+    void setButton(int button,String text,DialogInterface.Listener listener){cancel=listener;}
+    void show(){showing=true;}boolean isShowing(){return showing;}
+    void dismiss(){showing=false;if(onDismiss!=null)onDismiss.run();}void cancelButton(){cancel.onClick(this,-2);dismiss();}
+}
+class Toast {static final int LENGTH_LONG=1;static Toast makeText(Object owner,String message,int length){return new Toast();}void show(){}}
+class Ui {static final List<String> messages=new ArrayList<>();static void message(Object owner,String title,String text){messages.add(title+":"+text);}static int dp(Object c,int n){return n;}}
+class ManualExecutor extends AbstractExecutorService {
+    final Deque<Runnable> queue=new ArrayDeque<>();boolean stopped;
+    public void execute(Runnable runnable){queue.addLast(runnable);}void runNext(){queue.removeFirst().run();}void runAll(){while(!queue.isEmpty())runNext();}
+    public void shutdown(){stopped=true;}public List<Runnable> shutdownNow(){stopped=true;List<Runnable> old=new ArrayList<>(queue);queue.clear();return old;}
+    public boolean isShutdown(){return stopped;}public boolean isTerminated(){return stopped&&queue.isEmpty();}public boolean awaitTermination(long n,TimeUnit unit){return isTerminated();}
+}
+class QueueUi {final Deque<Runnable> callbacks=new ArrayDeque<>();void post(Runnable callback){callbacks.addLast(callback);}Runnable take(){return callbacks.removeFirst();}}
+class BridgeRuntime {
+    static final ManualExecutor IO=new ManualExecutor();static final QueueUi UI=new QueueUi();static final Executor CLOSERS=Runnable::run;
+    static AdbSession current;static final BridgeRuntime INSTANCE=new BridgeRuntime();final List<String> reports=new ArrayList<>();
+    static BridgeRuntime get(){return INSTANCE;}static AdbSession session(){return current;}void report(String text){reports.add(text);}
+    static void reset(){IO.queue.clear();UI.callbacks.clear();INSTANCE.reports.clear();Ui.messages.clear();current=new AdbSession();}
+}

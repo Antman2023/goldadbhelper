@@ -1,0 +1,22 @@
+PASS refresh routing and cancellation (7 assertions)
+PASS address validation and explicit trust confirmation (13 assertions)
+PASS successful connect, labels and exact transport selection (30 assertions)
+PASS empty list and failed-server guidance (5 assertions)
+PASS inactive home and Activity guards (3 assertions)
+PASS stale address and confirmation callbacks (6 assertions)
+PASS failed replacement preserves selected server and releases sockets (9 assertions)
+PASS late connection closes on stale home or failed CAS (10 assertions)
+PASS successful replacement closes old binding (6 assertions)
+PASS refresh callbacks and expired device dialogs (10 assertions)
+PASS late selected sessions are closed (6 assertions)
+PASS pre-cancelled jobs perform zero requests (6 assertions)
+PASS local reset accurately describes its scope (10 assertions)
+PASS manage reconnect and app-only disconnect (15 assertions)
+PASS stop warning, cancel and stale confirmation (12 assertions)
+PASS stop accepted, refused and unknown stay distinct (38 assertions)
+PASS late stop result never redraws an expired home (3 assertions)
+HOST UI CONTROLLER TESTS: 189 assertions passed in 17 scenarios
+Scope: actual ExternalAdbController + core; memory Android/UI/Host/runtime; synthetic 127.0.0.1 only.
+Not Android pixel/lifecycle integration, real ADB daemon/device, original-APK parity, or CON-05/06 full acceptance.
+RUNTIME OBJECT BINDING TESTS: 25 assertions passed
+Scope: exact extracted production select(AdbSession)/disconnect(AdbSession); memory sessions/state/executor only.
