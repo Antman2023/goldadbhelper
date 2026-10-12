@@ -85,6 +85,12 @@ bash tools/build-apk.sh
 
 **开发密钥仅用于测试，不作为正式发布密钥，且不提交到仓库。** 使用其他签名覆盖安装可能需要先卸载旧版本，卸载会丢失应用私有数据和 ADB 身份。
 
+### GitHub Actions 自动构建与 Release
+
+仓库已提供 [Android CI](.github/workflows/android-ci.yml) 和 [Android Release](.github/workflows/android-release.yml)：普通推送/PR 运行测试并产出开发 APK；推送与源码版本匹配的 `v*` tag 后，使用预先配置的固定签名密钥发布 APK、对应源码、证书与 SHA-256 校验文件。预发布版本自动标为 Pre-release。
+
+首次发布需要由密钥持有人在 GitHub 配置三个签名 Secrets；所选既有密钥的公开证书指纹已固定。缺少配置会停止发布，不会使用临时开发密钥代替。具体设置、发版命令和升级注意事项见 [发布指南](docs/RELEASING.md)。
+
 ### Gradle 工程
 
 仓库同时提供 `app` 和 `core` 的 Gradle 工程，Android Gradle Plugin 版本为 `8.7.3`。可用 Android Studio 打开项目，或在已配置兼容 Gradle/JDK 的环境中执行：

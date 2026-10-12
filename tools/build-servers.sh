@@ -6,6 +6,8 @@ BT="$SDK/build-tools/35.0.0"
 ANDROID_JAR="$SDK/platforms/android-35/android.jar"
 ROOT="$PWD"
 mkdir -p build/server-classes build/scrcpy/gen/com/genymobile/scrcpy build/scrcpy/classes app/src/main/assets
+# Remove stale class/generated outputs before rebuilding embedded services.
+find build/server-classes build/scrcpy/classes build/scrcpy/gen -type f -delete
 java -m jdk.compiler/com.sun.tools.javac.Main -source 8 -target 8 -Xlint:-options -bootclasspath "$ANDROID_JAR" -d build/server-classes server/src/io/github/devicebridge/server/*.java core/src/main/java/io/github/devicebridge/core/AndroidFileAccess.java
 "$BT/d8" --min-api 19 --lib "$ANDROID_JAR" --output "$ROOT/app/src/main/assets/metadata-server.jar" $(find build/server-classes -name '*.class')
 cat > build/scrcpy/gen/com/genymobile/scrcpy/BuildConfig.java <<'JAVA'

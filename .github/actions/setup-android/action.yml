@@ -1,0 +1,20 @@
+name: Set up Android script toolchain
+description: JDK 17, Android API 35 and Build Tools 35.0.0 on GitHub-hosted Ubuntu
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+      with:
+        distribution: temurin
+        java-version: '17'
+    - name: Install pinned Android SDK packages
+      shell: bash
+      run: |
+        set -euo pipefail
+        : "${ANDROID_HOME:?GitHub-hosted Ubuntu must provide ANDROID_HOME}"
+        manager="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+        test -x "$manager"
+        # Hosted runners already include accepted SDK licenses. Never mask SDK errors.
+        "$manager" --install 'platforms;android-35' 'build-tools;35.0.0'
+        test -f "$ANDROID_HOME/platforms/android-35/android.jar"
+        test -x "$ANDROID_HOME/build-tools/35.0.0/apksigner"

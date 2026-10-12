@@ -1,0 +1,51 @@
+name: Android CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+concurrency:
+  group: android-ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup-android
+      - name: Test release tooling and application logic
+        run: |
+          python3 -m unittest discover -s tests/release -v
+          bash tools/test-all.sh
+          bash tools/test-followup-navigation-server.sh
+      - name: Rebuild embedded services and development APK
+        run: |
+          bash tools/build-servers.sh
+          bash tools/build-apk.sh
+          bash tools/test-release-signing.sh
+          python3 tools/package-artifacts.py --mode debug
+      - name: Upload development APK and corresponding source
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: goldadbhelper-ci-${{ github.sha }}
+          path: dist/*
+          if-no-files-found: error
+          retention-days: 14
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: goldadbhelper-tests-${{ github.sha }}
+          path: |
+            build/test-results/
+            build/followup-navigation-server-tests/results/
+            build/nav03-neighbor-host-tests/results.txt
+            tests/hostui/results.txt
+          retention-days: 14

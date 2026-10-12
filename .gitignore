@@ -46,3 +46,6 @@ venv/
 *.log
 *.tmp
 *.bak
+
+# Distribution artifacts
+dist/
