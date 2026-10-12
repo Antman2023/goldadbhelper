@@ -1,14 +1,19 @@
-# 金甲虫 ADB 助手 · GoldenBeetle
+# 金甲虫 ADB 助手
 
+**GoldenBeetle · 在 Android 手机上管理你的 Android 设备**
+
+[![Android CI](https://github.com/Antman2023/goldadbhelper/actions/workflows/android-ci.yml/badge.svg)](https://github.com/Antman2023/goldadbhelper/actions/workflows/android-ci.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 [![Android: API 19+](https://img.shields.io/badge/Android-API%2019%2B-green.svg)](app/build.gradle)
 [![Version: 0.1.3-dev](https://img.shields.io/badge/version-0.1.3--dev-orange.svg)](app/build.gradle)
 
-在 Android 手机上管理另一台 Android 设备：连接 ADB、浏览和传输文件、管理应用与进程、运行终端命令，以及投屏和 Fastboot 操作。
+从连接、查看设备信息，到文件传输、应用管理和命令终端，把常用 ADB 工作放在一个应用里。支持 TCP / USB ADB，提供 Android 11+ 无线调试配对、外部 ADB server、投屏与 Fastboot 入口。
 
 项目使用独立的 Java ADB 协议实现，提供 TCP、USB 和 Android 11+ 无线调试配对入口。应用名称、图标、包名和开发签名均为独立身份。
 
-**当前发布的是 `0.1.3-dev` 开发候选源码。** 功能代码接入不代表已通过所有设备验收；不同 Android 版本、品牌、USB/Fastboot 实机和正常 H.264 投屏仍有待验证项。本候选的模块导航调整尚未完成 Android 运行验收，历史版本的验证记录不能直接证明新候选。完整状态见 [功能矩阵](docs/feature-status.json) 和 [待验清单](docs/REMAINING_VALIDATION.md)。
+> **开发状态：`0.1.3-dev`，Android 4.4 / API 19+。** 当前提供开发候选源码与 CI 构建，尚未完成全面设备验收。截图来自下方明确标注的历史开发包和隔离 Android 模拟器；历史结果不代表当前候选、真机或全部厂商兼容性。
+
+[运行截图](#运行截图) · [获取与安装](#获取与安装) · [开始使用](#开始使用) · [从源码构建](#从源码构建) · [验证与限制](#验证与限制) · [文档](#更多文档)
 
 ## 功能概览
 
@@ -19,12 +24,62 @@
 | 实用工具 | DPI、分辨率、动画、应用冻结和重启等操作 |
 | 远程控制 | 基于 scrcpy 2.4 的 H.264/MediaCodec 投屏与多点触控；独立截图兼容模式 |
 | 文件管理 | 目录导航、多选、上传下载、SHA-256 校验、复制/移动、取消与部分结果报告 |
-| 应用管理 | 名称和图标读取、筛选搜索、启动、启停、卸载、清除数据、APK/分包安装及导出 |
+| 应用管理 | 名称和图标、筛选搜索、启动、启停、卸载、清除数据、APK/分包安装及导出；本机应用选择与安装前快照核对 |
 | 进程管理 | 读取设备进程并按应用分组 |
 | 命令终端 | 持久 PTY、命令历史、快捷命令、Ctrl-C、退出和重新启动 |
 | Fastboot | USB 协议、getvar、镜像传输、刷写、启动和重启 |
 
 设备页包含七个模块。`0.1.3-dev` 会预创建相邻模块的真实控件，首次设备读取在提交选中该模块后开始。终端离开页面时关闭 PTY，返回后重新连接并保留显示与未提交输入；详见 [邻页预创建记录](tests/navigation/neighbor/RESULT.md)。
+
+## 运行截图
+
+以下 **15 张均为金甲虫实际运行截图**，来自 2026-10-12 的隔离官方 Android 8.0 / API 26 / x86 模拟器。点击任意图片查看 480 × 800 原图。仅做无损 PNG 压缩，没有重绘界面或替换显示数据。
+
+### 设备与日常管理
+
+本组及后面的操作、导航图来自 **`0.1.3-dev` 冻结包（APK SHA-256 前缀 `74fabeac`）**。这是仓库取消竞态修复之前的历史开发包，不应当作最新 `main` 的完整验收。完整哈希、来源与测试边界见 [截图说明](docs/screenshots/README.md)。
+
+| 设备信息 | 实用工具 | 文件管理 |
+| --- | --- | --- |
+| <a href="docs/screenshots/device-information.png"><img src="docs/screenshots/device-information.png" width="220" alt="金甲虫ADB助手 0.1.3-dev，API 26隔离模拟器：设备信息"></a><br>系统、分辨率、处理器、内存与存储 | <a href="docs/screenshots/tools-overview.png"><img src="docs/screenshots/tools-overview.png" width="220" alt="金甲虫ADB助手 0.1.3-dev，API 26隔离模拟器：实用工具"></a><br>无线 ADB、截图、重启、DPI 与分辨率入口 | <a href="docs/screenshots/file-browser.png"><img src="docs/screenshots/file-browser.png" width="220" alt="金甲虫ADB助手 0.1.3-dev，API 26隔离模拟器：文件管理"></a><br>模拟器共享存储的实际目录列表 |
+
+| 应用管理 | 进程管理 | 命令终端 |
+| --- | --- | --- |
+| <a href="docs/screenshots/app-manager.png"><img src="docs/screenshots/app-manager.png" width="220" alt="金甲虫ADB助手 0.1.3-dev，API 26隔离模拟器：应用管理"></a><br>目标设备的实际应用名称、包名与图标 | <a href="docs/screenshots/process-manager.png"><img src="docs/screenshots/process-manager.png" width="220" alt="金甲虫ADB助手 0.1.3-dev，API 26隔离模拟器：进程管理"></a><br>内存概览与实际进程分组 | <a href="docs/screenshots/terminal.png"><img src="docs/screenshots/terminal.png" width="220" alt="金甲虫ADB助手 0.1.3-dev，API 26隔离模拟器：命令终端"></a><br>首次进入后的真实 PTY 提示符 |
+
+### 文件操作与页面状态
+
+| 文件操作菜单 | 终端回访 | 工具列表滚动 |
+| --- | --- | --- |
+| <a href="docs/screenshots/file-actions.png"><img src="docs/screenshots/file-actions.png" width="220" alt="金甲虫ADB助手 0.1.3-dev，API 26隔离模拟器：文件操作菜单"></a><br>普通测试文件的打开、下载、复制等入口 | <a href="docs/screenshots/terminal-draft.png"><img src="docs/screenshots/terminal-draft.png" width="220" alt="金甲虫ADB助手 0.1.3-dev，API 26隔离模拟器：终端回访"></a><br>保留输出与未执行草稿，重新建立 PTY | <a href="docs/screenshots/tools-scrolled.png"><img src="docs/screenshots/tools-scrolled.png" width="220" alt="金甲虫ADB助手 0.1.3-dev，API 26隔离模拟器：工具列表滚动"></a><br>下方工具入口与收起的模块栏 |
+
+### 真实横向滑动过程
+
+这些是手势过程中的中间帧，画面中的横向裁切、灰色控件与加载占位均为实际状态。预览会呈现邻页控件，正式选中后才开始首次设备读取；远控图展示设置入口，不代表投屏已成功。
+
+| 信息 → 工具 | 工具 → 远控 |
+| --- | --- |
+| <a href="docs/screenshots/preview-tools.png"><img src="docs/screenshots/preview-tools.png" width="220" alt="金甲虫ADB助手 0.1.3-dev，API 26隔离模拟器：信息 → 工具"></a><br>首次横滑中，工具卡片已进入画面 | <a href="docs/screenshots/preview-remote-options.png"><img src="docs/screenshots/preview-remote-options.png" width="220" alt="金甲虫ADB助手 0.1.3-dev，API 26隔离模拟器：工具 → 远控"></a><br>远控参数与连接按钮；没有启动投屏 |
+
+| 远控 → 文件 | 进程 → 终端 |
+| --- | --- |
+| <a href="docs/screenshots/preview-files.png"><img src="docs/screenshots/preview-files.png" width="220" alt="金甲虫ADB助手 0.1.3-dev，API 26隔离模拟器：远控 → 文件"></a><br>路径栏与待加载结构；尚未读取目录 | <a href="docs/screenshots/preview-terminal.png"><img src="docs/screenshots/preview-terminal.png" width="220" alt="金甲虫ADB助手 0.1.3-dev，API 26隔离模拟器：进程 → 终端"></a><br>输入框、运行按钮与输出区；尚未打开 PTY |
+
+### 本机应用选择：浅色与深色
+
+以下两张来自更早的 **`0.1.1` 热修包（APK SHA-256 前缀 `c140b368`）**，同样在 API 26 隔离模拟器采集。用于展示本机选择器的列表、搜索、选中与主题；不能证明新版 Android 的包可见性或厂商权限问题已解决。
+
+| 本机应用 · 浅色 | 本机应用 · 深色 |
+| --- | --- |
+| <a href="docs/screenshots/local-apps-light.png"><img src="docs/screenshots/local-apps-light.png" width="220" alt="金甲虫ADB助手 0.1.1，API 26隔离模拟器：本机应用 · 浅色"></a><br>实际 PackageManager 列表与应用图标 | <a href="docs/screenshots/local-apps-dark.png"><img src="docs/screenshots/local-apps-dark.png" width="220" alt="金甲虫ADB助手 0.1.1，API 26隔离模拟器：本机应用 · 深色"></a><br>搜索并选中专用空白测试应用 |
+
+## 获取与安装
+
+- **体验开发版：** 打开 [Android CI](https://github.com/Antman2023/goldadbhelper/actions/workflows/android-ci.yml)，选择成功的构建，在 Artifacts 下载 `goldadbhelper-ci-<提交号>`。通常需要登录 GitHub；产物保留 14 天。解压后按其中的 SHA-256 校验文件核对 APK。
+- **自己构建：** 见下文 [从源码构建](#从源码构建)。源码版本以 [`app/build.gradle`](app/build.gradle) 为准。
+- **正式版本：** 不将 CI 产物视为正式稳定版；发布机制与签名要求见 [发布指南](docs/RELEASING.md)。
+
+**安装前注意签名。** CI 使用开发签名，不应假定不同构建具有相同签名。正式密钥、另一工作区的开发密钥或不同 CI 构建可能无法直接覆盖安装。先备份必要数据，再决定是否卸载旧包；卸载会清除本应用私有数据与 ADB 身份，之后可能需要重新授权或配对。不要为覆盖安装关闭系统安全检查。
 
 ## 环境与兼容性
 
@@ -37,8 +92,6 @@
 API 19 兼容层使用 D8/L8 库回移植和 AndroidX MultiDex。历史安装与运行结果按其 APK 哈希记录，详见 [旧版 Android 兼容性](docs/API19_COMPATIBILITY.md)。
 
 ## 开始使用
-
-当前仓库提供源码和构建输入，尚未发布经过完整验收的正式安装包。可按下文构建开发 APK。
 
 1. 在你拥有或获准管理的目标设备上开启开发者选项和相应调试方式。
 2. 安装本应用，打开连接页，选择一种连接方式：
@@ -85,11 +138,11 @@ bash tools/build-apk.sh
 
 **开发密钥仅用于测试，不作为正式发布密钥，且不提交到仓库。** 使用其他签名覆盖安装可能需要先卸载旧版本，卸载会丢失应用私有数据和 ADB 身份。
 
-### GitHub Actions 自动构建与 Release
+### GitHub Actions
 
-仓库已提供 [Android CI](.github/workflows/android-ci.yml) 和 [Android Release](.github/workflows/android-release.yml)：普通推送/PR 运行测试并产出开发 APK；推送与源码版本匹配的 `v*` tag 后，使用预先配置的固定签名密钥发布 APK、对应源码、证书与 SHA-256 校验文件。预发布版本自动标为 Pre-release。
+[Android CI](.github/workflows/android-ci.yml) 在普通推送 / PR 时运行测试、重建服务端并产出开发 APK、对应源码及校验文件。绿色 CI 表示该提交的自动检查通过，不代表 Android 真机、无线配对、USB/Fastboot 或所有投屏场景已验收。
 
-首次发布需要由密钥持有人在 GitHub 配置三个签名 Secrets；所选既有密钥的公开证书指纹已固定。缺少配置会停止发布，不会使用临时开发密钥代替。具体设置、发版命令和升级注意事项见 [发布指南](docs/RELEASING.md)。
+仓库另有独立的 [Release 工作流](.github/workflows/android-release.yml)。发布需要固定签名与版本校验；缺少配置时停止，不以临时开发密钥代替。维护者说明见 [发布指南](docs/RELEASING.md)。
 
 ### Gradle 工程
 
@@ -101,7 +154,20 @@ gradle :app:assembleDebug
 
 当前未提供 Gradle Wrapper，Gradle 构建路径尚需单独验证。Gradle 不会自动重建 `app/src/main/assets/` 中的服务端 JAR；修改服务端源码后应先运行 `tools/build-servers.sh`。
 
-## 测试与验证
+## 验证与限制
+
+| 范围 | 已有证据与边界 |
+| --- | --- |
+| JVM / 宿主回归 | ADB 协议、文件与命令模型、配对、导航及构建检查；合成数据和控件替身不等于 Android 运行验收 |
+| 隔离 Android 运行 | 历史 API 19 / 26 开发包完成部分连接、信息、文件、应用和 PTY 检查；记录绑定具体 APK 哈希 |
+| 本机应用选择 | `0.1.1` 开发包在 API 26 验证列表、图标、搜索、亮暗主题、选择和快照确认；API 30+ / OEM 限制仍待验证 |
+| 投屏 | API 26 兼容截图流有记录；正常 H.264 曾受模拟器编码器 / 系统崩溃阻塞，不能宣称完整投屏链路已通过 |
+| USB / Fastboot | 有协议实现与模拟测试；物理连接、拔线、刷写和临时启动未完成硬件验收 |
+| `0.1.3-dev` 导航 | 图库对应冻结包已通过 API 26 的 12 组受影响 UI 与 1 组身份 / 日志 / 清理检查；当前 `main` 后续取消竞态修复不能由旧包截图代替验收 |
+
+完整范围见 [功能矩阵](docs/feature-status.json)、[待验清单](docs/REMAINING_VALIDATION.md) 和 [按 APK 哈希记录的运行证据](docs/runtime-evidence.json)。项目不承诺与其他应用完全一致。
+
+### 运行自动检查
 
 在上述 Bash/JDK/SDK 环境中运行：
 
@@ -153,6 +219,7 @@ licenses/     第三方许可证全文
 - [文件传输与提交验证](docs/VERIFIED_FILE_TRANSFERS.md) / [复制与移动兼容性](docs/FILE_COPY_COMPATIBILITY.md)
 - [终端行为](docs/TERMINAL_BEHAVIOR.md)
 - [外部 ADB server](docs/EXTERNAL_ADB_SERVER.md)
+- [本机应用选择与安装前核对](docs/LOCAL_APPS_HOTFIX.md)
 - [API 19 兼容性](docs/API19_COMPATIBILITY.md) / [包管理命令兼容性](docs/PACKAGE_COMMAND_COMPATIBILITY.md)
 - [模块导航实现记录](docs/NAV02_RETAINED_PAGER_DRAFT.md) / [首次邻页预创建](tests/navigation/neighbor/RESULT.md)
 
