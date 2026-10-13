@@ -176,7 +176,7 @@ public final class ScreenshotCaptureTests {
         public OutputStream output() { return new OutputStream() {
             public void write(int b) { throw new AssertionError("whole ADB packets required"); }
             public void write(byte[] b,int offset,int length) throws IOException {
-                AdbPacket p = AdbPacket.read(new ByteArrayInputStream(b,offset,length),AdbPacket.MAX_PAYLOAD,true);
+                AdbPacket p = SyntheticAdbPackets.decode(b,offset,length);
                 if (p.command == AdbPacket.CNXN) send(new AdbPacket(AdbPacket.CNXN,0x01000000,4096,AdbPacket.text("device::\0")));
                 else if (p.command == AdbPacket.OPEN) open(p);
                 else if (p.command == AdbPacket.CLSE) {

@@ -115,6 +115,7 @@ public final class SyncClient implements Closeable {
                 long nameLength = readUint32();
                 if ("DONE".equals(id)) {
                     if (nameLength != 0) throw new IOException("Invalid SYNC LIST terminator");
+                    ensureOpen();
                     return Collections.unmodifiableList(entries);
                 }
                 if (++received > MAX_ENTRIES) throw new IOException("SYNC directory entry limit exceeded");
@@ -149,6 +150,7 @@ public final class SyncClient implements Closeable {
             String cleaned = remotePath;
             while (cleaned.length() > 1 && cleaned.endsWith("/")) cleaned = cleaned.substring(0, cleaned.length() - 1);
             String name = cleaned.substring(cleaned.lastIndexOf('/') + 1);
+            ensureOpen();
             return new Entry(remotePath, name, mode, size, mtime);
         } catch (IOException e) { throw invalidate(e); }
           catch (RuntimeException e) { invalidateQuietly(); throw e; }
@@ -179,7 +181,9 @@ public final class SyncClient implements Closeable {
                 if ("DONE".equals(id)) {
                     if (expectedSize >= 0 && transferred != expectedSize)
                         throw new EOFException("SYNC file length differs from expected size");
+                    ensureOpen();
                     destination.flush();
+                    ensureOpen();
                     return transferred;
                 }
                 if (!"DATA".equals(id)) throw unexpected(id);
@@ -191,6 +195,7 @@ public final class SyncClient implements Closeable {
                     (expectedSize >= 0 && count > expectedSize - transferred))
                     throw new IOException("SYNC file exceeds expected size");
                 byte[] data = readExactly(input, count);
+                ensureOpen();
                 destination.write(data);
                 transferred += count;
                 report(progress, transferred, expectedSize);
@@ -242,6 +247,7 @@ public final class SyncClient implements Closeable {
             if ("FAIL".equals(id)) throw remoteFailure();
             if (!"OKAY".equals(id)) throw unexpected(id);
             readUint32(); // SYNC v1 OKAY's second word is ignored by the specification.
+            ensureOpen();
             return transferred;
         } catch (IOException e) { throw invalidate(e); }
           catch (RuntimeException e) { invalidateQuietly(); throw e; }
@@ -262,6 +268,7 @@ public final class SyncClient implements Closeable {
     }
 
     private void writeHeader(String id, long value) throws IOException {
+        ensureOpen();
         byte[] header = new byte[8];
         for (int i = 0; i < 4; i++) {
             header[i] = (byte) id.charAt(i);
@@ -322,6 +329,7 @@ public final class SyncClient implements Closeable {
         ensureOpen();
         if (progress != null && !progress.onProgress(transferred, total))
             throw new InterruptedIOException("SYNC transfer cancelled");
+        ensureOpen(); // A callback may close the channel or interrupt its caller while returning true.
     }
 
     private IOException invalidate(IOException failure) {
@@ -340,9 +348,11 @@ public final class SyncClient implements Closeable {
         checkInterrupted();
         if (length == 0) return 0;
         int count = stream.read(buffer, 0, length);
+        checkInterrupted();
         if (count == 0) {
             checkInterrupted();
             int value = stream.read();
+            checkInterrupted();
             if (value < 0) return -1;
             buffer[0] = (byte) value;
             return 1;
@@ -357,9 +367,11 @@ public final class SyncClient implements Closeable {
         while (offset < length) {
             checkInterrupted();
             int count = stream.read(bytes, offset, length - offset);
+            checkInterrupted();
             if (count < 0) throw new EOFException("Truncated protocol stream");
             if (count == 0) {
                 int value = stream.read();
+                checkInterrupted();
                 if (value < 0) throw new EOFException("Truncated protocol stream");
                 bytes[offset++] = (byte) value;
             } else { offset += count; }

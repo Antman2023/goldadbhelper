@@ -35,13 +35,27 @@ public final class BridgeRuntime extends Application {
     }
     private static byte[] read(File f)throws IOException{try(FileInputStream i=new FileInputStream(f);ByteArrayOutputStream o=new ByteArrayOutputStream()){byte[]b=new byte[4096];int n;while((n=i.read(b))>=0)o.write(b,0,n);return o.toByteArray();}}
     private static void write(File f,byte[] b)throws IOException{try(FileOutputStream o=new FileOutputStream(f)){o.write(b);o.getFD().sync();}f.setReadable(false,false);f.setWritable(false,false);f.setReadable(true,true);f.setWritable(true,true);}
-    public synchronized void add(AdbSession s){AdbSession previous=sessions.put(s.target(),s);if(previous!=null&&previous!=s)previous.close();active=s.target();}
+    public void add(AdbSession s){
+        AdbSession previous;synchronized(this){previous=sessions.put(s.target(),s);active=s.target();}
+        if(previous!=null&&previous!=s)CLOSERS.execute(previous::close);
+    }
     public synchronized void select(String target){active=target;}
     public synchronized boolean select(AdbSession session){if(session==null||sessions.get(session.target())!=session)return false;active=session.target();return true;}
-    public synchronized boolean disconnect(AdbSession session){if(session==null||sessions.get(session.target())!=session)return false;sessions.remove(session.target());if(session.target().equals(active))active=null;CLOSERS.execute(session::close);return true;}
+    public boolean disconnect(AdbSession session){
+        synchronized(this){if(session==null||sessions.get(session.target())!=session)return false;sessions.remove(session.target());if(session.target().equals(active))active=null;}
+        CLOSERS.execute(session::close);return true;
+    }
 
     public static AdbSession session(){BridgeRuntime app=get();synchronized(app){return app.sessions.get(app.active);}}
     public synchronized List<AdbSession> sessions(){return new ArrayList<>(sessions.values());}
-    public synchronized void disconnect(String target){AdbSession s=sessions.remove(target);if(s!=null)s.close();if(target.equals(active))active=null;}
-    public synchronized void disconnectAll(){for(AdbSession s:sessions.values())s.close();sessions.clear();active=null;HostServerClient server=externalServer;externalServer=null;if(server!=null){server.setListener(null);CLOSERS.execute(server::close);}}
+    public void disconnect(String target){
+        AdbSession s;synchronized(this){s=sessions.remove(target);if(target.equals(active))active=null;}
+        if(s!=null)CLOSERS.execute(s::close);
+    }
+    public void disconnectAll(){
+        List<AdbSession> removed;HostServerClient server;
+        synchronized(this){removed=new ArrayList<>(sessions.values());sessions.clear();active=null;server=externalServer;externalServer=null;}
+        for(AdbSession s:removed)CLOSERS.execute(s::close);
+        if(server!=null){server.setListener(null);CLOSERS.execute(server::close);}
+    }
 }

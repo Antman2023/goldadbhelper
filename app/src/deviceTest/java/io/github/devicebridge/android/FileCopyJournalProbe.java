@@ -14,6 +14,7 @@ public final class FileCopyJournalProbe {
         send(complete,item("plan","PLANNED"));send(complete,item("start","STARTED"));send(complete,item("result","COPIED").put("bytes",0).put("sha256",SHA));
         send(complete,base("done").put("count",1).put("complete",true).put("failed",false).put("uncertain",false));
         FileCopyManager.Report good=complete.report("");ok(good.complete,"request-bound terminal acknowledgement completes file");ok(good.items.get(0).status.equals("COPIED"),"digest receipt preserved");
+        FileCopyManager.Report failedExit=complete.report("",7);ok(!failedExit.complete,"known nonzero process exit rejects overall completion");ok(failedExit.items.get(0).status.equals("COPIED")&&failedExit.items.get(0).sha256.equals(SHA),"process failure retains verified file receipt");ok(failedExit.warning.contains("7"),"process failure reports exit status");
 
         FileCopyManager.Journal interrupted=new FileCopyManager.Journal(REQUEST,"/source/file","/target/file");
         send(interrupted,item("plan","PLANNED"));send(interrupted,item("start","STARTED"));

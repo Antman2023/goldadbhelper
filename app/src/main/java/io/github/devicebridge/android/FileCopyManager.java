@@ -55,13 +55,13 @@ final class FileCopyManager implements Closeable {
         String request=UUID.randomUUID().toString();Journal journal=new Journal(request,source,destination);
         String command="CLASSPATH="+DeviceCommands.quote(helper)+" app_process / io.github.devicebridge.server.FileCopyServer "
                 +DeviceCommands.quote(request)+" "+DeviceCommands.quote(source)+" "+DeviceCommands.quote(destination);
-        String failure="";
+        String failure="";int exitCode=-1;
         try {
             checkActive();
-            shell.stream(command,120000,(stderr,data)->journal.accept(stderr,data));
+            exitCode=shell.stream(command,120000,(stderr,data)->journal.accept(stderr,data));
             journal.end();
         }catch(IOException|RuntimeException e){failure=String.valueOf(e.getMessage());}
-        return journal.report(failure);
+        return journal.report(failure,exitCode);
     }
     static final class MoveReport {
         final String status,message,sha256;
@@ -139,7 +139,11 @@ final class FileCopyManager implements Closeable {
                 item.status=status;item.message=json.optString("message");
             }catch(IOException e){throw e;}catch(Exception e){throw new IOException("Invalid copy acknowledgement",e);}
         }
-        Report report(String failure){
+        Report report(String failure){return report(failure,-1);}
+        Report report(String failure,int exitCode){
+            // Legacy shell-v1 has no exit packet. Its verified helper receipt remains
+            // authoritative; a known shell-v2 failure must never become overall success.
+            if(exitCode!=0&&exitCode!=-1)failure+=(failure.isEmpty()?"":"\n")+"复制进程返回退出码 "+exitCode+"；保留已确认项目，请检查目标后再操作。";
             String warning=terminalMessage;
             if(!failure.isEmpty())warning+=(warning.isEmpty()?"":"\n")+failure;
             if(!done||uncertain){

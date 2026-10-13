@@ -17,7 +17,7 @@ public final class HostServerTests {
     public static void main(String[] args)throws Exception {
         parsingAndSharedEnumeration();shellSyncAndStreamReuse();offlineAndEpochBinding();
         cancellationIsolationAndRetry();cancelHandshakeAndService();staleRefreshReplies();
-        stopResults();malformedAndRejectedResponses();
+        stopResults();malformedAndRejectedResponses();sessionObserverFailures();
         System.out.println("HostServerTests: "+assertions+" assertions passed (synthetic loopback only)");
     }
     private static void parsingAndSharedEnumeration()throws Exception {
@@ -63,6 +63,22 @@ public final class HostServerTests {
                 check(f.hasRequestPrefix("host:transport-id:7"),"service sockets bind transport id");
                 check(!f.hasRequestPrefix("host:transport:SERIAL"),"never silently falls back to serial");
             }
+        }
+    }
+    private static void sessionObserverFailures()throws Exception {
+        try(Fixture f=new Fixture(A);HostServerClient c=f.client()){
+            c.connect(1000);
+            try(AdbSession s=new AdbSession(c,c.snapshot().devices.get(0),(state,detail)->{throw new IllegalStateException("synthetic session observer failure");})){
+                s.connect();
+                eq("fixture\n",new ShellClient(s).run("fixture",1000).text(),"host session remains usable despite observer exception");
+                s.close();
+                eq(AdbSession.State.CLOSED,s.state(),"host session closes despite observer exception");
+            }
+            AdbSession cancelled=new AdbSession(c,c.snapshot().devices.get(0),null);
+            cancelled.setListener((state,detail)->{if(state==AdbSession.State.CONNECTED)cancelled.close();});
+            try{expectIo(cancelled::connect,"host session cancelled in CONNECTED observer never reports success");}
+            finally{cancelled.close();}
+            eq(HostServerClient.State.CONNECTED,c.state(),"session observer cancellation preserves shared server");
         }
     }
     private static void offlineAndEpochBinding()throws Exception {

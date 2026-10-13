@@ -315,7 +315,7 @@ public final class InteractiveShellTests {
         public OutputStream output(){return new OutputStream(){
             public void write(int b){throw new AssertionError("ADB must write complete packets");}
             public void write(byte[] b,int offset,int length)throws IOException{
-                AdbPacket packet=AdbPacket.read(new ByteArrayInputStream(b,offset,length),AdbPacket.MAX_PAYLOAD,true);
+                AdbPacket packet=SyntheticAdbPackets.decode(b,offset,length);
                 if(packet.command==AdbPacket.CNXN)send(new AdbPacket(AdbPacket.CNXN,0x01000001,4096,AdbPacket.text("device::features="+(v2?"shell_v2":"cmd")+";\0")));
                 else if(packet.command==AdbPacket.OPEN){opens++;local=packet.arg0;service=new String(packet.payload,StandardCharsets.UTF_8);send(new AdbPacket(AdbPacket.OKAY,71,local,null));}
                 else if(packet.command==AdbPacket.WRTE){stdin.write(packet.payload);firstWrite.countDown();if(autoAck)send(new AdbPacket(AdbPacket.OKAY,71,local,null));}

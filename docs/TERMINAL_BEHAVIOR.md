@@ -32,3 +32,9 @@
 - 父任务冻结的 v5 已含主实现。随后跨行旧 stderr span 前半段保留、异常后退出等待复位、Enter/IME 和滚动修改均是后续源码；不能把 v5 实测自动套用到后续 APK。
 
 宿主结果：`build/test-results/TerminalTranscriptTests.txt`、`build/test-results/InteractiveShellTests-terminal-alignment.txt`。
+
+## 一次性命令稳定性更新（2026-10-13）
+
+设备查询和文件 helper 使用的一次性 `ShellClient` 在收到 shell-v2 退出状态后立即释放通道，不再等待目标随后发送 `CLSE`。流式 stdout/stderr 回调每段最多 8192 字节，调用方须持续处理跨段文本；文件复制 journal 已逐字节累积至完整行。该更新不改变持久 PTY 的命令模型。
+
+`ShellClientTests` 的 54 条内存断言验证未发送 CLSE 的正常退出、1/4 字节退出码、独立 stdout/stderr、131101 字节分段输出、截断/非法帧、消费者异常及本地参数验证。最新设备复验与受限宿主检查见 [待验清单](REMAINING_VALIDATION.md)。

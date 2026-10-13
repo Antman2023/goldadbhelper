@@ -32,6 +32,7 @@ public final class ProtocolTests {
         syncListAndStat();
         syncPushAndPull();
         syncFailureAndCancellation();
+        syncCancellationBoundaries();
         syncValidation();
         fastbootResponses();
         fastbootDownloadCommands();
@@ -169,6 +170,84 @@ public final class ProtocolTests {
         }));
         equal(0, reentrantWire.size(), "reentrant progress cannot interleave SYNC requests");
         check(reentrant.isClosed(), "reentrant callback fails closed");
+    }
+
+    private static void syncCancellationBoundaries() throws Exception {
+        for (boolean interrupt : new boolean[]{false, true}) {
+            ByteArrayOutputStream wire = new ByteArrayOutputStream();
+            SyncClient sync = new SyncClient(new ByteArrayInputStream(header("DONE", 0)), wire);
+            try {
+                expect(IOException.class, () -> sync.pull("/file", new ByteArrayOutputStream(), (done, total) -> {
+                    if (interrupt) Thread.currentThread().interrupt();
+                    else try { sync.close(); } catch (IOException error) { throw new AssertionError(error); }
+                    return true;
+                }));
+                equal(0, wire.size(), "callback cancellation sends no request even when returning true");
+                check(sync.isClosed(), "callback cancellation leaves client closed");
+                check(Thread.currentThread().isInterrupted() == interrupt, "callback interrupt flag preserved");
+            } finally { Thread.interrupted(); sync.close(); }
+        }
+        // Cancel while the last bytes of each complete response are being returned.
+        for (String operation : new String[]{"LIST", "STAT", "RECV", "SEND"}) {
+            byte[] response = operation.equals("LIST") ? listDone() : operation.equals("STAT") ?
+                    join(ascii("STAT"), le32(0100644), le32(0), le32(0)) : header(operation.equals("RECV") ? "DONE" : "OKAY", 0);
+            for (boolean interrupt : new boolean[]{false, true}) {
+                final SyncClient[] owner = new SyncClient[1];
+                InputStream input = new ByteArrayInputStream(response) {
+                    public synchronized int read(byte[] bytes, int offset, int length) {
+                        int count = super.read(bytes, offset, length);
+                        if (available() == 0) {
+                            if (interrupt) Thread.currentThread().interrupt();
+                            else try { owner[0].close(); } catch (IOException error) { throw new AssertionError(error); }
+                        }
+                        return count;
+                    }
+                };
+                SyncClient sync = new SyncClient(input, new ByteArrayOutputStream()); owner[0] = sync;
+                try {
+                    expect(IOException.class, () -> {
+                        if (operation.equals("LIST")) sync.list("/dir");
+                        else if (operation.equals("STAT")) sync.stat("/file");
+                        else if (operation.equals("RECV")) sync.pull("/file", new ByteArrayOutputStream(), null);
+                        else sync.push("/file", new ByteArrayInputStream(new byte[0]), 0, 0644, 0, null);
+                    });
+                    check(sync.isClosed(), operation + " final-read cancellation cannot report success");
+                    check(Thread.currentThread().isInterrupted() == interrupt, "terminal cancellation preserves flag");
+                } finally { Thread.interrupted(); sync.close(); }
+            }
+        }
+        for (boolean exact : new boolean[]{false, true}) {
+            final int[] fallback = {0};
+            InputStream source = new InputStream() {
+                public int read(byte[] bytes, int offset, int length) { Thread.currentThread().interrupt(); return 0; }
+                public int read() { fallback[0]++; return 1; }
+            };
+            try {
+                expect(InterruptedIOException.class, () -> {
+                    if (exact) SyncClient.readExactly(source, 1); else SyncClient.readSome(source, new byte[1], 1);
+                });
+                equal(0, fallback[0], "cancelled zero read does not enter another potentially blocking read");
+            } finally { Thread.interrupted(); }
+        }
+        ByteArrayOutputStream wire = new ByteArrayOutputStream();
+        SyncClient push = new SyncClient(new ByteArrayInputStream(header("OKAY", 0)), wire);
+        InputStream source = new ByteArrayInputStream(new byte[]{1}) {
+            public synchronized int read(byte[] bytes, int offset, int length) {
+                int count = super.read(bytes, offset, length); Thread.currentThread().interrupt(); return count;
+            }
+        };
+        try {
+            expect(InterruptedIOException.class, () -> push.push("/file", source, 1, 0644, 0, null));
+            equalBytes(request("SEND", "/file,420"), wire.toByteArray(), "source-read cancellation sends neither DATA nor DONE");
+            check(push.isClosed(), "source-read cancellation releases channel");
+        } finally { Thread.interrupted(); push.close(); }
+        final SyncClient[] owner = new SyncClient[1];
+        TrackOutput destination = new TrackOutput() {
+            public void flush() { super.flush(); try { owner[0].close(); } catch (IOException error) { throw new AssertionError(error); } }
+        };
+        owner[0] = new SyncClient(new ByteArrayInputStream(header("DONE", 0)), new ByteArrayOutputStream());
+        expect(IOException.class, () -> owner[0].pull("/file", destination, null));
+        check(destination.flushed && !destination.closed, "cancellation during final flush does not close caller-owned output");
     }
 
     private static void syncValidation() throws Exception {
@@ -473,7 +552,7 @@ public final class ProtocolTests {
         TrackInput(byte[] bytes) { super(bytes); }
         public void close() { closed = true; }
     }
-    private static final class TrackOutput extends ByteArrayOutputStream {
+    private static class TrackOutput extends ByteArrayOutputStream {
         boolean closed, flushed;
         public void close() { closed = true; }
         public void flush() { flushed = true; }

@@ -72,3 +72,11 @@ bash tools/test-host-ui.sh
 没有发现需修改生产实现的确定 bug。编写 harness 时一条测试对空列表文案过度锁词（期待“服务器”，实际为“服务的宿主”），已把断言改为所需含义“宿主”，没有更改生产文案；最终 5 轮均通过。
 
 真实 Android UI/取消/销毁、实际 AOSP server 的兼容性、真实停止后宿主启动和重新选择、USB 与 raw 直连状态，以及 CON-06 原版本机 kill+start 语义仍须在各自允许范围内独立验收。该 harness 不能替代这些验证。
+
+## 2026-10-13 连接清理补充回归
+
+以上 25 条与五轮结果为历史记录。本轮提取器增加当前生产 `add`、`disconnect(String)`、`disconnectAll` 方法原文，连同精确对象选择/断开共通过 53 条断言。资源和执行器仍为内存替身；额外线程模拟关闭阻塞，验证旧资源关闭期间运行时仍可选择新连接。
+
+本轮修复替换连接、按地址断开及断开全部时同步关闭传输的问题；后台任务捕获已摘除的对象，不在执行时重新按地址查找。侧栏断开改为对象绑定，避免旧侧栏断开同地址的新会话。新增用例覆盖重连、迟到清理、重复断开、server/session 快照和阻塞关闭。生产侧栏改动已编译，未执行 Android 点击测试。
+
+Windows 原生 JDK 运行记录位于 `build/runtime-cleanup-check/binding-results.txt` 和 `controller-results.txt`（忽略的构建产物）。控制器原有 189 条断言通过；这些新结果没有覆盖写入历史 `results.txt` 或 `source-hashes.txt`，也未声称运行 Linux Bash 聚合入口。

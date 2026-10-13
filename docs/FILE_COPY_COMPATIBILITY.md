@@ -14,6 +14,8 @@ New directories use exclusive mkdir, then no-follow opening and descriptor ancho
 
 Every enumerated entry receives a plan receipt, a start receipt when applicable, and a terminal outcome. The client validates the request ID, source/destination relationship, event transitions, digest form, final entry count and completeness before accepting a successful overall result.
 
+For shell-v2, a known nonzero process exit also prevents overall completion even when a complete receipt was received. The report includes that status and retains verified per-entry outcomes and digests; it does not imply that copied files were rolled back. Shell-v1 has no exit packet, so its unknown status still requires a complete helper receipt. Exit zero alone cannot replace that receipt or turn partial/unknown entries into success.
+
 - Acknowledged files: `COPIED`, with bytes and SHA-256
 - Fully acknowledged directories: `DIRECTORY_COPIED`
 - Directory with failed/incomplete children: `PARTIAL`
@@ -40,7 +42,9 @@ Closing the client stream does **not** prove remote termination or rollback. The
 
 The same focused script also passed 20 assertions for ordinary move outcomes and synthetic metadata: regular-file and directory success, source still present after a no-clobber skip, missing exact destination, existing target, interrupted command, mismatching content/type, and cross-filesystem identity uncertainty. These tests do not replace emulator execution of `/system/bin/mv`.
 
-The app and server Java sources compile against the installed official Android SDK. `app/src/deviceTest/java/io/github/devicebridge/android/FileCopyJournalProbe.java` adds nine synthetic JSON receipt checks for the Android runtime; it accesses no files and must be run by the shared emulator-QA owner before being marked passed.
+`FileCopyCompletionTests` adds 23 host assertions against the actual production report mapper, using pre-populated receipt state: successful/legacy status, nonzero status, retained digests, partial/unexecuted entries, missing acknowledgement and transport errors. It is included in `tools/test-file-copy.sh`. It does not execute Android JSON parsing or device file operations.
+
+The app and server Java sources compile against the installed official Android SDK. `app/src/deviceTest/java/io/github/devicebridge/android/FileCopyJournalProbe.java` now contains 12 synthetic JSON receipt checks for the Android runtime, including nonzero process status and retained digests. Its current source compiles but was not executed in this host-only update; it accesses no files and must be run by the shared emulator-QA owner before being marked passed.
 
 The shared QA owner can run the freshly built helper on a self-created ordinary source tree and a new destination inside its approved emulator fixture root:
 

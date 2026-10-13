@@ -38,7 +38,19 @@ public final class AdbPacket {
     public static byte[] readExactly(InputStream in, int n) throws IOException {
         if (n<0) throw new IOException("Negative length");
         byte[] data=new byte[n]; int at=0;
-        while(at<n) { int got=in.read(data,at,n-at); if(got<0) throw new EOFException("Truncated stream"); if(got==0) continue; at+=got; }
+        while(at<n) {
+            checkInterrupted();
+            int got=in.read(data,at,n-at);
+            if(got<0)throw new EOFException("Truncated stream");
+            if(got==0){
+                checkInterrupted();
+                int value=in.read();if(value<0)throw new EOFException("Truncated stream");
+                data[at++]=(byte)value;
+            }else at+=got;
+        }
         return data;
+    }
+    private static void checkInterrupted()throws InterruptedIOException{
+        if(Thread.currentThread().isInterrupted())throw new InterruptedIOException("ADB read interrupted");
     }
 }

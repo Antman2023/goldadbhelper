@@ -5,13 +5,13 @@
 [![Android CI](https://github.com/Antman2023/goldadbhelper/actions/workflows/android-ci.yml/badge.svg)](https://github.com/Antman2023/goldadbhelper/actions/workflows/android-ci.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 [![Android: API 19+](https://img.shields.io/badge/Android-API%2019%2B-green.svg)](app/build.gradle)
-[![Version: 0.1.3-dev](https://img.shields.io/badge/version-0.1.3--dev-orange.svg)](app/build.gradle)
+[![Version: 0.1.4-dev](https://img.shields.io/badge/version-0.1.4--dev-orange.svg)](app/build.gradle)
 
 从连接、查看设备信息，到文件传输、应用管理和命令终端，把常用 ADB 工作放在一个应用里。支持 TCP / USB ADB，提供 Android 11+ 无线调试配对、外部 ADB server、投屏与 Fastboot 入口。
 
 项目使用独立的 Java ADB 协议实现，提供 TCP、USB 和 Android 11+ 无线调试配对入口。应用名称、图标、包名和开发签名均为独立身份。
 
-> **开发状态：`0.1.3-dev`，Android 4.4 / API 19+。** 当前提供开发候选源码与 CI 构建，尚未完成全面设备验收。截图来自下方明确标注的历史开发包和隔离 Android 模拟器；历史结果不代表当前候选、真机或全部厂商兼容性。
+> **开发状态：`0.1.4-dev`，Android 4.4 / API 19+。** 当前提供开发候选源码与 CI 构建，尚未完成全面设备验收。截图来自下方明确标注的历史开发包和隔离 Android 模拟器；历史结果不代表当前候选、真机或全部厂商兼容性。
 
 [运行截图](#运行截图) · [获取与安装](#获取与安装) · [开始使用](#开始使用) · [从源码构建](#从源码构建) · [验证与限制](#验证与限制) · [文档](#更多文档)
 
@@ -182,7 +182,7 @@ API 19 兼容层使用 D8/L8 库回移植和 AndroidX MultiDex。历史安装与
 
 ### 脚本构建
 
-现有脚本面向 Linux Bash 环境；Windows 可在 WSL 中准备独立的 Linux JDK 和 Android SDK。WSL 内的脚本不能直接使用 Windows 版 SDK 工具。
+Bash 脚本面向 Linux 环境；Windows 可使用下方的原生 Python 打包入口，或在 WSL 中准备独立的 Linux JDK 和 Android SDK。WSL 内的脚本不能直接使用 Windows 版 SDK 工具。
 
 需要带 `jdk.compiler` 模块的 JDK、Android SDK Platform 35、Build Tools 35.0.0、Python 3，以及 Bash、`find`、`sort`、`tee`、`sha256sum` 等工具。将 `java` 和 `keytool` 加入 `PATH`。固定版本第三方 JAR/AAR、JNI 库、源码和许可证已随仓库保留。
 
@@ -202,7 +202,7 @@ bash tools/build-apk.sh
 
 | 主要输出 | 内容 |
 | --- | --- |
-| `build/outputs/金甲虫ADB助手-0.1.3-dev.apk` | 开发签名 APK |
+| `build/outputs/金甲虫ADB助手-0.1.4-dev.apk` | 开发签名 APK |
 | `build/outputs/构建来源.json` | APK、源码归档和服务端资源的哈希记录 |
 | `build/金甲虫ADB助手-对应源码及许可.zip` | 此次构建的对应源码与许可 |
 | `build/source-inputs.json` | 构建输入文件及其 SHA-256 |
@@ -210,6 +210,18 @@ bash tools/build-apk.sh
 脚本通过 `tools/snapshot-build.py` 固定构建输入，并在编译后检查输入是否变化。可通过 `BUILD_DIR` 指定隔离输出目录；开发签名仍使用本地 `build/debug.keystore`，用于保持同一工作区内的升级签名一致。
 
 **开发密钥仅用于测试，不作为正式发布密钥，且不提交到仓库。** 使用其他签名覆盖安装可能需要先卸载旧版本，卸载会丢失应用私有数据和 ADB 身份。
+
+### Windows 原生打包
+
+安装 Windows 版 JDK、Python 3、Android Platform 35 和 Build Tools 35.0.0 后，在 PowerShell 中执行（替换实际路径）：
+
+```powershell
+python -X utf8 tools/build-apk.py --sdk 'C:/Android/Sdk' --java-home 'C:/Java/jdk' --build-dir build/windows-candidate
+```
+
+该入口使用原生 SDK/JDK 工具完成资源编译、D8、L8 回移 API、多 DEX 打包、对齐和开发签名，不依赖 Bash。输出目录必须是 `build/` 内尚不存在的新目录，以避免混入旧文件；APK、签名报告、包信息及构建来源在其 `outputs/` 下，源码归档和输入清单在目录根部。`--signing unsigned` 可生成未签名候选。构建前冻结源码，编译后及打包后再次核对输入。
+
+此入口使用仓库中已固定的服务端 JAR，不重建服务端；修改 `server`、`server-power` 或 scrcpy 源码后仍须先运行 Linux 服务端构建。Windows 打包不替代 Linux 完整回归或同版 APK 的设备验收。
 
 ### GitHub Actions
 

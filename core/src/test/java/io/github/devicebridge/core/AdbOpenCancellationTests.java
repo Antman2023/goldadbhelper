@@ -117,7 +117,7 @@ public final class AdbOpenCancellationTests {
             return new OutputStream() {
                 public void write(int value) { throw new AssertionError("whole packets expected"); }
                 public void write(byte[] bytes, int offset, int length) throws IOException {
-                    AdbPacket packet = AdbPacket.read(new ByteArrayInputStream(bytes, offset, length), AdbPacket.MAX_PAYLOAD, true);
+                    AdbPacket packet = SyntheticAdbPackets.decode(bytes, offset, length);
                     packets.add(packet);
                     if (packet.command == AdbPacket.OPEN) openSent.countDown();
                     if (packet.command == AdbPacket.OPEN && failAcknowledgedOpen) {
