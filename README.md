@@ -35,43 +35,116 @@
 
 以下 **15 张均为金甲虫实际运行截图**，来自 2026-10-12 的隔离官方 Android 8.0 / API 26 / x86 模拟器。点击任意图片查看 480 × 800 原图。仅做无损 PNG 压缩，没有重绘界面或替换显示数据。
 
+图片采用统一宽度单列展示，标题与说明独立排布；11 张稳定页面与操作截图在下方，4 张导航过渡帧收在末尾的折叠区。
+
 ### 设备与日常管理
 
 本组及后面的操作、导航图来自 **`0.1.3-dev` 冻结包（APK SHA-256 前缀 `74fabeac`）**。这是仓库取消竞态修复之前的历史开发包，不应当作最新 `main` 的完整验收。完整哈希、来源与测试边界见 [截图说明](docs/screenshots/README.md)。
 
-| 设备信息 | 实用工具 | 文件管理 |
-| --- | --- | --- |
-| <a href="docs/screenshots/device-information.png"><img src="docs/screenshots/device-information.png" width="220" alt="金甲虫ADB助手 0.1.3-dev，API 26隔离模拟器：设备信息"></a><br>系统、分辨率、处理器、内存与存储 | <a href="docs/screenshots/tools-overview.png"><img src="docs/screenshots/tools-overview.png" width="220" alt="金甲虫ADB助手 0.1.3-dev，API 26隔离模拟器：实用工具"></a><br>无线 ADB、截图、重启、DPI 与分辨率入口 | <a href="docs/screenshots/file-browser.png"><img src="docs/screenshots/file-browser.png" width="220" alt="金甲虫ADB助手 0.1.3-dev，API 26隔离模拟器：文件管理"></a><br>模拟器共享存储的实际目录列表 |
+#### 设备信息
 
-| 应用管理 | 进程管理 | 命令终端 |
-| --- | --- | --- |
-| <a href="docs/screenshots/app-manager.png"><img src="docs/screenshots/app-manager.png" width="220" alt="金甲虫ADB助手 0.1.3-dev，API 26隔离模拟器：应用管理"></a><br>目标设备的实际应用名称、包名与图标 | <a href="docs/screenshots/process-manager.png"><img src="docs/screenshots/process-manager.png" width="220" alt="金甲虫ADB助手 0.1.3-dev，API 26隔离模拟器：进程管理"></a><br>内存概览与实际进程分组 | <a href="docs/screenshots/terminal.png"><img src="docs/screenshots/terminal.png" width="220" alt="金甲虫ADB助手 0.1.3-dev，API 26隔离模拟器：命令终端"></a><br>首次进入后的真实 PTY 提示符 |
+<a href="docs/screenshots/device-information.png"><img src="docs/screenshots/device-information.png" width="360" alt="金甲虫ADB助手 0.1.3-dev，API 26隔离模拟器：设备信息"></a>
+
+系统、分辨率、处理器、内存与存储。
+
+#### 实用工具
+
+<a href="docs/screenshots/tools-overview.png"><img src="docs/screenshots/tools-overview.png" width="360" alt="金甲虫ADB助手 0.1.3-dev，API 26隔离模拟器：实用工具"></a>
+
+无线 ADB、截图、重启、DPI 与分辨率入口。
+
+#### 文件管理
+
+<a href="docs/screenshots/file-browser.png"><img src="docs/screenshots/file-browser.png" width="360" alt="金甲虫ADB助手 0.1.3-dev，API 26隔离模拟器：文件管理"></a>
+
+模拟器共享存储的实际目录列表。
+
+#### 应用管理
+
+<a href="docs/screenshots/app-manager.png"><img src="docs/screenshots/app-manager.png" width="360" alt="金甲虫ADB助手 0.1.3-dev，API 26隔离模拟器：应用管理"></a>
+
+目标设备的实际应用名称、包名与图标。
+
+#### 进程管理
+
+<a href="docs/screenshots/process-manager.png"><img src="docs/screenshots/process-manager.png" width="360" alt="金甲虫ADB助手 0.1.3-dev，API 26隔离模拟器：进程管理"></a>
+
+内存概览与实际进程分组。
+
+#### 命令终端
+
+<a href="docs/screenshots/terminal.png"><img src="docs/screenshots/terminal.png" width="360" alt="金甲虫ADB助手 0.1.3-dev，API 26隔离模拟器：命令终端"></a>
+
+首次进入后的真实 PTY 提示符。
 
 ### 文件操作与页面状态
 
-| 文件操作菜单 | 终端回访 | 工具列表滚动 |
-| --- | --- | --- |
-| <a href="docs/screenshots/file-actions.png"><img src="docs/screenshots/file-actions.png" width="220" alt="金甲虫ADB助手 0.1.3-dev，API 26隔离模拟器：文件操作菜单"></a><br>普通测试文件的打开、下载、复制等入口 | <a href="docs/screenshots/terminal-draft.png"><img src="docs/screenshots/terminal-draft.png" width="220" alt="金甲虫ADB助手 0.1.3-dev，API 26隔离模拟器：终端回访"></a><br>保留输出与未执行草稿，重新建立 PTY | <a href="docs/screenshots/tools-scrolled.png"><img src="docs/screenshots/tools-scrolled.png" width="220" alt="金甲虫ADB助手 0.1.3-dev，API 26隔离模拟器：工具列表滚动"></a><br>下方工具入口与收起的模块栏 |
+#### 文件操作菜单
 
-### 真实横向滑动过程
+<a href="docs/screenshots/file-actions.png"><img src="docs/screenshots/file-actions.png" width="360" alt="金甲虫ADB助手 0.1.3-dev，API 26隔离模拟器：文件操作菜单"></a>
 
-这些是手势过程中的中间帧，画面中的横向裁切、灰色控件与加载占位均为实际状态。预览会呈现邻页控件，正式选中后才开始首次设备读取；远控图展示设置入口，不代表投屏已成功。
+普通测试文件的打开、下载、复制等入口。
 
-| 信息 → 工具 | 工具 → 远控 |
-| --- | --- |
-| <a href="docs/screenshots/preview-tools.png"><img src="docs/screenshots/preview-tools.png" width="220" alt="金甲虫ADB助手 0.1.3-dev，API 26隔离模拟器：信息 → 工具"></a><br>首次横滑中，工具卡片已进入画面 | <a href="docs/screenshots/preview-remote-options.png"><img src="docs/screenshots/preview-remote-options.png" width="220" alt="金甲虫ADB助手 0.1.3-dev，API 26隔离模拟器：工具 → 远控"></a><br>远控参数与连接按钮；没有启动投屏 |
+#### 终端回访
 
-| 远控 → 文件 | 进程 → 终端 |
-| --- | --- |
-| <a href="docs/screenshots/preview-files.png"><img src="docs/screenshots/preview-files.png" width="220" alt="金甲虫ADB助手 0.1.3-dev，API 26隔离模拟器：远控 → 文件"></a><br>路径栏与待加载结构；尚未读取目录 | <a href="docs/screenshots/preview-terminal.png"><img src="docs/screenshots/preview-terminal.png" width="220" alt="金甲虫ADB助手 0.1.3-dev，API 26隔离模拟器：进程 → 终端"></a><br>输入框、运行按钮与输出区；尚未打开 PTY |
+<a href="docs/screenshots/terminal-draft.png"><img src="docs/screenshots/terminal-draft.png" width="360" alt="金甲虫ADB助手 0.1.3-dev，API 26隔离模拟器：终端回访"></a>
+
+保留输出与未执行草稿，重新建立 PTY。
+
+#### 工具列表滚动
+
+<a href="docs/screenshots/tools-scrolled.png"><img src="docs/screenshots/tools-scrolled.png" width="360" alt="金甲虫ADB助手 0.1.3-dev，API 26隔离模拟器：工具列表滚动"></a>
+
+下方工具入口与收起的模块栏。
 
 ### 本机应用选择：浅色与深色
 
 以下两张来自更早的 **`0.1.1` 热修包（APK SHA-256 前缀 `c140b368`）**，同样在 API 26 隔离模拟器采集。用于展示本机选择器的列表、搜索、选中与主题；不能证明新版 Android 的包可见性或厂商权限问题已解决。
 
-| 本机应用 · 浅色 | 本机应用 · 深色 |
-| --- | --- |
-| <a href="docs/screenshots/local-apps-light.png"><img src="docs/screenshots/local-apps-light.png" width="220" alt="金甲虫ADB助手 0.1.1，API 26隔离模拟器：本机应用 · 浅色"></a><br>实际 PackageManager 列表与应用图标 | <a href="docs/screenshots/local-apps-dark.png"><img src="docs/screenshots/local-apps-dark.png" width="220" alt="金甲虫ADB助手 0.1.1，API 26隔离模拟器：本机应用 · 深色"></a><br>搜索并选中专用空白测试应用 |
+#### 本机应用 · 浅色
+
+<a href="docs/screenshots/local-apps-light.png"><img src="docs/screenshots/local-apps-light.png" width="360" alt="金甲虫ADB助手 0.1.1，API 26隔离模拟器：本机应用 · 浅色"></a>
+
+实际 PackageManager 列表与应用图标。
+
+#### 本机应用 · 深色
+
+<a href="docs/screenshots/local-apps-dark.png"><img src="docs/screenshots/local-apps-dark.png" width="360" alt="金甲虫ADB助手 0.1.1，API 26隔离模拟器：本机应用 · 深色"></a>
+
+搜索并选中专用空白测试应用。
+
+### 导航验收证据
+
+<details>
+<summary>展开查看 4 张真实横向滑动过渡帧</summary>
+
+以下画面来自上述 `0.1.3-dev` 冻结包，是手势过程中的中间帧。横向裁切、灰色控件与加载占位均为实际状态。预览会呈现邻页控件，正式选中后才开始首次设备读取；远控图展示设置入口，不代表投屏已成功。
+
+#### 信息 → 工具
+
+<a href="docs/screenshots/preview-tools.png"><img src="docs/screenshots/preview-tools.png" width="360" alt="金甲虫ADB助手 0.1.3-dev，API 26隔离模拟器：信息 → 工具"></a>
+
+首次横滑中，工具卡片已进入画面。
+
+#### 工具 → 远控
+
+<a href="docs/screenshots/preview-remote-options.png"><img src="docs/screenshots/preview-remote-options.png" width="360" alt="金甲虫ADB助手 0.1.3-dev，API 26隔离模拟器：工具 → 远控"></a>
+
+远控参数与连接按钮；没有启动投屏。
+
+#### 远控 → 文件
+
+<a href="docs/screenshots/preview-files.png"><img src="docs/screenshots/preview-files.png" width="360" alt="金甲虫ADB助手 0.1.3-dev，API 26隔离模拟器：远控 → 文件"></a>
+
+路径栏与待加载结构；尚未读取目录。
+
+#### 进程 → 终端
+
+<a href="docs/screenshots/preview-terminal.png"><img src="docs/screenshots/preview-terminal.png" width="360" alt="金甲虫ADB助手 0.1.3-dev，API 26隔离模拟器：进程 → 终端"></a>
+
+输入框、运行按钮与输出区；尚未打开 PTY。
+
+</details>
 
 ## 获取与安装
 
@@ -246,3 +319,4 @@ licenses/     第三方许可证全文
 应用关于页包含可离线读取的第三方许可。分发 APK 时应同时提供与其对应的完整源码、构建脚本和许可证，保留 LGPL 组件的替换与重新链接能力。开发者可替换兼容源码、重建并用自己的密钥签名安装。
 
 本项目不使用参考应用的专有 helper、商业 native 库、账号、后台或签名密钥，不代表其原作者。协议和第三方实现来源详见仓库内对应记录。
+
