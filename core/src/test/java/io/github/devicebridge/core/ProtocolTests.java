@@ -37,8 +37,10 @@ public final class ProtocolTests {
         fastbootResponses();
         fastbootDownloadCommands();
         fastbootFailuresAndCancellation();
+        fastbootCancellationBoundaries();
         fastbootTcpFraming();
         fastbootTcpMalformed();
+        fastbootTcpCancellationBoundaries();
         closeUnblocksFastboot();
         System.out.println("ProtocolTests: " + assertions + " assertions passed (synthetic only)");
     }
@@ -407,6 +409,93 @@ public final class ProtocolTests {
         check(reentrantPackets.closed, "reentrant listener closes protocol");
     }
 
+    private static void fastbootCancellationBoundaries() throws Exception {
+        for (boolean interrupt : new boolean[]{false, true}) {
+            for (boolean initial : new boolean[]{true, false}) {
+                ScriptPackets packets = new ScriptPackets("DATA00000002", "OKAY");
+                FastbootClient client = new FastbootClient(packets);
+                TrackInput source = new TrackInput(new byte[]{1, 2});
+                try {
+                    expect(IOException.class, () -> client.download(source, 2, (done, total) -> {
+                        if (initial || done > 0) cancel(client, interrupt);
+                        return true;
+                    }));
+                    equal(initial ? 0 : 2, packets.writes.size(), "cancelled progress sends no further command/data");
+                    equal(initial ? 0 : 2, packets.writeAttempts, "cancelled progress does not even attempt another write");
+                    equal(initial ? 0 : 1, packets.next, "cancelled progress consumes no terminal response");
+                    check(client.isClosed() && !client.hasDownloadedImage(), "progress cancellation cannot arm flash");
+                    check(!source.closed, "cancelled Fastboot source remains caller-owned");
+                    check(Thread.currentThread().isInterrupted() == interrupt, "progress cancellation preserves interrupt");
+                } finally { Thread.interrupted(); client.close(); }
+            }
+            // A source or transport may finish its current call even after cancellation.
+            for (String boundary : new String[]{"source", "command", "data", "ready", "okay", "fail", "info"}) {
+                final FastbootClient[] owner = new FastbootClient[1];
+                String terminal = boundary.equals("fail") ? "FAILrejected" : "OKAY";
+                ScriptPackets packets = new ScriptPackets("DATA00000001", terminal) {
+                    public byte[] readPacket(int maxBytes) throws IOException {
+                        byte[] reply = super.readPacket(maxBytes);
+                        if ((boundary.equals("ready") && next == 1) ||
+                                ((boundary.equals("okay") || boundary.equals("fail") || boundary.equals("info")) && next == 2)) {
+                            cancel(owner[0], interrupt);
+                            if (boundary.equals("info")) return ascii("INFOcancelled");
+                        }
+                        return reply;
+                    }
+                    public void writePacket(byte[] bytes, int offset, int length) throws IOException {
+                        super.writePacket(bytes, offset, length);
+                        if ((boundary.equals("command") && writes.size() == 1) || (boundary.equals("data") && writes.size() == 2))
+                            cancel(owner[0], interrupt);
+                    }
+                };
+                int[] messages = {0};
+                FastbootClient client = new FastbootClient(packets, (kind, message) -> messages[0]++);
+                owner[0] = client;
+                TrackInput source = new TrackInput(new byte[]{1}) {
+                    public synchronized int read(byte[] bytes, int offset, int length) {
+                        int count = super.read(bytes, offset, length);
+                        if (boundary.equals("source")) cancel(client, interrupt);
+                        return count;
+                    }
+                };
+                try {
+                    IOException failure = expect(IOException.class, () -> client.download(source, 1, null));
+                    check(!(failure instanceof FastbootClient.RemoteFailureException), "cancellation takes precedence over terminal FAIL");
+                    equal(boundary.equals("command") || boundary.equals("ready") || boundary.equals("source") ? 1 : 2,
+                            packets.writes.size(), "no data after " + boundary + " cancellation");
+                    equal(packets.writes.size(), packets.writeAttempts, "cancellation never relies on transport rejecting a write");
+                    equal(boundary.equals("command") ? 0 : boundary.equals("source") || boundary.equals("ready") || boundary.equals("data") ? 1 : 2,
+                            packets.next, "no further read after " + boundary + " cancellation");
+                    equal(0, messages[0], "cancelled INFO is not delivered");
+                    check(client.isClosed() && !client.hasDownloadedImage(), "cancelled download stays unarmed");
+                    check(!source.closed, "source-read cancellation retains source ownership");
+                    check(Thread.currentThread().isInterrupted() == interrupt, "boundary cancellation preserves interrupt");
+                } finally { Thread.interrupted(); client.close(); }
+            }
+            for (String terminal : new String[]{"OKAYserial", "FAILunsupported"}) {
+                final FastbootClient[] owner = new FastbootClient[1];
+                ScriptPackets packets = new ScriptPackets(terminal) {
+                    public byte[] readPacket(int maxBytes) throws IOException {
+                        byte[] reply = super.readPacket(maxBytes); cancel(owner[0], interrupt); return reply;
+                    }
+                };
+                FastbootClient client = new FastbootClient(packets); owner[0] = client;
+                try {
+                    IOException failure = expect(IOException.class, client::deviceInfo);
+                    check(!(failure instanceof FastbootClient.RemoteFailureException), "diagnostic cancellation is not optional-query failure");
+                    equal(1, packets.writes.size(), "cancelled diagnostic cannot issue second command");
+                    check(client.isClosed(), "cancelled diagnostic closes transport");
+                    check(Thread.currentThread().isInterrupted() == interrupt, "diagnostic preserves interrupt");
+                } finally { Thread.interrupted(); client.close(); }
+            }
+        }
+    }
+
+    private static void cancel(FastbootClient client, boolean interrupt) {
+        if (interrupt) Thread.currentThread().interrupt();
+        else try { client.close(); } catch (IOException error) { throw new AssertionError(error); }
+    }
+
     private static void fastbootTcpFraming() throws Exception {
         MemoryTransport wire = new MemoryTransport(join(ascii("FB01"), frame(ascii("INFOstarting")), frame(ascii("OKAY0.4"))), 1, true);
         FastbootTcpTransport tcp = new FastbootTcpTransport(wire);
@@ -445,6 +534,70 @@ public final class ProtocolTests {
         expect(IndexOutOfBoundsException.class, () -> tcp.writePacket(new byte[2], Integer.MAX_VALUE, 1));
         equalBytes(ascii("FB01"), wire.output.toByteArray(), "bad local bounds do not write frame");
         tcp.close();
+    }
+
+    private static void fastbootTcpCancellationBoundaries() throws Exception {
+        for (boolean interrupt : new boolean[]{false, true}) {
+            for (String boundary : new String[]{"header", "payload", "flush", "read-header", "read-body", "read-empty"}) {
+                final FastbootTcpTransport[] owner = new FastbootTcpTransport[1];
+                int[] writes = {0}, flushes = {0}, reads = {0};
+                Runnable cancel = () -> {
+                    if (interrupt) Thread.currentThread().interrupt();
+                    else try { owner[0].close(); } catch (IOException error) { throw new AssertionError(error); }
+                };
+                // These in-memory streams deliberately return buffered bytes after close.
+                // The transport must check cancellation itself at each framing boundary.
+                byte[] response = join(ascii("FB01"), frame(boundary.equals("read-empty") ? new byte[0] : ascii("OKAY")));
+                MemoryTransport wire = new MemoryTransport(response, 1024, false) {
+                    public InputStream input() {
+                        return new ByteArrayInputStream(response) {
+                            public synchronized int read(byte[] bytes, int offset, int length) {
+                                int count = super.read(bytes, offset, length);
+                                reads[0]++;
+                                if ((reads[0] == 2 && (boundary.equals("read-header") || boundary.equals("read-empty"))) ||
+                                        (reads[0] == 3 && boundary.equals("read-body"))) cancel.run();
+                                return count;
+                            }
+                        };
+                    }
+                    public OutputStream output() {
+                        return new ByteArrayOutputStream() {
+                            public synchronized void write(byte[] bytes, int offset, int length) {
+                                super.write(bytes, offset, length); writes[0]++;
+                                if (owner[0] != null && ((boundary.equals("header") && writes[0] == 2) ||
+                                        (boundary.equals("payload") && writes[0] == 3))) cancel.run();
+                            }
+                            public void flush() {
+                                flushes[0]++;
+                                if (owner[0] != null && boundary.equals("flush")) cancel.run();
+                            }
+                        };
+                    }
+                };
+                FastbootTcpTransport tcp = new FastbootTcpTransport(wire); owner[0] = tcp;
+                try {
+                    expect(IOException.class, () -> {
+                        if (boundary.startsWith("read-")) tcp.readPacket(256);
+                        else { byte[] command = ascii("getvar:version"); tcp.writePacket(command, 0, command.length); }
+                    });
+                    check(wire.closed, "TCP cancellation closes underlying transport");
+                    check(Thread.currentThread().isInterrupted() == interrupt, "TCP cancellation preserves interrupt");
+                    if (boundary.startsWith("read-")) equal(boundary.equals("read-body") ? 3 : 2, reads[0], "TCP cancellation makes no further read");
+                    else {
+                        equal(boundary.equals("header") ? 2 : 3, writes[0], "TCP cancellation makes no further write");
+                        equal(boundary.equals("flush") ? 2 : 1, flushes[0], "TCP cancellation makes no further flush");
+                    }
+                } finally { Thread.interrupted(); tcp.close(); }
+            }
+        }
+        MemoryTransport wire = new MemoryTransport(ascii("FB01"), 4, false);
+        Thread.currentThread().interrupt();
+        try {
+            expect(InterruptedIOException.class, () -> new FastbootTcpTransport(wire));
+            equal(0, wire.output.size(), "pre-cancelled TCP handshake sends no bytes");
+            check(wire.closed, "pre-cancelled TCP handshake releases transport");
+            check(Thread.currentThread().isInterrupted(), "TCP handshake preserves interrupt");
+        } finally { Thread.interrupted(); }
     }
 
     private static void closeUnblocksFastboot() throws Exception {
@@ -547,7 +700,7 @@ public final class ProtocolTests {
         }
         public void close() { closed = true; }
     }
-    private static final class TrackInput extends ByteArrayInputStream {
+    private static class TrackInput extends ByteArrayInputStream {
         boolean closed;
         TrackInput(byte[] bytes) { super(bytes); }
         public void close() { closed = true; }
@@ -557,10 +710,10 @@ public final class ProtocolTests {
         public void close() { closed = true; }
         public void flush() { flushed = true; }
     }
-    private static final class ScriptPackets implements FastbootClient.PacketTransport {
+    private static class ScriptPackets implements FastbootClient.PacketTransport {
         final List<byte[]> writes = new ArrayList<byte[]>();
         final String[] replies;
-        int next;
+        int next, writeAttempts;
         boolean closed;
         ScriptPackets(String... replies) { this.replies = replies; }
         public byte[] readPacket(int maxBytes) throws IOException {
@@ -569,13 +722,14 @@ public final class ProtocolTests {
             return ascii(replies[next++]);
         }
         public void writePacket(byte[] bytes, int offset, int length) throws IOException {
+            writeAttempts++;
             if (closed) throw new IOException("closed");
             writes.add(Arrays.copyOfRange(bytes, offset, offset + length));
         }
         public String description() { return "synthetic packet transport"; }
         public void close() { closed = true; }
     }
-    private static final class MemoryTransport implements Transport {
+    private static class MemoryTransport implements Transport {
         final InputStream input;
         final ByteArrayOutputStream output = new ByteArrayOutputStream();
         boolean closed;

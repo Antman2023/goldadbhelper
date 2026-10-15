@@ -33,9 +33,13 @@ public final class FastbootTcpTransport implements FastbootClient.PacketTranspor
         try {
             input = transport.input();
             output = transport.output();
+            ensureOpen();
             output.write("FB01".getBytes(StandardCharsets.US_ASCII));
+            ensureOpen();
             output.flush();
+            ensureOpen();
             byte[] hello = SyncClient.readExactly(input, 4);
+            ensureOpen();
             if (hello[0] != 'F' || hello[1] != 'B' || hello[2] < '0' || hello[2] > '9' ||
                 hello[3] < '0' || hello[3] > '9' || (hello[2] == '0' && hello[3] == '0'))
                 throw new IOException("Invalid or unsupported Fastboot TCP handshake");
@@ -53,6 +57,7 @@ public final class FastbootTcpTransport implements FastbootClient.PacketTranspor
             try {
                 ensureOpen();
                 byte[] header = SyncClient.readExactly(input, 8);
+                ensureOpen();
                 long length = 0;
                 // Checking before each shift rejects uint64 overflow without allocating.
                 for (byte value : header) {
@@ -60,7 +65,9 @@ public final class FastbootTcpTransport implements FastbootClient.PacketTranspor
                     length = (length << 8) | (value & 255);
                     if (length > maxBytes) throw new IOException("Fastboot TCP frame exceeds size limit");
                 }
-                return SyncClient.readExactly(input, (int) length);
+                byte[] packet = SyncClient.readExactly(input, (int) length);
+                ensureOpen();
+                return packet;
             } catch (IOException e) { throw invalidate(e); }
         }
     }
@@ -76,8 +83,11 @@ public final class FastbootTcpTransport implements FastbootClient.PacketTranspor
                 long value = length;
                 for (int i = 7; i >= 0; i--) { header[i] = (byte) value; value >>>= 8; }
                 output.write(header);
+                ensureOpen();
                 output.write(bytes, offset, length);
+                ensureOpen();
                 output.flush();
+                ensureOpen();
             } catch (IOException e) { throw invalidate(e); }
         }
     }

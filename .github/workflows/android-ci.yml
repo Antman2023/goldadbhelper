@@ -47,5 +47,7 @@ jobs:
             build/test-results/
             build/followup-navigation-server-tests/results/
             build/nav03-neighbor-host-tests/results.txt
+            build/usb-host-tests/results.txt
+            build/provider-host-tests/results.txt
             tests/hostui/results.txt
           retention-days: 14

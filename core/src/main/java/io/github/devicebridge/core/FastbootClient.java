@@ -130,12 +130,15 @@ public final class FastbootClient implements Closeable {
             while (transferred < size) {
                 int wanted = (int) Math.min(buffer.length, size - transferred);
                 int count = SyncClient.readSome(source, buffer, wanted);
+                ensureOpen();
                 if (count < 0) throw new EOFException("Source ended before declared Fastboot download size");
                 transport.writePacket(buffer, 0, count);
+                ensureOpen();
                 transferred += count;
                 report(progress, transferred, size);
             }
             expectOkay(readTerminal());
+            ensureOpen();
             downloaded = true;
             downloadedSize = size;
             return transferred;
@@ -244,13 +247,19 @@ public final class FastbootClient implements Closeable {
         byte[] bytes = command.getBytes(StandardCharsets.US_ASCII);
         if (bytes.length == 0 || bytes.length > MAX_COMMAND_BYTES)
             throw new IOException("Fastboot command length exceeded");
+        ensureOpen();
         transport.writePacket(bytes, 0, bytes.length);
+        ensureOpen();
     }
 
     private Response readTerminal() throws IOException {
         for (int count = 0; count < MAX_INTERMEDIATE_RESPONSES; count++) {
             ensureOpen();
-            Response response = parseResponse(transport.readPacket(MAX_RESPONSE_BYTES));
+            byte[] packet = transport.readPacket(MAX_RESPONSE_BYTES);
+            // A transport may return buffered bytes after close or interruption.
+            // Do not report success, retain a reusable FAIL, or deliver INFO after cancellation.
+            ensureOpen();
+            Response response = parseResponse(packet);
             if (response.kind != Kind.INFO && response.kind != Kind.TEXT) return response;
             if (listener != null) listener.onMessage(response.kind, response.message);
         }
@@ -284,6 +293,7 @@ public final class FastbootClient implements Closeable {
         ensureOpen();
         if (progress != null && !progress.onProgress(transferred, total))
             throw new InterruptedIOException("Fastboot download cancelled; reconnect before continuing");
+        ensureOpen();
     }
     private IOException invalidate(IOException failure) {
         downloaded = false;

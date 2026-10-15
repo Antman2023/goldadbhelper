@@ -87,6 +87,8 @@ jobs:
           path: |
             build/test-results/
             build/followup-navigation-server-tests/results/
+            build/usb-host-tests/results.txt
+            build/provider-host-tests/results.txt
             tests/hostui/results.txt
           if-no-files-found: ignore
           retention-days: 14

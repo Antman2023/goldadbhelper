@@ -119,7 +119,15 @@ public final class AdbSession implements Closeable {
     private static void checkInterrupted()throws InterruptedIOException{
         if(Thread.currentThread().isInterrupted())throw new InterruptedIOException("ADB operation cancelled");
     }
-    void send(AdbPacket p)throws IOException{synchronized(writer){transport.output().write(p.encode());transport.output().flush();}}
+    void send(AdbPacket p)throws IOException{
+        synchronized(writer){
+            // Closing a cancelled stream must still notify its peer on an interruptible
+            // transport. Preserve the caller's cancellation after cleanup I/O.
+            boolean interrupted=p.command==AdbPacket.CLSE&&Thread.interrupted();
+            try{transport.output().write(p.encode());transport.output().flush();}
+            finally{if(interrupted)Thread.currentThread().interrupt();}
+        }
+    }
     int maxPayload(){return maxPayload;}
     boolean allowsLegacyZeroClose(){return peerVersion==0x01000000;}
     void forget(int id){streams.remove(id);}

@@ -270,6 +270,9 @@ bash tools/test-followup-navigation-server.sh
 bash tools/test-core.sh
 bash tools/test-host-server.sh
 
+# USB ADB / Fastboot 生产适配器，使用 Android USB 替身，无需连接硬件。
+bash tests/usb/run.sh
+
 # 带真实 TLS/exporter 的本机合成配对测试。
 CONSCRYPT_TEST_JAR="$PWD/vendor/conscrypt-openjdk-uber-2.5.2.jar" \
   bash tools/test-pairing.sh

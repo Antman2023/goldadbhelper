@@ -10,6 +10,7 @@ import shutil
 import subprocess
 import zipfile
 from version import read_version
+from build_provenance import verify_build_products
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 
@@ -45,6 +46,7 @@ def main():
             if required not in archive.namelist() or not archive.getinfo(required).file_size:
                 raise SystemExit('Missing APK component: ' + required)
     subprocess.run(['python3', 'tools/snapshot-build.py', 'verify', str(build)], check=True)
+    metadata = verify_build_products(build, apk, args.mode, version)
     dist = pathlib.Path('dist')
     if dist.exists() and any(dist.iterdir()):
         raise SystemExit('dist/ must be empty; remove old distribution outputs before packaging')
@@ -57,7 +59,6 @@ def main():
     shutil.copyfile(source, dist / source_name)
     shutil.copyfile(build / 'source-inputs.json', dist / 'source-inputs.json')
     (dist / 'signing-certificate.txt').write_text(cert, encoding='utf-8')
-    metadata = json.loads((build / 'outputs/构建来源.json').read_text())
     metadata.update(version)
     metadata.update({
         'commit': subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(),

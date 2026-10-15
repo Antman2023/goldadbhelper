@@ -197,6 +197,7 @@ public final class AdbStreamFlowTests {
     private static void cancelledWrite() throws Exception {
         for (boolean awaitingAck : new boolean[]{false, true}) {
             Fixture f = new Fixture(); AdbStream stream = f.open(7);
+            f.interruptibleWrites = true;
             if (awaitingAck) stream.output().write(1);
             Thread.currentThread().interrupt();
             try {
@@ -206,11 +207,15 @@ public final class AdbStreamFlowTests {
                 check(f.count(AdbPacket.WRTE) == (awaitingAck ? 1 : 0), "cancelled writer sends no new data");
                 check(f.count(AdbPacket.CLSE) == 1 && !f.streams().containsKey(7), "cancelled write releases channel");
             } finally { Thread.interrupted(); }
+            AdbStream sibling = f.open(8); sibling.output().write(3);
+            check(f.session.state() == AdbSession.State.CONNECTED, "interrupted channel cleanup preserves shared session");
+            sibling.close();
         }
     }
 
     private static void interruptWaitingWriter() throws Exception {
         Fixture f = new Fixture(); AdbStream stream = f.open(7); stream.output().write(1);
+        f.interruptibleWrites = true;
         AtomicReference<Throwable> result = new AtomicReference<Throwable>();
         Thread writer = new Thread(() -> {
             try { stream.output().write(2); result.set(new AssertionError("interrupted write succeeded")); }
@@ -317,10 +322,12 @@ public final class AdbStreamFlowTests {
             Field field = AdbSession.class.getDeclaredField("streams"); field.setAccessible(true); return (Map<Integer, AdbStream>)field.get(session);
         }
         int count(int command) { int count = 0; for (AdbPacket packet : packets) if (packet.command == command) count++; return count; }
+        boolean interruptibleWrites;
         public InputStream input() { return new ByteArrayInputStream(new byte[0]); }
         public OutputStream output() { return new OutputStream() {
             public void write(int value) { throw new AssertionError("whole packets required"); }
             public void write(byte[] bytes, int offset, int length) throws IOException {
+                if (interruptibleWrites && Thread.currentThread().isInterrupted()) throw new InterruptedIOException("Synthetic interruptible transport");
                 AdbPacket packet = SyntheticAdbPackets.decode(bytes, offset, length);
                 if (packet.command == AdbPacket.OKAY && ackFailure != null) throw ackFailure;
                 if (packet.command == AdbPacket.WRTE) { writeAttempts++; if (writeFailure != null) throw writeFailure; }

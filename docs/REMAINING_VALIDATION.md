@@ -48,6 +48,46 @@
 - 当前 Windows 环境不能完整运行 POSIX 文件模型、本机应用快照路径与 legacy shell 测试（POSIX 路径/文件名语义及 Git Bash 信号管道限制）。Python 发布测试也因临时目录访问限制未通过。未调整生产路径校验或删减这些测试来取得通过；仍需在仓库要求的 Linux Bash 环境运行 `bash tools/test-all.sh`、`bash tools/test-followup-navigation-server.sh` 与 `python3 -m unittest discover -s tests/release -v`。
 - 上述新流控、会话生命周期、取消清理、shell 及复制完成状态仍需按同版 APK 哈希在 API 19/26 和实际 USB 连接复验，不沿用历史设备记录。
 
+## 2026-10-15 Fastboot 取消边界（当前源码，尚未硬件复验）
+
+- Fastboot 在进度回调、源读取及命令/数据写入返回后重新检查关闭和线程中断；取消后不再尝试后续发送、读取终态或将镜像标记为可刷写，源流仍由调用者持有。
+- 响应读取返回时重新检查取消，缓冲区中迟到的 `OKAY` 不能报告成功，迟到的 `FAIL` 不能被当作可继续查询的普通设备拒绝；取消中的 `INFO` 不再交付监听器。双项设备查询不会在取消后发送第二条命令。
+- Fastboot TCP 在握手、帧头、帧体和 flush 返回后重新检查取消；预先中断的握手不发送字节，帧头返回时取消不再发送或读取帧体。已完成的设备修改无法由取消撤销。
+- `ProtocolTests` 从 271 增至 527 条断言；新增用例使用内存传输，在指定调用返回时关闭客户端或设置线程中断，验证后续 I/O 次数、源流所有权、镜像状态及中断标记。TCP 替身刻意允许关闭后返回缓冲数据。这些用例已分别在修复前复现失败、修复后通过，并由现有两个聚合入口自动运行。
+- Windows JDK 宿主的 25 个可运行 core 测试入口及独立 `FieldArithmeticTests` 通过，包含 Conscrypt TLS/exporter loopback 配对；`LegacyShellTests` 及完整 Linux 聚合回归未在本轮运行。这不证明真实 TCP Fastboot 或 USB 短读、拔线、刷写、临时启动通过，硬件验收仍待专用可恢复设备和具体操作授权。
+
+## 2026-10-15 USB 适配器收尾（当前源码，尚未硬件复验）
+
+- ADB 和 Fastboot 使用共享 USB 连接层，统一校验数组范围（含整数溢出）、初始化取消和传输返回后的关闭/中断状态。保留 16 KiB 分块、短写续传及 Fastboot 单次 USB 状态包边界；非法返回长度、写入失败、超时或取消后连接进入终态，不继续拼接部分协议数据。ADB 读取仍允许空包及未超过总时限的轮询失败。
+- 接口 claim 失败、抛出异常或成功时发生取消均关闭已打开的连接；成功 claim 后取消还会释放接口。关闭使用原子状态，读写期间不持有关闭锁，并发关闭只释放一次；接口释放抛出异常时仍关闭设备连接。ADB 输入/输出流 close 同样关闭所属传输。
+- ADB 发送取消通道的 `CLSE` 时临时清除已有线程中断，发送结束后恢复标记，避免 USB 中断检查阻止清理包、进而影响共享连接。流控回归的传输替身新增中断检查，修复前已复现清理失败，修复后 `AdbStreamFlowTests` 78 条断言通过，包括继续使用同一会话的另一通道。
+- 新增 `tests/usb/run.sh`，直接编译三个生产 USB 类及 Android USB 替身，157 条断言通过，覆盖参数、短读/短写、包边界、完整 Fastboot 客户端合成流程、传输后取消、超时/异常、初始化清理、真实线程阻塞读取与并发关闭。两个聚合入口已接入此回归，CI 和发布工作流收集其结果；测试没有连接 USB 硬件或执行真实设备操作。
+- 本轮通过 Windows 原生 JDK 编译运行 USB 回归、25 个可运行 core 入口及独立 `FieldArithmeticTests`。Git Bash 在启动时因 `couldn't create signal pipe, Win32 error 5` 失败，因此本轮未执行 Bash 聚合脚本和 `LegacyShellTests`；完整 Linux 回归、API 19/26 同版运行及真实 USB/Fastboot 验收仍待完成。
+
+## 2026-10-15 Windows APK 归档路径修复
+
+- 本地 SDK 35 的 Windows aapt2 在部分嵌套 assets 路径中写入反斜杠。Python 追加 DEX/JNI 时只将中央目录路径规范化，留下 13 个与本地文件头不一致的许可证条目；旧中间 `unsigned.apk` 会触发 zipalign 警告及 Python 严格读取失败。旧最终签名包经过 zipalign 重写后没有该路径差异，不将中间包问题描述为已发布包内容损坏。上游 [zipalign 的头比较实现](https://android.googlesource.com/platform/build/+/refs/heads/main/tools/zipalign/ZipEntry.cpp) 同时核对文件名及元数据。
+- 原生打包入口现重新写入基础 APK 条目，统一两处路径记录，保留条目内容、压缩方式和时间/权限元数据；规范化后重名时拒绝组装。新的 `apk_archive.py` 供打包入口调用，不修改原始 aapt2 产物。
+- 三项纯内存 Python 回归通过，覆盖本地头/中央目录一致性、内容和元数据保持、输入元数据不被修改、路径碰撞及空归档。使用上一轮实际构建输入重新组装时，27 个条目的内容及压缩方式与旧对齐包逐项一致，SDK zipalign 返回 0 且 stderr 为空。此修复不处理 Conscrypt 缺失系统类型警告，也不代替设备运行验收。
+
+## 2026-10-15 分发产物与构建记录核对
+
+- `package-artifacts.py` 在创建分发目录之前调用 `build_provenance.py`，核对记录的候选 APK、源码归档、输入清单哈希及版本/签名模式，再逐项读取源码 ZIP 验证内容与清单完全一致。原流程只验证工作区输入并重新计算分发哈希，不能发现被替换的源码 ZIP；现在拒绝缺项、多项、重复项、内容变化及 CRC 错误。
+- 正式签名后允许 APK Signing Block 和标准 JAR 签名记录变化，DEX、资源、JNI 以及其他 META-INF 文件必须与记录的未签名候选一致。调试包还须保持完整 APK 哈希不变。内置 metadata/scrcpy JAR 必须同时匹配 APK、构建记录与源码清单。
+- 8 项内存文件系统/真实 ZIP 解析回归通过，含多组修改与拒绝用例；已有真实候选 `22343c72` 的来源记录、源码归档及 APK 已通过新校验。测试替代文件 I/O，不替代 apksigner 的签名真实性验证；未执行真实发布或 Linux 完整发布流程。
+
+## 2026-10-15 SYNC 逐次 I/O 取消检查
+
+- SYNC 的协议输入/输出增加非持有型包装，在每次底层 read、write、flush 的调用前后检查关闭和线程中断。请求头写入期间取消后不再继续写路径，DATA 写入期间取消后不再 flush 或发送 DONE，最后 flush 期间取消后不再读取确认。碎片或零字节读取返回时取消，不再进入下一次读取或单字节后备读取。
+- 上传源同样使用非持有型读取包装，源返回 EOF、零字节或数据期间关闭 SYNC 时立即停止；源文件和下载目标仍由调用者管理。包装不改变 SYNC 帧格式、分块大小和已有短读处理。
+- 新增 `SyncIoCancellationTests` 222 条内存断言，并接入两个聚合入口。底层替身刻意允许关闭后继续读写，直接核对取消后的 I/O 次数、中断标记及源流所有权；修复前已复现请求头取消后仍写路径。Windows JDK 下 26 个可运行 core 入口及独立算术检查通过；未执行 `LegacyShellTests`、完整 Linux 聚合回归或真实 Android/USB 验收。
+
+## 2026-10-15 下载文件提供器兼容性
+
+- `LocalFileProvider.query` 现在按调用者请求的顺序返回支持的 `DISPLAY_NAME` / `SIZE` 列，忽略不支持的列；只有未指定 projection 时才默认返回两列。此前始终返回固定两列，接收应用单独请求文件大小时可能读到文件名。行为依据 Android [FileProvider 的查询列约定](https://developer.android.com/reference/androidx/core/content/FileProvider)。
+- 统一检查 content scheme、提供器 authority、单段文件名和解码后的分隔符/NUL，空路径及越界输入不再触发空指针异常。打开不可用文件返回 FileNotFoundException，查询返回 null，非法 URI 的 MIME 查询返回 null；有效未知扩展名仍使用二进制 MIME。扩展名转换采用 Locale.ROOT，避免土耳其语环境下大写 GIF 识别失败。规范路径父目录检查和只读打开要求继续保留。
+- `LocalFileProviderTests` 直接编译生产提供器，使用 Android 替身和宿主临时文件，69 条断言通过；修复前已复现单列查询顺序失败。回归接入两个聚合入口及 CI/发布测试报告。测试不验证 Android Binder、跨应用 URI 临时授权、设备文件系统链接竞态或第三方查看器运行，相关运行验收仍待完成。
+
 ## 最后兼容收尾（源码状态，须看各APK哈希的运行记录）
 - API19/20 pm 的安装/卸载语义已从官方源码确认是全部用户；最终策略必须在确认前固定目标SDK与作用范围。API21+继续生成带--user 0命令，不在失败后自动扩大范围。分包与恢复的低版本边界明确拒绝。
 - Fastboot信息查询已补 getvar:all 与 oem device-info 两种入口对应的顺序查询，单个终态FAIL保留另一项结果；传输错误停止后续命令。ProtocolTests新增模拟检查通过，仍未连接Fastboot硬件。OEM查询依据公开LK实现：https://android.googlesource.com/kernel/lk/+/9d6e28f24ba01e563d0b3801c6c6c95d756db623/app/aboot/aboot.c 。

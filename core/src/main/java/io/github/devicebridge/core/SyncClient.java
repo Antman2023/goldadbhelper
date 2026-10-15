@@ -79,16 +79,16 @@ public final class SyncClient implements Closeable {
         if (session == null) throw new NullPointerException("session");
         if (timeoutMs <= 0) throw new IllegalArgumentException("timeoutMs must be positive");
         AdbStream stream = session.open("sync:", timeoutMs);
-        input = stream.input();
-        output = stream.output();
+        input = cancellableInput(stream.input());
+        output = cancellableOutput(stream.output());
         channel = stream;
     }
 
     /** Already-open SYNC channel constructor, useful for adapters and synthetic tests. */
     public SyncClient(final InputStream input, final OutputStream output) {
         if (input == null || output == null) throw new NullPointerException("SYNC streams");
-        this.input = input;
-        this.output = output;
+        this.input = cancellableInput(input);
+        this.output = cancellableOutput(output);
         channel = new Closeable() {
             public void close() throws IOException {
                 try { input.close(); } finally { output.close(); }
@@ -226,10 +226,11 @@ public final class SyncClient implements Closeable {
             report(progress, 0, size);
             request("SEND", pathAndMode);
             byte[] data = new byte[MAX_DATA_BYTES];
+            InputStream activeSource = cancellableInput(source);
             long transferred = 0;
             while (size < 0 || transferred < size) {
                 int wanted = size < 0 ? data.length : (int) Math.min(data.length, size - transferred);
-                int count = readSome(source, data, wanted);
+                int count = readSome(activeSource, data, wanted);
                 if (count < 0) {
                     if (size >= 0) throw new EOFException("Source ended before declared SYNC file size");
                     break;
@@ -259,6 +260,33 @@ public final class SyncClient implements Closeable {
     /** Closing an AdbSession-backed client interrupts its blocked stream operation. */
     public void close() throws IOException {
         if (closed.compareAndSet(false, true)) channel.close();
+    }
+
+    // Non-owning views: channel owns protocol streams; caller owns upload source.
+    // Check each actual call, so a fragmented/zero read cannot continue after close.
+    private InputStream cancellableInput(final InputStream stream) {
+        return new InputStream() {
+            public int read() throws IOException {
+                ensureOpen(); int value = stream.read(); ensureOpen(); return value;
+            }
+            public int read(byte[] bytes, int offset, int length) throws IOException {
+                ensureOpen(); int count = stream.read(bytes, offset, length); ensureOpen(); return count;
+            }
+        };
+    }
+
+    private OutputStream cancellableOutput(final OutputStream stream) {
+        return new OutputStream() {
+            public void write(int value) throws IOException {
+                ensureOpen(); stream.write(value); ensureOpen();
+            }
+            public void write(byte[] bytes, int offset, int length) throws IOException {
+                ensureOpen(); stream.write(bytes, offset, length); ensureOpen();
+            }
+            public void flush() throws IOException {
+                ensureOpen(); stream.flush(); ensureOpen();
+            }
+        };
     }
 
     private void request(String id, byte[] path) throws IOException {

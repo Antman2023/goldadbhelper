@@ -11,6 +11,7 @@ import sys
 import zipfile
 
 from version import read_version
+from apk_archive import copy_apk_entries
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -87,8 +88,9 @@ def main():
     run(executables['java'], '-Xmx2g', '-cp', bt / 'lib/d8.jar', 'com.android.tools.r8.L8', '--release', *common,
         '--pg-conf', build / 'desugar-keep.pro', '--output', build / 'desugar-dex',
         desugar / 'desugar_jdk_libs_nio-2.1.5.jar', desugar / 'desugar_jdk_libs_configuration_nio-2.1.5.jar')
-    shutil.copyfile(build / 'base.apk', build / 'unsigned.apk')
-    with zipfile.ZipFile(build / 'unsigned.apk', 'a', zipfile.ZIP_DEFLATED) as archive:
+    with zipfile.ZipFile(build / 'base.apk') as base, \
+            zipfile.ZipFile(build / 'unsigned.apk', 'w', zipfile.ZIP_DEFLATED) as archive:
+        copy_apk_entries(base, archive)
         dex_files = sorted((build / 'dex').glob('*.dex')) + sorted((build / 'desugar-dex').glob('*.dex'))
         if not list((build / 'desugar-dex').glob('*.dex')):
             raise RuntimeError('Missing L8 backported API DEX')
@@ -138,6 +140,6 @@ def main():
 if __name__ == '__main__':
     try:
         main()
-    except (OSError, ValueError, RuntimeError, subprocess.CalledProcessError) as error:
+    except (OSError, ValueError, RuntimeError, zipfile.BadZipFile, subprocess.CalledProcessError) as error:
         print('Build failed: ' + str(error), file=sys.stderr)
         sys.exit(1)
