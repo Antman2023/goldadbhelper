@@ -3,6 +3,8 @@ package io.github.devicebridge.android;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.res.ColorStateList;
+import android.graphics.Insets;
+import android.graphics.Rect;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
@@ -11,6 +13,9 @@ import android.media.MediaCodec;
 import android.os.Build;
 import android.view.View;
 import android.view.Window;
+import android.view.WindowInsets;
+import android.view.WindowInsetsController;
+import android.view.WindowManager;
 import android.widget.CompoundButton;
 import android.widget.Switch;
 import java.io.File;
@@ -37,8 +42,22 @@ final class Compatibility {
     static String usbProductName(android.hardware.usb.UsbDevice device) { return Build.VERSION.SDK_INT >= 21 ? Api21.usbProductName(device) : device.getDeviceName(); }
     static boolean supportsDocumentTree() { return Build.VERSION.SDK_INT >= 21; }
     static void inset(View root) {
-        if (Build.VERSION.SDK_INT >= 21) Api21.inset(root);
+        inset(root, false);
+    }
+    static void inset(View root, boolean reserveHiddenBars) {
+        if (Build.VERSION.SDK_INT >= 21) Api21.inset(root, reserveHiddenBars);
         else root.setFitsSystemWindows(true);
+    }
+    static void fullscreen(Window window, boolean enabled) {
+        if (Build.VERSION.SDK_INT >= 30) {
+            Api30.fullscreen(window, enabled);
+        } else {
+            window.getDecorView().setSystemUiVisibility(enabled
+                    ? View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                    : View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+            if (enabled) window.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+            else window.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        }
     }
     static Drawable ripple(int color, Drawable content, Drawable mask) {
         if (Build.VERSION.SDK_INT >= 21) return Api21.ripple(color, content, mask);
@@ -210,12 +229,52 @@ final class Compatibility {
         static Drawable ripple(int color, Drawable content, Drawable mask) {
             return new android.graphics.drawable.RippleDrawable(ColorStateList.valueOf(color), content, mask);
         }
-        static void inset(View root) {
+        static void inset(View root, boolean reserveHiddenBars) {
+            Rect padding = new Rect(root.getPaddingLeft(), root.getPaddingTop(),
+                    root.getPaddingRight(), root.getPaddingBottom());
             root.setOnApplyWindowInsetsListener((view, insets) -> {
-                view.setPadding(insets.getSystemWindowInsetLeft(), insets.getSystemWindowInsetTop(),
-                        insets.getSystemWindowInsetRight(), insets.getSystemWindowInsetBottom());
+                if (Build.VERSION.SDK_INT >= 30) {
+                    Api30.applyInsets(view, insets, padding, reserveHiddenBars);
+                } else {
+                    view.setPadding(padding.left + insets.getSystemWindowInsetLeft(),
+                            padding.top + insets.getSystemWindowInsetTop(),
+                            padding.right + insets.getSystemWindowInsetRight(),
+                            padding.bottom + insets.getSystemWindowInsetBottom());
+                }
                 return insets;
             });
+            if (root.isAttachedToWindow()) root.requestApplyInsets();
+            else root.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
+                @Override public void onViewAttachedToWindow(View view) {
+                    view.removeOnAttachStateChangeListener(this);
+                    view.requestApplyInsets();
+                }
+                @Override public void onViewDetachedFromWindow(View view) { }
+            });
+        }
+    }
+    private static final class Api30 {
+        static void applyInsets(View view, WindowInsets insets, Rect padding, boolean reserveHiddenBars) {
+            Insets safe = insets.getInsets(WindowInsets.Type.systemBars() | WindowInsets.Type.displayCutout()
+                    | WindowInsets.Type.ime());
+            // Immersive bars can briefly overlay the window without dispatching visible insets.
+            if (reserveHiddenBars) {
+                safe = Insets.max(safe, insets.getInsetsIgnoringVisibility(
+                        WindowInsets.Type.statusBars() | WindowInsets.Type.navigationBars()));
+            }
+            view.setPadding(padding.left + safe.left, padding.top + safe.top,
+                    padding.right + safe.right, padding.bottom + safe.bottom);
+        }
+        static void fullscreen(Window window, boolean enabled) {
+            WindowInsetsController controller = window.getInsetsController();
+            int bars = WindowInsets.Type.statusBars() | WindowInsets.Type.navigationBars();
+            if (enabled) {
+                controller.setSystemBarsBehavior(WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
+                controller.hide(bars);
+            } else {
+                controller.setSystemBarsBehavior(WindowInsetsController.BEHAVIOR_DEFAULT);
+                controller.show(bars);
+            }
         }
     }
 }

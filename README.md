@@ -5,13 +5,13 @@
 [![Android CI](https://github.com/Antman2023/goldadbhelper/actions/workflows/android-ci.yml/badge.svg)](https://github.com/Antman2023/goldadbhelper/actions/workflows/android-ci.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 [![Android: API 19+](https://img.shields.io/badge/Android-API%2019%2B-green.svg)](app/build.gradle)
-[![Version: 0.1.4-dev](https://img.shields.io/badge/version-0.1.4--dev-orange.svg)](app/build.gradle)
+[![Version: 0.1.6](https://img.shields.io/badge/version-0.1.6-orange.svg)](https://github.com/Antman2023/goldadbhelper/releases/latest)
 
 从连接、查看设备信息，到文件传输、应用管理和命令终端，把常用 ADB 工作放在一个应用里。支持 TCP / USB ADB，提供 Android 11+ 无线调试配对、外部 ADB server、投屏与 Fastboot 入口。
 
 项目使用独立的 Java ADB 协议实现，提供 TCP、USB 和 Android 11+ 无线调试配对入口。应用名称、图标、包名和开发签名均为独立身份。
 
-> **开发状态：`0.1.4-dev`，Android 4.4 / API 19+。** 当前提供开发候选源码与 CI 构建，尚未完成全面设备验收。截图来自下方明确标注的历史开发包和隔离 Android 模拟器；历史结果不代表当前候选、真机或全部厂商兼容性。
+> **当前版本：`0.1.6`，Android 4.4 / API 19+。** 按系统导航栏和屏幕缺口调整布局，修复虚拟导航键遮住底部按钮的问题。含此修复的开发构建在 Android 16 真机三键导航下验证了连接页、Fastboot 和本机文件选择器的按钮位置。手势导航与软键盘边距已通过模拟检查。下方截图标注了各自的历史版本。
 
 [运行截图](#运行截图) · [获取与安装](#获取与安装) · [开始使用](#开始使用) · [从源码构建](#从源码构建) · [验证与限制](#验证与限制) · [文档](#更多文档)
 
@@ -150,7 +150,7 @@
 
 - **体验开发版：** 打开 [Android CI](https://github.com/Antman2023/goldadbhelper/actions/workflows/android-ci.yml)，选择成功的构建，在 Artifacts 下载 `goldadbhelper-ci-<提交号>`。通常需要登录 GitHub；产物保留 14 天。解压后按其中的 SHA-256 校验文件核对 APK。
 - **自己构建：** 见下文 [从源码构建](#从源码构建)。源码版本以 [`app/build.gradle`](app/build.gradle) 为准。
-- **正式版本：** 不将 CI 产物视为正式稳定版；发布机制与签名要求见 [发布指南](docs/RELEASING.md)。
+- **正式签名版：** 在 [最新发布](https://github.com/Antman2023/goldadbhelper/releases/latest) 下载 APK 和 SHA-256 校验文件。签名和构建流程见 [发布指南](docs/RELEASING.md)。
 
 **安装前注意签名。** CI 使用开发签名，不应假定不同构建具有相同签名。正式密钥、另一工作区的开发密钥或不同 CI 构建可能无法直接覆盖安装。先备份必要数据，再决定是否卸载旧包；卸载会清除本应用私有数据与 ADB 身份，之后可能需要重新授权或配对。不要为覆盖安装关闭系统安全检查。
 
@@ -202,7 +202,7 @@ bash tools/build-apk.sh
 
 | 主要输出 | 内容 |
 | --- | --- |
-| `build/outputs/金甲虫ADB助手-0.1.4-dev.apk` | 开发签名 APK |
+| `build/outputs/金甲虫ADB助手-0.1.6.apk` | 开发签名 APK |
 | `build/outputs/构建来源.json` | APK、源码归档和服务端资源的哈希记录 |
 | `build/金甲虫ADB助手-对应源码及许可.zip` | 此次构建的对应源码与许可 |
 | `build/source-inputs.json` | 构建输入文件及其 SHA-256 |

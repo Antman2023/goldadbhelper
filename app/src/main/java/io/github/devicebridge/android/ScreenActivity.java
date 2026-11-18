@@ -63,7 +63,7 @@ public final class ScreenActivity extends Activity implements ScreenController.L
         controller = new ScreenController(this, session, this);
         root = new FrameLayout(this); root.setBackgroundColor(PAPER);
         Compatibility.statusBarColor(getWindow(), PAPER);
-        Compatibility.inset(root);
+        Compatibility.inset(root, true);
         setContentView(root);
         if (saved != null && saved.getBoolean("viewing")) showScreen();
         else {
@@ -170,13 +170,15 @@ public final class ScreenActivity extends Activity implements ScreenController.L
             FrameLayout floating = new FrameLayout(this); floating.setBackgroundColor(0xeefafafa);
             LinearLayout row = new LinearLayout(this); TextView handle = label("⋮⋮", 20); row.addView(handle); row.addView(bottomNav); floating.addView(row);
             FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(-2, -2, Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL); lp.bottomMargin = dp(20); picture.addView(floating, lp);
+            FrameLayout viewport = picture;
+            viewport.addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) ->
+                    moveFloatingNavigation(viewport, floating, floating.getX(), floating.getY()));
             handle.setOnTouchListener(new View.OnTouchListener() {
                 float dx, dy;
                 @Override public boolean onTouch(View view, android.view.MotionEvent e) {
                     if (e.getActionMasked() == android.view.MotionEvent.ACTION_DOWN) { dx = floating.getX() - e.getRawX(); dy = floating.getY() - e.getRawY(); return true; }
                     if (e.getActionMasked() == android.view.MotionEvent.ACTION_MOVE) {
-                        floating.setX(Math.max(0, Math.min(picture.getWidth() - floating.getWidth(), e.getRawX() + dx)));
-                        floating.setY(Math.max(0, Math.min(picture.getHeight() - floating.getHeight(), e.getRawY() + dy))); return true;
+                        moveFloatingNavigation(viewport, floating, e.getRawX() + dx, e.getRawY() + dy);
                     }
                     return true;
                 }
@@ -184,6 +186,10 @@ public final class ScreenActivity extends Activity implements ScreenController.L
         }
         applyFullscreen(fullScreen); applyOrientation();
         if (options.compatibility) startIfReady();
+    }
+    private static void moveFloatingNavigation(FrameLayout viewport, View floating, float x, float y) {
+        floating.setX(Math.max(0, Math.min(viewport.getWidth() - floating.getWidth(), x)));
+        floating.setY(Math.max(0, Math.min(viewport.getHeight() - floating.getHeight(), y)));
     }
     private LinearLayout navigation() {
         LinearLayout row = new LinearLayout(this); row.setGravity(Gravity.CENTER); row.setBackgroundColor(0xffeeeeee);
@@ -336,8 +342,7 @@ public final class ScreenActivity extends Activity implements ScreenController.L
     @Override public void onSurfaceTextureUpdated(SurfaceTexture texture) { }
     private void disposeSurface() { activeTexture = null; if (surface != null) { surface.release(); surface = null; } }
     private void applyFullscreen(boolean enabled) {
-        getWindow().getDecorView().setSystemUiVisibility(enabled ? View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY : View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
-        if (enabled) getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN); else getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        Compatibility.fullscreen(getWindow(), enabled);
     }
     @Override public void onWindowFocusChanged(boolean hasFocus) { super.onWindowFocusChanged(hasFocus); if (hasFocus && viewing) applyFullscreen(fullScreen); }
     @Override protected void onResume() { super.onResume(); resumed = true; startIfReady(); }
