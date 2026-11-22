@@ -137,7 +137,9 @@ final class LocalAppPickerDialog extends Dialog {
         footer.addView(confirm, confirmParams);confirm.setOnClickListener(v -> {
             if (selectedPackage == null || !validTarget.getAsBoolean()) return;
             String pkg = selectedPackage;dismiss();choose.accept(pkg);
-        });root.addView(footer);setContentView(root);
+        });root.addView(footer);
+        Compatibility.inset(root);
+        setContentView(root);
         Window window = getWindow();if(window!=null){window.setLayout(-1,-1);window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE|WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);Compatibility.statusBarColor(window,dark?surface:0xff56616e);}
         search.addTextChangedListener(new TextWatcher(){public void beforeTextChanged(CharSequence s,int st,int c,int a){}public void onTextChanged(CharSequence s,int st,int before,int count){filter();}public void afterTextChanged(Editable s){}});
         root.requestFocus();load();
