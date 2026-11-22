@@ -15,18 +15,28 @@ public final class Nav02LifecycleTests extends Activity {
     private int page,generation,restores,refreshes;
     private AdbSession viewSession,fileDataSession;
     private int fileDataGeneration;
-    private boolean hidden,destroyed,finishing;
+    private boolean hidden,destroyed,finishing,resumed,retryTls;
+    private final Consumer<AdbSession> sessionLossListener=this::onSessionLost;
+    private AdbSession pendingReconnect;
+    private AlertDialog reconnectDialog;
+    private final Object root=new Object();
+    private String retry;
     private final Preferences prefs=new Preferences();
     private final Set<String> selected=new HashSet<>();
     private final List<String> fileEntries=new ArrayList<>();
     private Object fileAdapter,fileCount;
     private Pager modulePager=new Pager();
-    private final List<ProgressDialog> ownedDialogs=new ArrayList<>();
+    private final List<Dialog> ownedDialogs=new ArrayList<>();
     private boolean isFinishing(){return finishing;}
     private boolean isDestroyed(){return destroyed;}
-    private void ownDialog(ProgressDialog dialog){ownedDialogs.add(dialog);dialog.onDismiss=()->ownedDialogs.remove(dialog);}
+    private void ownDialog(Dialog dialog){ownedDialogs.add(dialog);dialog.onDismiss=()->ownedDialogs.remove(dialog);}
     private void restoreModuleScroll(ModulePage page){if(page.ready)restores++;}
     private void showDevice(int index){refreshes++;page=index;}
+    private void showConnections(){if(page>=0)cancelScopedWork();page=-1;viewSession=null;generation++;}
+    private void connectTcp(String address,boolean tls){retry=address;retryTls=tls;}
+    private void chooseUsb(){retry="USB";}
+    private ExternalAdbController externalAdbController(){return new ExternalAdbController();}
+    private final class ExternalAdbController {void refresh(){retry="external";}}
 
     /* PRODUCTION_FRAGMENTS */
 
@@ -45,7 +55,7 @@ public final class Nav02LifecycleTests extends Activity {
     public static void main(String[] args){
         lateInitialSuccess(false);lateInitialSuccess(true);lateInitialFailure(false);lateInitialFailure(true);
         supersededAttemptSameActivation();queuedCancellation();cancelButtonBeforeStart();cancelledReport();
-        invalidationGates();hiddenFilterInvalidation();
+        invalidationGates();hiddenFilterInvalidation();reconnectLifecycle();reconnectActions();
         System.out.println("NAV02 LIFECYCLE FRAGMENT TESTS: "+checks+" passed");
     }
     private static void lateInitialSuccess(boolean beforeNewSuccess){
@@ -147,21 +157,91 @@ public final class Nav02LifecycleTests extends Activity {
         check(f.refreshes==1&&f.modulePager.calls==0,"changed session takes full rebuild path");
         f=fixture(0);f.page=-1;f.modulePager=null;f.prefs.showHidden=true;f.onResume();check(f.hidden&&f.refreshes==0,"connection screen safely consumes setting change");
     }
+    private static void reconnectLifecycle(){
+        Nav02LifecycleTests f=fixture(3);
+        AdbSession lost=BridgeRuntime.session();
+        f.onResume();
+        f.workScoped("old operation",scope->"old",value->{throw new AssertionError("old work resumed");});
+        f.onPause();
+        lost.state=AdbSession.State.FAILED;
+        check(BridgeRuntime.get().observer==null&&f.reconnectDialog==null,"background loss shows no dialog");
+        f.onResume();
+        AlertDialog dialog=f.reconnectDialog;
+        check(dialog!=null&&f.page==-1&&f.scopes.isEmpty(),"resume prompts for loss and cancels old device work");
+        f.offerReconnect(lost);
+        check(f.reconnectDialog==dialog,"repeat loss keeps one prompt");
+        f.onPause();
+        check(!dialog.isShowing()&&f.pendingReconnect==lost,"pausing the prompt leaves the decision pending");
+        f.onResume();
+        f.reconnectDialog.cancel();
+        check(BridgeRuntime.session()==null&&f.pendingReconnect==null&&f.retry==null,"cancelling leaves the connection screen without retrying");
+    }
+    private static void reconnectActions(){
+        Nav02LifecycleTests f=fixture(0);
+        AdbSession lost=BridgeRuntime.session();
+        lost.target="fd00::1:5555";
+        lost.encrypted=true;
+        f.onResume();lost.state=AdbSession.State.FAILED;
+        BridgeRuntime.get().observer.accept(lost);
+        f.reconnectDialog.accept();
+        check("[fd00::1]:5555".equals(f.retry)&&f.retryTls,"confirm retries the exact IPv6 endpoint with TLS required");
+        f=fixture(0);lost=BridgeRuntime.session();lost.target="USB fixture";
+        f.onResume();lost.state=AdbSession.State.CLOSED;BridgeRuntime.get().observer.accept(lost);
+        f.reconnectDialog.accept();
+        check("USB".equals(f.retry),"USB retry returns to USB device selection");
+        f=fixture(0);lost=BridgeRuntime.session();lost.external=true;
+        f.onResume();lost.state=AdbSession.State.FAILED;BridgeRuntime.get().observer.accept(lost);
+        f.reconnectDialog.accept();
+        check("external".equals(f.retry),"external retry requires a fresh device selection");
+        f=fixture(0);lost=BridgeRuntime.session();
+        f.onResume();lost.state=AdbSession.State.FAILED;BridgeRuntime.get().observer.accept(lost);
+        AdbSession replacement=new AdbSession();BridgeRuntime.current=replacement;
+        f.reconnectDialog.accept();
+        check(BridgeRuntime.session()==replacement&&f.retry==null,"stale confirmation cannot retry or remove a newer session");
+    }
 }
-class Activity {protected void onResume(){}}
+class Activity {protected void onResume(){}protected void onPause(){}}
 class LinearLayout {}
 class ModuleScrollState {}
-class AdbSession {String target(){return "synthetic target";}}
+class AdbSession {
+    enum State { CONNECTED, FAILED, CLOSED }
+    State state=State.CONNECTED;
+    String target="synthetic target";
+    boolean encrypted,external;
+    State state(){return state;}
+    String target(){return target;}
+    boolean isHostServer(){return external;}
+    boolean requiresEncryptedReconnect(){return encrypted;}
+}
 class Resource implements AutoCloseable {boolean closed;public void close(){closed=true;}}
 class Preferences {boolean showHidden;boolean getBoolean(String key,boolean fallback){return showHidden;}}
 class Pager {int replaced=-1,calls;void replace(int index){replaced=index;calls++;}}
 class DialogInterface {static final int BUTTON_NEGATIVE=-2;interface Listener {void onClick(Object dialog,int button);}}
-class ProgressDialog {
-    boolean showing;DialogInterface.Listener cancel;Runnable onDismiss;
+class Dialog {
+    boolean showing;Runnable onDismiss;Consumer<Dialog> onCancel;
+    void show(){showing=true;}boolean isShowing(){return showing;}
+    void dismiss(){showing=false;if(onDismiss!=null)onDismiss.run();}
+    void cancel(){if(onCancel!=null)onCancel.accept(this);dismiss();}
+}
+class AlertDialog extends Dialog {
+    DialogInterface.Listener positive;
+    void accept(){positive.onClick(this,0);dismiss();}
+    static final class Builder {
+        final AlertDialog dialog=new AlertDialog();
+        Builder(Object owner){}
+        Builder setTitle(String title){return this;}
+        Builder setMessage(String message){return this;}
+        Builder setNegativeButton(String label,DialogInterface.Listener listener){return this;}
+        Builder setPositiveButton(String label,DialogInterface.Listener listener){dialog.positive=listener;return this;}
+        Builder setOnCancelListener(Consumer<Dialog> listener){dialog.onCancel=listener;return this;}
+        AlertDialog show(){dialog.show();return dialog;}
+    }
+}
+class ProgressDialog extends Dialog {
+    DialogInterface.Listener cancel;
     ProgressDialog(Object owner){}void setMessage(String text){}void setCancelable(boolean value){}void setIndeterminate(boolean value){}
     void setButton(int button,String text,DialogInterface.Listener listener){cancel=listener;}
-    void show(){showing=true;}boolean isShowing(){return showing;}
-    void dismiss(){showing=false;if(onDismiss!=null)onDismiss.run();}void cancelButton(){cancel.onClick(this,-2);dismiss();}
+    void cancelButton(){cancel.onClick(this,-2);dismiss();}
 }
 class Toast {static final int LENGTH_LONG=1;static Toast makeText(Object owner,String message,int length){return new Toast();}void show(){}}
 class Ui {static final List<String> messages=new ArrayList<>();static void message(Object owner,String title,String text){messages.add(title+":"+text);}}
@@ -175,7 +255,11 @@ class QueueUi {final Deque<Runnable> callbacks=new ArrayDeque<>();void post(Runn
 class BridgeRuntime {
     static final ManualExecutor IO=new ManualExecutor();static final QueueUi UI=new QueueUi();static final Executor CLOSERS=Runnable::run;
     static AdbSession current;static final BridgeRuntime INSTANCE=new BridgeRuntime();final List<String> reports=new ArrayList<>();
+    Consumer<AdbSession> observer;
+    void observeSessionLoss(Consumer<AdbSession> listener){observer=listener;}
+    void stopObservingSessionLoss(Consumer<AdbSession> listener){if(observer==listener)observer=null;}
+    boolean disconnect(AdbSession session){if(current!=session)return false;current=null;return true;}
     static BridgeRuntime get(){return INSTANCE;}static AdbSession session(){return current;}void report(String text){reports.add(text);}
     String takeReports(){String text=String.join("\n",reports);reports.clear();return text;}
-    static void reset(){IO.queue.clear();UI.callbacks.clear();INSTANCE.reports.clear();Ui.messages.clear();current=new AdbSession();}
+    static void reset(){IO.queue.clear();UI.callbacks.clear();INSTANCE.reports.clear();INSTANCE.observer=null;Ui.messages.clear();current=new AdbSession();}
 }

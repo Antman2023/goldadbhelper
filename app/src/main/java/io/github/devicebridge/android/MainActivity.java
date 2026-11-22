@@ -6,6 +6,10 @@ import io.github.devicebridge.core.*;import org.json.*;import java.io.*;import j
 public final class MainActivity extends Activity implements Ui.DialogOwner {
     private final List<Dialog> ownedDialogs=new ArrayList<>();
     @Override public void ownDialog(Dialog dialog){ownedDialogs.add(dialog);dialog.setOnDismissListener(d->ownedDialogs.remove(dialog));}
+    private final Consumer<AdbSession> sessionLossListener=this::onSessionLost;
+    private AdbSession pendingReconnect;
+    private AlertDialog reconnectDialog;
+    private boolean resumed;
 
     private static final String[] TABS={"设备信息","实用工具","远程控制","文件管理","应用管理","进程管理","运行命令"};
     private static final int PICK_UPLOAD=10,PICK_DOWNLOAD=11,PICK_INSTALL=12;
@@ -35,17 +39,29 @@ public final class MainActivity extends Activity implements Ui.DialogOwner {
     private final BroadcastReceiver usbReceiver=new BroadcastReceiver(){public void onReceive(Context c,Intent i){
         UsbDevice device=i.getParcelableExtra(UsbManager.EXTRA_DEVICE);if(device==null)return;
         if("io.github.devicebridge.USB_PERMISSION".equals(i.getAction())){if(!device.getDeviceName().equals(pendingUsbName)||pendingUsbGeneration!=generation){pendingUsbName=null;pendingUsbGeneration=-1;return;}pendingUsbName=null;pendingUsbGeneration=-1;if(i.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED,false))connectUsb(device);else Ui.message(MainActivity.this,"USB授权被拒绝","未连接设备。可重新选择设备并授权。");}
-        else if(UsbManager.ACTION_USB_DEVICE_DETACHED.equals(i.getAction())){BridgeRuntime.get().disconnect("USB "+device.getDeviceName());if(page>=0&&BridgeRuntime.session()==null){showConnections();Ui.message(MainActivity.this,"USB已断开","设备已拔出，相关操作已中止。");}}
+        else if(UsbManager.ACTION_USB_DEVICE_DETACHED.equals(i.getAction())){
+            String target="USB "+device.getDeviceName();
+            AdbSession session=BridgeRuntime.session();
+            if(session!=null&&target.equals(session.target())&&(session==viewSession||session==pendingReconnect)){
+                // Keep the selected session until the user resolves its disconnect dialog.
+                BridgeRuntime.CLOSERS.execute(session::close);
+            }else BridgeRuntime.get().disconnect(target);
+        }
     }};
     @Override public void onCreate(Bundle saved){super.onCreate(saved);prefs=getSharedPreferences("settings",MODE_PRIVATE);hidden=prefs.getBoolean("show_hidden",false);
         IntentFilter f=new IntentFilter("io.github.devicebridge.USB_PERMISSION");f.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);if(Build.VERSION.SDK_INT>=33)registerReceiver(usbReceiver,f,Context.RECEIVER_NOT_EXPORTED);else registerReceiver(usbReceiver,f);
         Object retained=getLastNonConfigurationInstance();if(retained instanceof RotationState&&((RotationState)retained).session==BridgeRuntime.session()){
             pendingRotation=(RotationState)retained;page=pendingRotation.values.getInt("page",0);
         }else if(saved!=null)page=saved.getInt("page",-1);
-        if(BridgeRuntime.session()!=null&&BridgeRuntime.session().state()==AdbSession.State.CONNECTED)showDevice(Math.max(0,page));else showConnections();
+        AdbSession session=BridgeRuntime.session();
+        if(session!=null&&session.state()==AdbSession.State.CONNECTED)showDevice(Math.max(0,page));
+        else{
+            if(connectionLost(session)&&(page>=0||(saved!=null&&saved.getBoolean("reconnect_pending"))))pendingReconnect=session;
+            showConnections();
+        }
         if(!prefs.getBoolean("policy_v1",false))new AlertDialog.Builder(this).setTitle("欢迎使用金甲虫ADB助手").setMessage("金甲虫ADB助手是独立开发的设备管理工具。仅管理你拥有或获准管理的设备。ADB可读取和修改设备数据；删除、清除数据、刷写等可能造成不可恢复损失。连接密钥只保存在本机私有目录，配对码不保存，不接入原应用的账号、授权或付费服务。\n\n当前为开发验证版，功能与兼容性仍在逐项测试。").setCancelable(false).setNegativeButton("拒绝并退出",(d,w)->finish()).setPositiveButton("同意并继续",(d,w)->prefs.edit().putBoolean("policy_v1",true).apply()).show();
     }
-    @Override protected void onSaveInstanceState(Bundle b){super.onSaveInstanceState(b);b.putString("path",path);b.putInt("page",page);}
+    @Override protected void onSaveInstanceState(Bundle b){super.onSaveInstanceState(b);b.putString("path",path);b.putInt("page",page);b.putBoolean("reconnect_pending",pendingReconnect!=null);}
     private void layout(String heading){generation++;root=new CollapsingRoot(this);root.setBackgroundColor(0xfff7f7f7);Ui.inset(this,root);setContentView(root);bar=Ui.row(this);bar.setPadding(Ui.dp(this,4),0,Ui.dp(this,4),0);bar.addView(new IconView(this,IconView.Kind.MENU,0xff777777,"打开导航菜单",this::navigation),new LinearLayout.LayoutParams(Ui.dp(this,48),Ui.dp(this,56)));title=Ui.text(this,heading,22);Ui.expanded(bar,title);if(page!=0)bar.addView(new IconView(this,IconView.Kind.MORE,0xff777777,"更多选项",this::menu),new LinearLayout.LayoutParams(Ui.dp(this,44),Ui.dp(this,56)));root.addView(bar);content=Ui.col(this);Ui.fill(root,content);}
     private void navigation(){if(page<0){menu();return;}final Dialog drawer=new Dialog(this);LinearLayout panel=Ui.col(this);panel.setBackgroundColor(0xffffffff);AdbSession session=BridgeRuntime.session();TextView header=Ui.text(this,session==null?"设备":session.target(),20);header.setTextColor(Ui.BLUE);header.setPadding(Ui.dp(this,18),Ui.dp(this,42),Ui.dp(this,18),Ui.dp(this,26));panel.addView(header);panel.addView(Ui.divider(this));String[] values=new String[10];System.arraycopy(TABS,0,values,0,7);values[7]="设置";values[8]="离开设备";values[9]="断开设备";ListView list=new ListView(this);list.setAdapter(new ArrayAdapter<>(this,android.R.layout.simple_list_item_activated_1,values));list.setChoiceMode(ListView.CHOICE_MODE_SINGLE);list.setItemChecked(page,true);list.setOnItemClickListener((a,v,w,id)->{if(w<7){selectModule(w);list.setItemChecked(w,true);return;}drawer.dismiss();if(w==7)startActivity(new Intent(this,SettingsActivity.class));else if(w==8)showConnections();else{if(session!=null)BridgeRuntime.get().disconnect(session);showConnections();}});Ui.fill(panel,list);drawer.setContentView(panel);Window window=drawer.getWindow();if(window!=null){window.setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(0xffffffff));window.setGravity(Gravity.START|Gravity.TOP);window.setLayout(Ui.dp(this,290),-1);}drawer.show();ownDialog(drawer);if(window!=null)window.setLayout(Ui.dp(this,290),-1);}
     private ExternalAdbController externalAdbController(){
@@ -66,12 +82,84 @@ public final class MainActivity extends Activity implements Ui.DialogOwner {
         LinearLayout address=Ui.row(this);address.setBackground(Ui.rounded(0xffffffff,Ui.dp(this,22)));address.addView(new IconView(this,IconView.Kind.HISTORY,0xffffbf00,"连接历史",this::history),new LinearLayout.LayoutParams(Ui.dp(this,48),Ui.dp(this,60)));AutoCompleteTextView host=new AutoCompleteTextView(this);host.setTextSize(19);host.setTextColor(Ui.INK);host.setHintTextColor(0xffa0a0a0);host.setHint("请输入IP地址或使用OTG连接");host.setSingleLine(false);host.setMaxLines(2);host.setBackgroundColor(android.graphics.Color.TRANSPARENT);host.setPadding(Ui.dp(this,4),Ui.dp(this,8),0,Ui.dp(this,8));host.setAdapter(new ArrayAdapter<>(this,android.R.layout.simple_dropdown_item_1line,historyValues()));address.addView(host,new LinearLayout.LayoutParams(0,Ui.dp(this,66),1));address.addView(new IconView(this,IconView.Kind.SEARCH,0xff03a9f4,"扫描局域网",this::scanNetwork),new LinearLayout.LayoutParams(Ui.dp(this,44),Ui.dp(this,60)));content.addView(address,new LinearLayout.LayoutParams(-1,Ui.dp(this,66)));
         TextView connect=Ui.text(this,"连接",16);connect.setGravity(Gravity.CENTER);connect.setTextColor(0xffffffff);connect.setBackground(Ui.rounded(0xff5b95e8,Ui.dp(this,28)));connect.setOnClickListener(v->connectTcp(host.getText().toString()));connect.setFocusable(true);connect.setClickable(true);LinearLayout.LayoutParams cp=new LinearLayout.LayoutParams(-1,Ui.dp(this,44));cp.topMargin=Ui.dp(this,31);content.addView(connect,cp);
         List<AdbSession> sessions=BridgeRuntime.get().sessions();status=Ui.text(this,sessions.isEmpty()?"未连接到任何设备。":"已连接的设备",16);status.setGravity(Gravity.CENTER);status.setTextColor(0xff629aff);LinearLayout.LayoutParams sp=new LinearLayout.LayoutParams(-1,-2);sp.topMargin=Ui.dp(this,23);content.addView(status,sp);
-        for(AdbSession session:sessions){LinearLayout card=Ui.col(this);card.addView(Ui.text(this,session.target(),17));TextView state=Ui.text(this,stateText(session.state())+(session.state()==AdbSession.State.CONNECTED?(session.isHostServer()?" · 外部ADB服务 "+session.serverEndpoint()+"（设备链路加密未验证）":session.target().startsWith("USB ")?" · USB":session.isEncrypted()?" · TLS加密":" · 明文TCP"):""),13);state.setTextColor(session.state()==AdbSession.State.CONNECTED?0xff388e3c:0xffc62828);card.addView(state);card.setOnClickListener(v->{if(session.state()==AdbSession.State.CONNECTED&&BridgeRuntime.get().select(session)){showDevice(prefs.getInt("default_page",0));}else Ui.message(this,"设备未连接","请重新连接设备。");});card.setOnLongClickListener(v->{Ui.confirm(this,"断开设备",session.target(),()->{if(!BridgeRuntime.get().disconnect(session))Ui.message(this,"会话已改变","此前选择已失效，没有断开新的同名会话。");showConnections();});return true;});content.addView(card);content.addView(Ui.divider(this));}
+        for(AdbSession session:sessions){LinearLayout card=Ui.col(this);card.addView(Ui.text(this,session.target(),17));TextView state=Ui.text(this,stateText(session.state())+(session.state()==AdbSession.State.CONNECTED?(session.isHostServer()?" · 外部ADB服务 "+session.serverEndpoint()+"（设备链路加密未验证）":session.target().startsWith("USB ")?" · USB":session.isEncrypted()?" · TLS加密":" · 明文TCP"):""),13);state.setTextColor(session.state()==AdbSession.State.CONNECTED?0xff388e3c:0xffc62828);card.addView(state);card.setOnClickListener(v->{if((session.state()==AdbSession.State.CONNECTED||connectionLost(session))&&BridgeRuntime.get().select(session)){showDevice(prefs.getInt("default_page",0));}else Ui.message(this,"设备未连接","请重新连接设备。");});card.setOnLongClickListener(v->{Ui.confirm(this,"断开设备",session.target(),()->{if(!BridgeRuntime.get().disconnect(session))Ui.message(this,"会话已改变","此前选择已失效，没有断开新的同名会话。");showConnections();});return true;});content.addView(card);content.addView(Ui.divider(this));}
     }
     private static String stateText(AdbSession.State s){switch(s){case CONNECTED:return "已连接 · 点击进入";case AUTHENTICATING:return "等待目标设备授权";case CONNECTING:return "连接中";case FAILED:return "连接失败";default:return "已断开";}}
     private static String[] endpoint(String value){String v=value.trim().replace('：',':');if(v.isEmpty()||v.indexOf(' ')>=0||v.indexOf('/')>=0)throw new IllegalArgumentException("请输入有效地址");String host,port="5555";if(v.startsWith("[")){int at=v.indexOf(']');if(at<0)throw new IllegalArgumentException("IPv6地址需用[]括起");host=v.substring(1,at);if(at+1<v.length()){if(v.charAt(at+1)!=':')throw new IllegalArgumentException("地址无效");port=v.substring(at+2);}}else{int a=v.indexOf(':'),b=v.lastIndexOf(':');if(a>=0&&a==b){host=v.substring(0,a);port=v.substring(a+1);}else host=v;}int p=Integer.parseInt(port);if(host.isEmpty()||p<1||p>65535)throw new IllegalArgumentException("地址或端口无效");return new String[]{host,port};}
-    private void connectTcp(String address){final String[] ep;try{ep=endpoint(address);}catch(Exception e){Ui.message(this,"地址无效",e.getMessage());return;}String label=ep[0]+":"+ep[1];for(AdbSession s:BridgeRuntime.get().sessions())if(s.target().equals(label)&&s.state()==AdbSession.State.CONNECTED){BridgeRuntime.get().select(label);showDevice(prefs.getInt("default_page",0));return;}
-        workScoped("连接 "+label,scope->{scope.checkActive();Transport t=scope.own(createTcpTransport(ep[0],Integer.parseInt(ep[1])));AdbSession s=scope.own(new AdbSession(t,BridgeRuntime.get().identity(),(state,detail)->BridgeRuntime.UI.post(()->{if(!scope.isCancelled()&&!isDestroyed()&&status!=null&&page<0)status.setText(stateText(state));})));if(prefs.getStringSet("tls_required_hosts",Collections.emptySet()).contains(ep[0]))s.requireEncryption();try{s.connect();scope.checkActive();s.setListener(null);scope.release(t);scope.release(s);return s;}catch(Exception e){s.close();throw e;}},s->{BridgeRuntime.get().add(s);saveHistory(address);showDevice(prefs.getInt("default_page",0));});}
+    private void connectTcp(String address){connectTcp(address,false);}
+    private void connectTcp(String address,boolean requireTls){
+        final String[] ep;
+        try{ep=endpoint(address);}catch(Exception e){Ui.message(this,"地址无效",e.getMessage());return;}
+        String host=ep[0],label=host+":"+ep[1];
+        int port=Integer.parseInt(ep[1]);
+        boolean encryptedOnly=requireTls||prefs.getStringSet("tls_required_hosts",Collections.emptySet()).contains(host);
+        for(AdbSession session:BridgeRuntime.get().sessions()){
+            if(session.target().equals(label)&&session.state()==AdbSession.State.CONNECTED
+                    &&(!encryptedOnly||session.isEncrypted())&&BridgeRuntime.get().select(session)){
+                showDevice(prefs.getInt("default_page",0));
+                return;
+            }
+        }
+        workScoped("连接 "+label,scope->{
+            scope.checkActive();
+            Transport transport=scope.own(createTcpTransport(host,port));
+            AdbSession session=scope.own(new AdbSession(transport,BridgeRuntime.get().identity(),
+                    (state,detail)->BridgeRuntime.UI.post(()->{
+                        if(!scope.isCancelled()&&!isDestroyed()&&status!=null&&page<0)status.setText(stateText(state));
+                    })));
+            if(encryptedOnly)session.requireEncryption();
+            try{
+                session.connect();scope.checkActive();session.setListener(null);
+                scope.release(transport);scope.release(session);
+                return session;
+            }catch(Exception e){session.close();throw e;}
+        },session->{
+            BridgeRuntime.get().add(session);
+            saveHistory(address);
+            showDevice(prefs.getInt("default_page",0));
+        });
+    }
+    private static boolean connectionLost(AdbSession session){
+        if(session==null)return false;
+        AdbSession.State state=session.state();
+        return state==AdbSession.State.FAILED||state==AdbSession.State.CLOSED;
+    }
+    private void onSessionLost(AdbSession session){
+        if(viewSession==session)offerReconnect(session);
+    }
+    private void offerReconnect(AdbSession session){
+        if(!connectionLost(session)||BridgeRuntime.session()!=session||isFinishing()||isDestroyed())return;
+        pendingReconnect=session;
+        if(!resumed||reconnectDialog!=null)return;
+        if(page>=0||root==null){
+            showConnections();
+            for(Dialog dialog:new ArrayList<>(ownedDialogs))if(dialog.isShowing())dialog.cancel();
+        }
+        String message="目标："+session.target()+"\n\n是否重新连接？";
+        if(session.isHostServer())message+="\n请重新选择外部 ADB 设备。";
+        else if(session.target().startsWith("USB "))message+="\n如已拔出 USB 设备，请重新插入后选择。";
+        reconnectDialog=new AlertDialog.Builder(this).setTitle("设备连接已断开").setMessage(message)
+                .setNegativeButton("取消",(d,w)->resolveReconnect(session,false))
+                .setPositiveButton("重新连接",(d,w)->resolveReconnect(session,true))
+                .setOnCancelListener(d->resolveReconnect(session,false)).show();
+        ownDialog(reconnectDialog);
+    }
+    private void resolveReconnect(AdbSession session,boolean reconnect){
+        if(pendingReconnect!=session)return;
+        reconnectDialog=null;pendingReconnect=null;
+        if(BridgeRuntime.session()!=session||!BridgeRuntime.get().disconnect(session))return;
+        showConnections();
+        if(!reconnect)return;
+        String target=session.target();
+        if(session.isHostServer())externalAdbController().refresh();
+        else if(target.startsWith("USB "))chooseUsb();
+        else{
+            int separator=target.lastIndexOf(':');
+            String host=target.substring(0,separator);
+            String address=host.indexOf(':')>=0?"["+host+"]"+target.substring(separator):target;
+            connectTcp(address,session.requiresEncryptedReconnect());
+        }
+    }
     private Transport createTcpTransport(String host,int port)throws Exception{return new TlsTcpTransport(host,port,20000);}
     private void chooseUsb(){UsbManager m=(UsbManager)getSystemService(USB_SERVICE);List<UsbDevice> ds=new ArrayList<>();for(UsbDevice d:m.getDeviceList().values())if(UsbTransport.find(d,1)!=null)ds.add(d);if(ds.isEmpty()){Ui.message(this,"USB设备","没有发现ADB接口。请使用OTG线连接已开启USB调试的设备。");return;}String[] labels=new String[ds.size()];for(int i=0;i<ds.size();i++)labels[i]=ds.get(i).getDeviceName()+" · "+Compatibility.usbProductName(ds.get(i));new AlertDialog.Builder(this).setTitle("选择USB设备").setItems(labels,(x,w)->{UsbDevice d=ds.get(w);if(m.hasPermission(d))connectUsb(d);else{Intent intent=new Intent("io.github.devicebridge.USB_PERMISSION").setPackage(getPackageName());pendingUsbName=d.getDeviceName();pendingUsbGeneration=generation;m.requestPermission(d,PendingIntent.getBroadcast(this,0,intent,PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE));}}).show();}
     private void connectUsb(UsbDevice device){for(AdbSession existing:BridgeRuntime.get().sessions())if(existing.target().equals("USB "+device.getDeviceName())&&existing.state()==AdbSession.State.CONNECTED){BridgeRuntime.get().select(existing.target());showDevice(prefs.getInt("default_page",0));return;}workScoped("连接USB设备",scope->{AdbSession s=scope.own(new AdbSession(new UsbTransport((UsbManager)getSystemService(USB_SERVICE),device),BridgeRuntime.get().identity(),null));try{s.connect();scope.checkActive();scope.release(s);return s;}catch(Exception e){s.close();throw e;}},s->{BridgeRuntime.get().add(s);showDevice(prefs.getInt("default_page",0));});}
@@ -100,7 +188,10 @@ public final class MainActivity extends Activity implements Ui.DialogOwner {
     /** Explicit refresh rebuilds only this module. Tab/drawer selection uses selectModule instead. */
     private void showDevice(int index){
         index=Math.max(0,Math.min(TABS.length-1,index));final AdbSession session=BridgeRuntime.session();
-        if(session==null||session.state()!=AdbSession.State.CONNECTED){showConnections();return;}
+        if(session==null||session.state()!=AdbSession.State.CONNECTED){
+            if(connectionLost(session))offerReconnect(session);else showConnections();
+            return;
+        }
         if(modulePager==null||viewSession!=session){
             disposeModules();viewSession=session;page=index;moduleState.bind(session,TABS.length,index);restoreRotation(session);layout(TABS[index]);
             root.removeView(content);final CollapsingRoot frame=(CollapsingRoot)root;
@@ -522,7 +613,31 @@ public final class MainActivity extends Activity implements Ui.DialogOwner {
             return (success?"安装完成\n":"安装未确认成功\n")+log;
         },report->{preparedInstalls.remove(bundle);showDevice(4);Ui.message(this,"安装结果",report);});
     }
-    @Override protected void onResume(){super.onResume();boolean selectedHidden=prefs.getBoolean("show_hidden",false);boolean hiddenChanged=selectedHidden!=hidden;hidden=selectedHidden;if(page>=0){if(viewSession!=BridgeRuntime.session()||(page==3&&hiddenChanged))showDevice(page);else if(hiddenChanged)invalidateFileModule();}String reports=BridgeRuntime.get().takeReports();if(!reports.isEmpty())Ui.message(this,"操作结果",reports);}
+    @Override protected void onResume(){
+        super.onResume();resumed=true;
+        BridgeRuntime.get().observeSessionLoss(sessionLossListener);
+        AdbSession session=BridgeRuntime.session();
+        boolean selectedHidden=prefs.getBoolean("show_hidden",false);boolean hiddenChanged=selectedHidden!=hidden;hidden=selectedHidden;
+        if(page>=0){
+            if(viewSession==session&&connectionLost(session))pendingReconnect=session;
+            else if(viewSession!=session||(page==3&&hiddenChanged))showDevice(page);
+            else if(hiddenChanged)invalidateFileModule();
+        }
+        if(pendingReconnect!=null){
+            if(pendingReconnect==BridgeRuntime.session())offerReconnect(pendingReconnect);
+            else pendingReconnect=null;
+        }
+        String reports=BridgeRuntime.get().takeReports();if(!reports.isEmpty())Ui.message(this,"操作结果",reports);
+    }
+    @Override protected void onPause(){
+        resumed=false;
+        BridgeRuntime.get().stopObservingSessionLoss(sessionLossListener);
+        if(reconnectDialog!=null){
+            reconnectDialog.dismiss();
+            reconnectDialog=null;
+        }
+        super.onPause();
+    }
     @Override public void onBackPressed(){if(page==3&&!"/sdcard".equals(path)&&!"/".equals(path)){path=parent(path);showDevice(3);}else if(page>=0)showConnections();else super.onBackPressed();}
     @Override protected void onDestroy(){generation++;moduleState.invalidate();if(modulePager!=null)modulePager.dispose();for(Dialog dialog:new ArrayList<>(ownedDialogs))if(dialog.isShowing())dialog.cancel();ownedDialogs.clear();closeTerminal();terminalExecutor.shutdownNow();for(UploadBundle bundle:preparedUploads)bundle.close();preparedUploads.clear();for(InstallBundle b:preparedInstalls)b.close();preparedInstalls.clear();cancelScopedWork();try{unregisterReceiver(usbReceiver);}catch(Exception ignored){}super.onDestroy();}
 }

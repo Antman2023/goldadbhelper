@@ -1,5 +1,6 @@
 package io.github.devicebridge.android;
 import android.app.Application;import android.os.Handler;import android.os.Looper;import io.github.devicebridge.core.*;import java.io.*;import java.security.*;import java.util.*;import java.util.concurrent.*;
+import java.util.function.Consumer;
 public final class BridgeRuntime extends Application {
     public static final java.util.concurrent.ExecutorService CLOSERS=java.util.concurrent.Executors.newCachedThreadPool(r->{Thread thread=new Thread(r,"goldenbeetle-resource-close");thread.setDaemon(true);return thread;});
 
@@ -11,6 +12,7 @@ public final class BridgeRuntime extends Application {
     public static final ExecutorService IO=Executors.newFixedThreadPool(6);
     public static final Handler UI=new Handler(Looper.getMainLooper());
     private final Map<String,AdbSession> sessions=new LinkedHashMap<>();
+    private Consumer<AdbSession> sessionLossListener; // Main thread only.
     private HostServerClient externalServer;
     public synchronized HostServerClient externalServer(){return externalServer;}
     /** CAS keeps a late connection result from replacing a newer selected server. */
@@ -37,7 +39,23 @@ public final class BridgeRuntime extends Application {
     private static void write(File f,byte[] b)throws IOException{try(FileOutputStream o=new FileOutputStream(f)){o.write(b);o.getFD().sync();}f.setReadable(false,false);f.setWritable(false,false);f.setReadable(true,true);f.setWritable(true,true);}
     public void add(AdbSession s){
         AdbSession previous;synchronized(this){previous=sessions.put(s.target(),s);active=s.target();}
+        watchSession(s);
         if(previous!=null&&previous!=s)CLOSERS.execute(previous::close);
+    }
+    void observeSessionLoss(Consumer<AdbSession> listener){sessionLossListener=listener;}
+    void stopObservingSessionLoss(Consumer<AdbSession> listener){
+        if(sessionLossListener==listener)sessionLossListener=null;
+    }
+    private void watchSession(AdbSession session){
+        session.setListener((state,detail)->{
+            if(state==AdbSession.State.FAILED||state==AdbSession.State.CLOSED){
+                UI.post(()->{
+                    // Explicit disconnects and replacements remove this exact object before closing it.
+                    Consumer<AdbSession> listener=sessionLossListener;
+                    if(listener!=null&&session()==session)listener.accept(session);
+                });
+            }
+        });
     }
     public synchronized void select(String target){active=target;}
     public synchronized boolean select(AdbSession session){if(session==null||sessions.get(session.target())!=session)return false;active=session.target();return true;}

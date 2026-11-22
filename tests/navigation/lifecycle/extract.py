@@ -39,7 +39,9 @@ assert 'cancelScopedWork();' in block('@Override protected void onDestroy()')
 markers = ['private static final class ModulePage', 'private void invalidateFileModule()',
            'private interface ScopedJob<T>', 'private void cancelScopedWork()',
            'private void finishScopedWork(', 'private <T> void workScoped(',
-           '@Override protected void onResume()']
+           'private static boolean connectionLost(', 'private void onSessionLost(',
+           'private void offerReconnect(', 'private void resolveReconnect(',
+           '@Override protected void onResume()', '@Override protected void onPause()']
 template = (root / 'tests/navigation/lifecycle/Nav02LifecycleTests.java.template').read_text()
 assert template.count('/* PRODUCTION_FRAGMENTS */') == 1
 out = Path(sys.argv[1]); out.mkdir(parents=True, exist_ok=True)

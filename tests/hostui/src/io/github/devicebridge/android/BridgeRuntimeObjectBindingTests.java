@@ -1,9 +1,12 @@
 package io.github.devicebridge.android;
 import io.github.devicebridge.android.BridgeRuntimeObjectBindingSubject.AdbSession;
 import java.util.Objects;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 /** Ordinary memory objects, exercising extracted production method bodies only. */
 public final class BridgeRuntimeObjectBindingTests {
     private static int checks;
@@ -41,7 +44,7 @@ public final class BridgeRuntimeObjectBindingTests {
         eq("other", runtime.active, "disconnect of nonactive object keeps other active selection");
         BridgeRuntimeObjectBindingSubject.pendingClosers.remove(0).run();
         eq(1, background.closes, "nonactive exact object closed once");
-        replacement(); targetDisconnect(); disconnectAllSnapshot(); blockedCleanup();
+        replacement(); targetDisconnect(); disconnectAllSnapshot(); blockedCleanup(); sessionLoss();
         System.out.println("RUNTIME OBJECT BINDING TESTS: " + checks + " assertions passed");
         System.out.println("Scope: exact extracted production selection/replacement/disconnect methods; memory sessions/state/executor only.");
     }
@@ -123,6 +126,45 @@ public final class BridgeRuntimeObjectBindingTests {
             eq(0, next.closes, "blocked old cleanup does not affect new connection");
         } finally { release.countDown(); closer.join(2000); }
         check(!closer.isAlive() && failure.get() == null, "blocked cleanup completes without runtime monitor held");
+    }
+    private static void sessionLoss() {
+        BridgeRuntimeObjectBindingSubject runtime = new BridgeRuntimeObjectBindingSubject();
+        List<AdbSession> reported = new ArrayList<>();
+        Consumer<AdbSession> observer = reported::add;
+        runtime.observeSessionLoss(observer);
+        AdbSession old = new AdbSession("same"), current = new AdbSession("same");
+        runtime.add(old);
+        old.notifyState(AdbSession.State.CONNECTED);
+        check(BridgeRuntimeObjectBindingSubject.pendingUi.isEmpty(), "connected state posts no loss");
+        old.notifyState(AdbSession.State.FAILED);
+        runtime.add(current);
+        drainUi();
+        check(reported.isEmpty(), "queued loss from replaced session is ignored");
+        current.notifyState(AdbSession.State.FAILED);
+        check(reported.isEmpty(), "observer runs on UI queue");
+        drainUi();
+        eq(current, reported.get(0), "unexpected loss delivers the exact selected session");
+        current.notifyState(AdbSession.State.CLOSED);
+        runtime.disconnect(current);
+        drainUi();
+        eq(1, reported.size(), "explicitly removed session delivers no close prompt");
+        runtime.add(current);
+        current.notifyState(AdbSession.State.CLOSED);
+        runtime.stopObservingSessionLoss(observer);
+        drainUi();
+        eq(1, reported.size(), "stopped observer receives no queued loss");
+        AdbSession usb = new AdbSession("USB fixture");
+        runtime.add(usb);
+        runtime.observeSessionLoss(observer);
+        usb.notifyState(AdbSession.State.CLOSED);
+        drainUi();
+        eq(usb, reported.get(1), "USB close delivers loss while the session is still selected");
+        while (!BridgeRuntimeObjectBindingSubject.pendingClosers.isEmpty())
+            BridgeRuntimeObjectBindingSubject.pendingClosers.remove(0).run();
+    }
+    private static void drainUi() {
+        while (!BridgeRuntimeObjectBindingSubject.pendingUi.isEmpty())
+            BridgeRuntimeObjectBindingSubject.pendingUi.remove(0).run();
     }
     private static void eq(Object expected, Object actual, String label) { check(Objects.equals(expected, actual), label + " expected=" + expected + " actual=" + actual); }
     private static void check(boolean value, String label) { if (!value) throw new AssertionError(label); checks++; }

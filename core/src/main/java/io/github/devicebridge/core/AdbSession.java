@@ -21,6 +21,7 @@ public final class AdbSession implements Closeable {
     private volatile int maxPayload=4096;private volatile int peerVersion=0x01000001;
     private volatile boolean checksum=true;
     private volatile String banner="";private boolean requireEncryption;
+    private volatile boolean connectedOverTls;
     public AdbSession(Transport transport,AdbIdentity identity,Listener listener) {
         this.transport=transport;this.identity=identity;this.listener=listener;this.hostServer=null;this.hostBinding=null;
     }
@@ -34,6 +35,8 @@ public final class AdbSession implements Closeable {
     public String serverEndpoint(){return hostServer==null?"":hostServer.endpoint();}
     public AdbSession requireEncryption(){if(state!=State.NEW)throw new IllegalStateException("Connection already started");if(hostServer!=null)throw new IllegalStateException("External ADB server transport encryption cannot be verified by this client");requireEncryption=true;return this;}
     public boolean isEncrypted(){return transport instanceof TlsUpgradableTransport&&((TlsUpgradableTransport)transport).isTls();}
+    /** Keeps TLS mandatory for retries even after the transport closes. */
+    public boolean requiresEncryptedReconnect(){return requireEncryption||connectedOverTls;}
     public void setListener(Listener value){listener=value;}
     public State state(){return state;}
     public String target(){return hostBinding==null?transport.description():hostBinding.target();}
@@ -49,7 +52,10 @@ public final class AdbSession implements Closeable {
     }
     private void setState(State s,String detail){synchronized(stateLock){if(closedByCaller&&s!=State.CLOSED)return;state=s;}notifyState(s,detail);}
     private void markConnected()throws IOException{
-        synchronized(stateLock){if(closedByCaller||state==State.FAILED)throw new IOException("Connection was cancelled or invalidated");state=State.CONNECTED;}
+        synchronized(stateLock){
+            if(closedByCaller||state==State.FAILED)throw new IOException("Connection was cancelled or invalidated");
+            connectedOverTls=isEncrypted();state=State.CONNECTED;
+        }
     }
     private void requireConnected()throws IOException{if(state!=State.CONNECTED)throw new IOException("Connection was cancelled or invalidated");}
     public synchronized void connect() throws IOException {

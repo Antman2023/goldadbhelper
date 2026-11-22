@@ -153,6 +153,8 @@ public final class PairingTests {
             Thread t=new Thread(server,"stls-fixture"); t.setDaemon(true); t.start();
             try (TlsTcpTransport transport=new TlsTcpTransport("127.0.0.1",listener.getLocalPort(),5000); AdbSession session=new AdbSession(transport,identity,null)) {
                 session.connect(); check(session.state()==AdbSession.State.CONNECTED && transport.isTls(),"encrypted ADB connected");
+                session.close();
+                check(!session.isEncrypted()&&session.requiresEncryptedReconnect(),"reconnect still requires TLS after transport closes");
             } finally { done.countDown(); }
             server.get(6,TimeUnit.SECONDS);
         }
