@@ -35,7 +35,16 @@ final class Compatibility {
     private Compatibility() { }
     static void elevation(View view, float pixels) { if (Build.VERSION.SDK_INT >= 21) Api21.elevation(view, pixels); }
     static void clipToOutline(View view, boolean value) { if (Build.VERSION.SDK_INT >= 21) Api21.clipToOutline(view, value); }
-    static void statusBarColor(Window window, int color) { if (Build.VERSION.SDK_INT >= 21) Api21.statusBarColor(window, color); }
+    static void systemBarColors(Window window, int status, int navigation, boolean lightStatus) {
+        if (Build.VERSION.SDK_INT >= 21) Api21.systemBarColors(window, status, navigation);
+        if (Build.VERSION.SDK_INT >= 30) Api30.statusBarAppearance(window, lightStatus);
+        else if (Build.VERSION.SDK_INT >= 23) {
+            View decor = window.getDecorView();
+            int flags = decor.getSystemUiVisibility();
+            int mask = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+            decor.setSystemUiVisibility(lightStatus ? flags | mask : flags & ~mask);
+        }
+    }
     static void buttonTint(CompoundButton button, ColorStateList color) { if (Build.VERSION.SDK_INT >= 21) Api21.buttonTint(button, color); }
     static void switchShowText(Switch view, boolean value) { if (Build.VERSION.SDK_INT >= 21) Api21.switchShowText(view, value); }
     static String[] splitSourceDirs(ApplicationInfo info) { return Build.VERSION.SDK_INT >= 21 ? Api21.splitSourceDirs(info) : null; }
@@ -52,9 +61,11 @@ final class Compatibility {
         if (Build.VERSION.SDK_INT >= 30) {
             Api30.fullscreen(window, enabled);
         } else {
-            window.getDecorView().setSystemUiVisibility(enabled
-                    ? View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                    : View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+            View decor = window.getDecorView();
+            int immersive = View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                    | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
+            int visibility = decor.getSystemUiVisibility();
+            decor.setSystemUiVisibility(enabled ? visibility | immersive : visibility & ~immersive);
             if (enabled) window.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
             else window.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
         }
@@ -220,7 +231,10 @@ final class Compatibility {
         static String usbProductName(android.hardware.usb.UsbDevice device) { return device.getProductName(); }
         static void elevation(View view, float pixels) { view.setElevation(pixels); }
         static void clipToOutline(View view, boolean value) { view.setClipToOutline(value); }
-        static void statusBarColor(Window window, int color) { window.setStatusBarColor(color); }
+        static void systemBarColors(Window window, int status, int navigation) {
+            window.setStatusBarColor(status);
+            window.setNavigationBarColor(navigation);
+        }
         static void buttonTint(CompoundButton button, ColorStateList color) { button.setButtonTintList(color); }
         static void switchShowText(Switch view, boolean value) { view.setShowText(value); }
         static String[] splitSourceDirs(ApplicationInfo info) { return info.splitSourceDirs; }
@@ -254,6 +268,12 @@ final class Compatibility {
         }
     }
     private static final class Api30 {
+        static void statusBarAppearance(Window window, boolean light) {
+            WindowInsetsController controller = window.getInsetsController();
+            if (controller == null) return;
+            int mask = WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS;
+            controller.setSystemBarsAppearance(light ? mask : 0, mask);
+        }
         static void applyInsets(View view, WindowInsets insets, Rect padding, boolean reserveHiddenBars) {
             Insets safe = insets.getInsets(WindowInsets.Type.systemBars() | WindowInsets.Type.displayCutout()
                     | WindowInsets.Type.ime());

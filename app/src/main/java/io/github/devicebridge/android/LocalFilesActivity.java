@@ -1,7 +1,6 @@
 package io.github.devicebridge.android;
 
 import android.Manifest;
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ClipData;
 import android.content.ComponentName;
@@ -57,7 +56,7 @@ import java.util.concurrent.Future;
  * The non-exported caller must keep its own pending operation/session binding and validate it
  * after every result, including RESULT_USE_SAF. File URIs in results are for this package only.
  */
-public final class LocalFilesActivity extends Activity {
+public final class LocalFilesActivity extends ThemedActivity {
     public static final int MODE_FILE = LocalFileBrowserModel.MODE_FILE;
     public static final int MODE_FILES = LocalFileBrowserModel.MODE_FILES;
     public static final int MODE_DIRECTORY = LocalFileBrowserModel.MODE_DIRECTORY;
@@ -74,7 +73,6 @@ public final class LocalFilesActivity extends Activity {
     private static final int STORAGE_PERMISSION = 71, STORAGE_SETTINGS = 72;
     // Bound Binder/saved-state size instead of imposing the reference application's paid limit.
     private static final int MAX_RESULT_WEIGHT = 48000;
-    private static final int INK = 0xff212121, MUTED = 0xff757575, BLUE = 0xff2196f3;
     private final ExecutorService reader = Executors.newSingleThreadExecutor();
     private final Handler main = new Handler(Looper.getMainLooper());
     private final List<File> roots = new ArrayList<>();
@@ -148,24 +146,24 @@ public final class LocalFilesActivity extends Activity {
 
     private void createView() {
         LinearLayout root = Ui.col(this);
-        root.setBackgroundColor(0xffffffff);
+        root.setBackgroundColor(Ui.surface(this));
         if (Build.VERSION.SDK_INT >= 20) Ui.inset(this, root); else root.setFitsSystemWindows(true);
         LinearLayout toolbar = Ui.row(this);
         TextView back = action("‹", "返回上级或取消", this::onBackPressed);
         back.setTextSize(32);
         toolbar.addView(back, new LinearLayout.LayoutParams(dp(52), dp(56)));
         TextView title = label(mode == MODE_DIRECTORY ? "选择本机目录" : mode == MODE_APK ? "选择APK"
-                : mode == MODE_IMAGE ? "选择镜像" : "选择本机文件", 20, INK);
+                : mode == MODE_IMAGE ? "选择镜像" : "选择本机文件", 20, Ui.ink(LocalFilesActivity.this));
         toolbar.addView(title, new LinearLayout.LayoutParams(0, -2, 1));
-        toolbar.addView(new IconView(this, IconView.Kind.SORT, MUTED, "排序", this::sortDialog),
+        toolbar.addView(new IconView(this, IconView.Kind.SORT, Ui.muted(LocalFilesActivity.this), "排序", this::sortDialog),
                 new LinearLayout.LayoutParams(dp(48), dp(56)));
-        toolbar.addView(new IconView(this, IconView.Kind.MORE, MUTED, "更多选项", this::menu),
+        toolbar.addView(new IconView(this, IconView.Kind.MORE, Ui.muted(LocalFilesActivity.this), "更多选项", this::menu),
                 new LinearLayout.LayoutParams(dp(48), dp(56)));
         root.addView(toolbar);
 
         LinearLayout pathRow = Ui.row(this);
-        pathRow.setBackgroundColor(0xffeeeeee);
-        pathLabel = label("", 14, INK);
+        pathRow.setBackgroundColor(Ui.raised(this));
+        pathLabel = label("", 14, Ui.ink(LocalFilesActivity.this));
         pathLabel.setSingleLine(true);
         pathLabel.setEllipsize(TextUtils.TruncateAt.MIDDLE);
         pathLabel.setPadding(dp(12), 0, dp(8), 0);
@@ -177,7 +175,7 @@ public final class LocalFilesActivity extends Activity {
         pathRow.addView(up, new LinearLayout.LayoutParams(dp(72), dp(48)));
         root.addView(pathRow);
 
-        accessHint = label("", 12, MUTED);
+        accessHint = label("", 12, Ui.muted(LocalFilesActivity.this));
         accessHint.setPadding(dp(12), dp(6), dp(12), dp(4));
         root.addView(accessHint);
         LinearLayout accessRow = Ui.row(this);
@@ -200,13 +198,13 @@ public final class LocalFilesActivity extends Activity {
             return true;
         });
         body.addView(list, new FrameLayout.LayoutParams(-1, -1));
-        empty = label("", 15, MUTED);
+        empty = label("", 15, Ui.muted(LocalFilesActivity.this));
         empty.setPadding(dp(24), dp(12), dp(24), dp(12));
         empty.setGravity(Gravity.CENTER);
         body.addView(empty, new FrameLayout.LayoutParams(-1, -1));
         list.setEmptyView(empty);
         Ui.fill(root, body);
-        summary = label("", 13, MUTED);
+        summary = label("", 13, Ui.muted(LocalFilesActivity.this));
         summary.setPadding(dp(16), dp(5), dp(16), dp(5));
         root.addView(summary);
         LinearLayout bottom = Ui.row(this);
@@ -226,7 +224,7 @@ public final class LocalFilesActivity extends Activity {
     }
 
     private TextView action(String text, String description, Runnable action) {
-        TextView view = label(text, 16, BLUE);
+        TextView view = label(text, 16, Ui.accent(LocalFilesActivity.this));
         view.setGravity(Gravity.CENTER);
         view.setContentDescription(description);
         view.setFocusable(true); view.setClickable(true);
@@ -760,7 +758,7 @@ public final class LocalFilesActivity extends Activity {
             row.detail.setText(entry.directory ? "文件夹" : bytes(entry.size));
             row.time.setText(modified(entry.modified));
             row.icon.bind(entry, row.checked);
-            row.setBackgroundColor(row.checked ? 0xffe8f0fc : 0xffffffff);
+            row.setBackgroundColor(row.checked ? Ui.selected(LocalFilesActivity.this) : Ui.surface(LocalFilesActivity.this));
             row.setContentDescription(entry.name + "，" + row.detail.getText() + "，" + row.time.getText()
                     + (row.checked ? "，已选择" : entry.directory ? "，点击进入" : "，点击选择"));
             return row;
@@ -779,12 +777,12 @@ public final class LocalFilesActivity extends Activity {
             FrameLayout.LayoutParams iconParams = new FrameLayout.LayoutParams(dp(42), dp(42), Gravity.LEFT | Gravity.CENTER_VERTICAL);
             iconParams.leftMargin = dp(16); addView(icon, iconParams);
             LinearLayout labels = Ui.col(LocalFilesActivity.this);
-            name = label("", 18, INK); name.setSingleLine(true); name.setEllipsize(TextUtils.TruncateAt.END);
+            name = label("", 18, Ui.ink(LocalFilesActivity.this)); name.setSingleLine(true); name.setEllipsize(TextUtils.TruncateAt.END);
             labels.addView(name, new LinearLayout.LayoutParams(-1, -2));
             LinearLayout metadata = Ui.row(LocalFilesActivity.this);
-            detail = label("", 13, MUTED); detail.setSingleLine(true);
+            detail = label("", 13, Ui.muted(LocalFilesActivity.this)); detail.setSingleLine(true);
             metadata.addView(detail, new LinearLayout.LayoutParams(-2, -2));
-            time = label("", 13, MUTED); time.setGravity(Gravity.RIGHT); time.setSingleLine(true);
+            time = label("", 13, Ui.muted(LocalFilesActivity.this)); time.setGravity(Gravity.RIGHT); time.setSingleLine(true);
             time.setEllipsize(TextUtils.TruncateAt.START);
             metadata.addView(time, new LinearLayout.LayoutParams(0, -2, 1));
             labels.addView(metadata);
@@ -793,7 +791,7 @@ public final class LocalFilesActivity extends Activity {
             name.setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO);
             detail.setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO);
             time.setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO);
-            View line = new View(LocalFilesActivity.this); line.setBackgroundColor(0xffdedede);
+            View line = new View(LocalFilesActivity.this); line.setBackgroundColor(Ui.line(LocalFilesActivity.this));
             FrameLayout.LayoutParams lineParams = new FrameLayout.LayoutParams(-1, Math.max(1, dp(.75f)), Gravity.BOTTOM);
             lineParams.leftMargin = lineParams.rightMargin = dp(16); addView(line, lineParams);
         }
@@ -829,7 +827,7 @@ public final class LocalFilesActivity extends Activity {
                 canvas.drawText(extension.isEmpty() ? "FILE" : extension.substring(0, Math.min(4, extension.length())).toUpperCase(Locale.ROOT), 21.5f, 28, paint);
             }
             if (checked) {
-                paint.setColor(BLUE); canvas.drawCircle(32, 32, 9, paint);
+                paint.setColor(Ui.accent(LocalFilesActivity.this)); canvas.drawCircle(32, 32, 9, paint);
                 paint.setColor(0xffffffff); paint.setStyle(Paint.Style.STROKE); paint.setStrokeWidth(2);
                 path.reset(); path.moveTo(27, 32); path.lineTo(31, 36); path.lineTo(37, 28); canvas.drawPath(path, paint);
             }

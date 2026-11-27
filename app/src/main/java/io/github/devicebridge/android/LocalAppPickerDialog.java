@@ -3,7 +3,6 @@ package io.github.devicebridge.android;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
@@ -46,7 +45,6 @@ final class LocalAppPickerDialog extends Dialog {
     private final BooleanSupplier validTarget;
     private final Consumer<String> choose;
     private final Runnable help;
-    private final boolean dark;
     private final int surface, primary, secondary, line, accent, selectedSurface;
     private final ExecutorService workers = Executors.newFixedThreadPool(2);
     private final List<LocalApps.Entry> all = new ArrayList<>(), shown = new ArrayList<>();
@@ -68,17 +66,13 @@ final class LocalAppPickerDialog extends Dialog {
     private ListView list;
     private Dialog details;
 
-    private static boolean isDark(Activity activity) {
-        return (activity.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK)
-                == Configuration.UI_MODE_NIGHT_YES;
-    }
     LocalAppPickerDialog(Activity activity, BooleanSupplier validTarget, Consumer<String> choose, Runnable help) {
-        super(activity, isDark(activity) ? android.R.style.Theme_Holo_NoActionBar : android.R.style.Theme_Holo_Light_NoActionBar);
+        super(activity, R.style.AppTheme);
         this.activity = activity; this.validTarget = validTarget; this.choose = choose; this.help = help;
-        dark = isDark(activity); surface = dark ? 0xff171b20 : 0xffffffff;
-        primary = dark ? 0xffedf1f7 : 0xff202124; secondary = dark ? 0xffaeb8c5 : 0xff68717d;
-        line = dark ? 0xff303740 : 0xffe5e8ec; accent = dark ? 0xff90caf9 : 0xff1976d2;
-        selectedSurface = dark ? 0xff263c50 : 0xffeaf3fc;
+        surface = Ui.surface(activity);
+        primary = Ui.ink(activity); secondary = Ui.muted(activity);
+        line = Ui.line(activity); accent = Ui.accent(activity);
+        selectedSurface = Ui.selected(activity);
     }
     @Override protected void onCreate(Bundle state) {
         super.onCreate(state);requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -94,7 +88,7 @@ final class LocalAppPickerDialog extends Dialog {
         toolbar.addView(permissions, new LinearLayout.LayoutParams(-2, dp(56)));root.addView(toolbar);
 
         LinearLayout searchBox = new LinearLayout(getContext());searchBox.setGravity(Gravity.CENTER_VERTICAL);
-        searchBox.setBackground(Ui.rounded(dark ? 0xff242b33 : 0xfff1f3f5, dp(10)));
+        searchBox.setBackground(Ui.rounded(Ui.raised(activity), dp(10)));
         ImageView searchIcon = new ImageView(getContext());searchIcon.setImageResource(android.R.drawable.ic_menu_search);
         searchIcon.setColorFilter(secondary);searchIcon.setPadding(dp(12), dp(12), dp(8), dp(12));
         searchBox.addView(searchIcon, new LinearLayout.LayoutParams(dp(44), dp(48)));
@@ -140,7 +134,7 @@ final class LocalAppPickerDialog extends Dialog {
         });root.addView(footer);
         Compatibility.inset(root);
         setContentView(root);
-        Window window = getWindow();if(window!=null){window.setLayout(-1,-1);window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE|WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);Compatibility.statusBarColor(window,dark?surface:0xff56616e);}
+        Window window = getWindow();if(window!=null){window.setLayout(-1,-1);window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE|WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);}
         search.addTextChangedListener(new TextWatcher(){public void beforeTextChanged(CharSequence s,int st,int c,int a){}public void onTextChanged(CharSequence s,int st,int before,int count){filter();}public void afterTextChanged(Editable s){}});
         root.requestFocus();load();
     }
@@ -172,7 +166,7 @@ final class LocalAppPickerDialog extends Dialog {
         selectedDetail.setText(selectedEntry==null?"长按可查看完整名称与包名":selectedEntry.packageName);
         confirm.setEnabled(selectedEntry!=null);styleConfirm();
     }
-    private void styleConfirm(){confirm.setTextColor(confirm.isEnabled()?(dark?0xff102337:0xffffffff):secondary);confirm.setBackground(Ui.rounded(confirm.isEnabled()?accent:(dark?0xff303740:0xffe8edf2),dp(8)));}
+    private void styleConfirm(){confirm.setTextColor(confirm.isEnabled()?Ui.color(activity,R.color.ui_on_accent):secondary);confirm.setBackground(Ui.rounded(confirm.isEnabled()?accent:Ui.raised(activity),dp(8)));}
     private void showDetails(LocalApps.Entry entry){
         TextView full=text(entry.label+"\n\n"+entry.packageName,16,primary);full.setTextIsSelectable(true);full.setPadding(dp(24),dp(16),dp(24),dp(16));
         details=new AlertDialog.Builder(getContext()).setTitle("应用信息").setView(full).setNegativeButton("关闭",null)
@@ -184,7 +178,7 @@ final class LocalAppPickerDialog extends Dialog {
     }
     private LinearLayout column(){LinearLayout view=new LinearLayout(getContext());view.setOrientation(LinearLayout.VERTICAL);return view;}
     private TextView text(String value,int size,int color){TextView view=new TextView(getContext());view.setText(value);view.setTextSize(size);view.setTextColor(color);return view;}
-    private TextView action(String value,String description){TextView view=text(value,18,primary);view.setGravity(Gravity.CENTER);view.setContentDescription(description);view.setBackground(Compatibility.ripple(dark?0x446b8fb5:0x221976d2,null,null));return view;}
+    private TextView action(String value,String description){TextView view=text(value,18,primary);view.setGravity(Gravity.CENTER);view.setContentDescription(description);view.setBackground(Compatibility.ripple(Ui.rippleColor(activity),null,null));return view;}
     private Button button(String value){Button view=new Button(getContext());view.setText(value);view.setTextSize(14);view.setAllCaps(false);view.setTextColor(accent);return view;}
     private View divider(){View view=new View(getContext());view.setBackgroundColor(line);view.setLayoutParams(new LinearLayout.LayoutParams(-1,Math.max(1,dp(.5f))));return view;}
     private int dp(float value){return Math.round(activity.getResources().getDisplayMetrics().density*value);}
@@ -194,7 +188,7 @@ final class LocalAppPickerDialog extends Dialog {
         public View getView(int position,View old,ViewGroup parent){
             Row row=old instanceof Row?(Row)old:new Row();LocalApps.Entry entry=shown.get(position);
             boolean selected=entry.packageName.equals(selectedPackage);row.name.setText(entry.label);row.packageName.setText(entry.packageName);
-            row.setBackground(Compatibility.ripple(dark?0x446b8fb5:0x331976d2,new ColorDrawable(selected?selectedSurface:surface),null));
+            row.setBackground(Compatibility.ripple(Ui.rippleColor(activity),new ColorDrawable(selected?selectedSurface:surface),null));
             row.indicator.selected=selected;row.indicator.invalidate();row.icon.setImageBitmap(icons.get(entry.packageName));
             if(icons.get(entry.packageName)==null){row.icon.setImageResource(android.R.drawable.sym_def_app_icon);loadIcon(entry.packageName);}
             row.setContentDescription(entry.label+"，"+entry.packageName+(selected?"，已选择":"，未选择")+"。长按查看完整信息");row.setSelected(selected);return row;

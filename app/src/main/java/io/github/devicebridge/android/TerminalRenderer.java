@@ -19,13 +19,12 @@ import io.github.devicebridge.core.TerminalTranscript;
 
 /** Android span adapter. All view/model edits run on the UI thread; no device I/O is done here. */
 final class TerminalRenderer {
-    static final int PROMPT_COLOR = 0xff3aa23a, ERROR_COLOR = 0xffff0000;
     private final TextView view;
     private final TerminalTranscript transcript = new TerminalTranscript();
 
     TerminalRenderer(TextView view) {
         this.view = view;
-        view.setTextColor(Ui.INK);
+        view.setTextColor(Ui.ink(view.getContext()));
         view.setText("", TextView.BufferType.EDITABLE);
     }
 
@@ -45,7 +44,7 @@ final class TerminalRenderer {
             int style = change.replacement.styleAt(start), end = start + 1;
             while (end < change.replacement.length() && change.replacement.styleAt(end) == style) end++;
             if (style != TerminalTranscript.NORMAL) replacement.setSpan(
-                    new ForegroundColorSpan(style == TerminalTranscript.ERROR ? ERROR_COLOR : PROMPT_COLOR),
+                    new ForegroundColorSpan(Ui.color(view.getContext(), style == TerminalTranscript.ERROR ? R.color.ui_danger : R.color.ui_success)),
                     start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             start = end;
         }

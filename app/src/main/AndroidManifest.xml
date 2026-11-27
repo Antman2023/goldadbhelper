@@ -13,7 +13,7 @@
       <intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter>
     </activity>
     <activity android:name="io.github.devicebridge.android.ScreenActivity" android:configChanges="orientation|screenSize|keyboardHidden" android:exported="false"/>
-    <activity android:name="io.github.devicebridge.android.FastbootActivity" android:configChanges="orientation|screenSize|keyboardHidden" android:exported="false" android:windowSoftInputMode="adjustResize"/>
+    <activity android:name="io.github.devicebridge.android.FastbootActivity" android:configChanges="orientation|screenSize|keyboardHidden|uiMode" android:exported="false" android:windowSoftInputMode="adjustResize"/>
     <activity android:name="io.github.devicebridge.android.SettingsActivity" android:exported="false"/>
     <activity android:name="io.github.devicebridge.android.LocalFilesActivity" android:exported="false"/>
     <provider android:name="io.github.devicebridge.android.LocalFileProvider" android:authorities="io.github.devicebridge.goldenbeetle.files" android:exported="false" android:grantUriPermissions="true"/>

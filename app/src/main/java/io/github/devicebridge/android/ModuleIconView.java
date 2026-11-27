@@ -13,7 +13,6 @@ import android.view.accessibility.AccessibilityNodeInfo;
 /** Independently drawn navigation symbols. No reference application artwork is used. */
 public final class ModuleIconView extends View {
     private static final String[] LABELS = {"设备信息", "实用工具", "远程控制", "文件管理", "应用管理", "进程管理", "运行命令"};
-    private static final int BLUE = 0xff1976d2, GRAY = 0xff666666;
     private final int index;
     private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
@@ -27,7 +26,7 @@ public final class ModuleIconView extends View {
         setClickable(true);
         setMinimumWidth(dp(72));
         setMinimumHeight(dp(48));
-        setBackground(Compatibility.ripple(0x1f1976d2, null, null));
+        setBackground(Compatibility.ripple(Ui.rippleColor(context), null, null));
         setOnClickListener(view -> { if (action != null) action.run(); });
     }
 
@@ -47,7 +46,7 @@ public final class ModuleIconView extends View {
 
     @Override protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        paint.setColor(isSelected() ? BLUE : GRAY);
+        paint.setColor(isSelected() ? Ui.accent(getContext()) : Ui.muted(getContext()));
         paint.setStyle(Paint.Style.FILL);
         if (isSelected()) canvas.drawRect(0, getHeight() - dp(2), getWidth(), getHeight(), paint);
         canvas.save();

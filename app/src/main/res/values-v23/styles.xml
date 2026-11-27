@@ -1,8 +1,4 @@
 <resources>
-  <style name="AppTheme" parent="android:style/Theme.Material.Light.NoActionBar">
-    <item name="android:fontFamily">sans</item><item name="android:colorAccent">#2196F3</item>
-    <item name="android:colorControlActivated">#2196F3</item>
-    <item name="android:statusBarColor">#FAFAFA</item><item name="android:navigationBarColor">#202124</item>
-    <item name="android:windowActionModeOverlay">true</item>
-  <item name="android:windowLightStatusBar">true</item></style>
+  <bool name="ui_light_status_bar">true</bool>
+  <color name="ui_status_bar">@color/ui_page</color>
 </resources>

@@ -70,10 +70,10 @@ public final class AppEntryAdapter extends BaseAdapter {
         boolean checked = selected.contains(packageName) || flag(entry, "selected", false);
         String title = label + (enabled ? "" : " [已停用]");
         row.name.setText(title);
-        row.name.setTextColor(enabled ? 0xff000000 : 0xff757575);
+        row.name.setTextColor(enabled ? Ui.ink(context) : Ui.muted(context));
         row.packageName.setText(value(entry,"detail",packageName));
         row.checked = checked;
-        row.setBackgroundColor(checked ? 0xffe8f0fc : 0xffffffff);
+        row.setBackgroundColor(checked ? Ui.selected(context) : Ui.surface(context));
         row.icon.bind(decodeIcon(value(entry, "icon", "")), flag(entry, "system", false), checked, enabled);
         row.setContentDescription(title + "，" + packageName + (checked ? "，已选择" : ""));
         return row;
@@ -153,8 +153,8 @@ public final class AppEntryAdapter extends BaseAdapter {
 
             LinearLayout labels = new LinearLayout(context);
             labels.setOrientation(LinearLayout.VERTICAL);
-            name = text(context, 18, 0xff000000);
-            packageName = text(context, 13, 0xff757575);
+            name = text(context, 18, Ui.ink(context));
+            packageName = text(context, 13, Ui.muted(context));
             labels.addView(name, new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
             labels.addView(packageName, new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
             LayoutParams textParams = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT, Gravity.CENTER_VERTICAL);
@@ -163,7 +163,7 @@ public final class AppEntryAdapter extends BaseAdapter {
             addView(labels, textParams);
 
             View divider = new View(context);
-            divider.setBackgroundColor(0xffdedede);
+            divider.setBackgroundColor(Ui.line(context));
             addView(divider, new LayoutParams(LayoutParams.MATCH_PARENT, dp(context, 1), Gravity.BOTTOM));
         }
 

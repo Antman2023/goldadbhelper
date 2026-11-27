@@ -1,6 +1,8 @@
 <resources>
-  <style name="AppTheme" parent="android:style/Theme.Holo.Light.NoActionBar">
+  <style name="AppTheme" parent="PlatformAppearance">
     <item name="android:fontFamily">sans</item>
+    <item name="android:windowBackground">@color/ui_page</item>
     <item name="android:windowActionModeOverlay">true</item>
   </style>
+  <style name="PlatformAppearance" parent="android:style/Theme.Holo.Light.NoActionBar" />
 </resources>

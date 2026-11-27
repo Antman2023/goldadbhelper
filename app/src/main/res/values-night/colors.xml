@@ -1,0 +1,24 @@
+<resources>
+  <color name="ui_page">#14171C</color>
+  <color name="ui_surface">#1E232B</color>
+  <color name="ui_raised">#282F38</color>
+  <color name="ui_ink">#EDF2F8</color>
+  <color name="ui_muted">#ADB9C6</color>
+  <color name="ui_divider">#394551</color>
+  <color name="ui_accent">#94CBFF</color>
+  <color name="ui_on_accent">#112940</color>
+  <color name="ui_selected">#293F54</color>
+  <color name="ui_success">#83DDA7</color>
+  <color name="ui_danger">#FFABA9</color>
+  <color name="ui_warning">#FFCA80</color>
+  <color name="ui_pink">#FF97BA</color>
+  <color name="ui_purple">#D5ACF5</color>
+  <color name="ui_teal">#8CDDD2</color>
+  <color name="ui_on_teal">#14312E</color>
+  <color name="ui_teal_container">#253F3D</color>
+  <color name="ui_danger_container">#492C30</color>
+  <color name="ui_ripple">#28FFFFFF</color>
+  <color name="ui_floating_surface">#F02A323D</color>
+  <color name="ui_status_bar">#14171C</color>
+  <color name="ui_navigation_bar">#14171C</color>
+</resources>

@@ -1,6 +1,5 @@
 package io.github.devicebridge.android;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -25,9 +24,8 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 /** Separate connection settings and remote session; ordinary Android controls, no copied artwork. */
-public final class ScreenActivity extends Activity implements ScreenController.Listener, TextureView.SurfaceTextureListener {
+public final class ScreenActivity extends ThemedActivity implements ScreenController.Listener, TextureView.SurfaceTextureListener {
     private static final int EXPORT_PNG = 4101;
-    private static final int INK = 0xff242424, PAPER = 0xfff8f8f8, MUTED = 0xff757575;
     private ScreenController controller;
     private ScreenController.Options options = new ScreenController.Options();
     private SharedPreferences prefs;
@@ -61,8 +59,7 @@ public final class ScreenActivity extends Activity implements ScreenController.L
         }
         targetDescription = session.target();
         controller = new ScreenController(this, session, this);
-        root = new FrameLayout(this); root.setBackgroundColor(PAPER);
-        Compatibility.statusBarColor(getWindow(), PAPER);
+        root = new FrameLayout(this); root.setBackgroundColor(Ui.page(this));
         Compatibility.inset(root, true);
         setContentView(root);
         if (saved != null && saved.getBoolean("viewing")) showScreen();
@@ -73,7 +70,7 @@ public final class ScreenActivity extends Activity implements ScreenController.L
     }
     private int dp(float value) { return Math.round(value * getResources().getDisplayMetrics().density); }
     private TextView label(String text, int sp) {
-        TextView v = new TextView(this); v.setText(text); v.setTextSize(sp); v.setTextColor(INK); v.setPadding(dp(12), dp(8), dp(12), dp(8)); return v;
+        TextView v = new TextView(this); v.setText(text); v.setTextSize(sp); v.setTextColor(Ui.ink(this)); v.setPadding(dp(12), dp(8), dp(12), dp(8)); return v;
     }
     private Button button(String text, Runnable action) {
         Button b = new Button(this); b.setText(text); b.setAllCaps(false); b.setOnClickListener(v -> action.run()); return b;
@@ -126,9 +123,9 @@ public final class ScreenActivity extends Activity implements ScreenController.L
     private void provenance() { RemoteSettingsView.showProvenance(this); }
     private LinearLayout toolbar(String title, Runnable back) { return toolbar(title, back, false); }
     private LinearLayout toolbar(String title, Runnable back, boolean navigation) {
-        LinearLayout bar = new LinearLayout(this); bar.setGravity(Gravity.CENTER_VERTICAL); bar.setBackgroundColor(PAPER);
+        LinearLayout bar = new LinearLayout(this); bar.setGravity(Gravity.CENTER_VERTICAL); bar.setBackgroundColor(Ui.page(this));
         bar.addView(toolbarIcon(navigation ? 0 : 3, navigation ? "导航" : "返回", back), new LinearLayout.LayoutParams(dp(56), dp(56)));
-        TextView name = new TextView(this); name.setText(title); name.setTextSize(20); name.setTextColor(INK); name.setGravity(Gravity.CENTER_VERTICAL); name.setPadding(dp(16), 0, 0, 0);
+        TextView name = new TextView(this); name.setText(title); name.setTextSize(20); name.setTextColor(Ui.ink(this)); name.setGravity(Gravity.CENTER_VERTICAL); name.setPadding(dp(16), 0, 0, 0);
         bar.addView(name, new LinearLayout.LayoutParams(0, dp(56), 1)); return bar;
     }
     private View toolbarIcon(int kind, String description, Runnable action) {
@@ -137,7 +134,7 @@ public final class ScreenActivity extends Activity implements ScreenController.L
             @Override protected void onDraw(Canvas canvas) {
                 super.onDraw(canvas); canvas.save(); canvas.translate(getWidth() / 2f, getHeight() / 2f);
                 float density = getResources().getDisplayMetrics().density; canvas.scale(density, density);
-                paint.setColor(MUTED); paint.setStrokeWidth(2); paint.setStrokeCap(Paint.Cap.ROUND); paint.setStyle(Paint.Style.STROKE);
+                paint.setColor(Ui.muted(ScreenActivity.this)); paint.setStrokeWidth(2); paint.setStrokeCap(Paint.Cap.ROUND); paint.setStyle(Paint.Style.STROKE);
                 if (kind == 0) { for (int y = -5; y <= 5; y += 5) canvas.drawLine(-8, y, 8, y, paint); }
                 else if (kind == 1) {
                     canvas.drawCircle(0, 0, 9, paint); paint.setStyle(Paint.Style.FILL); paint.setTextSize(15); paint.setTextAlign(Paint.Align.CENTER);
@@ -148,14 +145,14 @@ public final class ScreenActivity extends Activity implements ScreenController.L
             }
         };
         icon.setContentDescription(description); icon.setFocusable(true);
-        icon.setBackground(Compatibility.ripple(0x22000000, null, rounded(Color.WHITE, 24)));
+        icon.setBackground(Compatibility.ripple(Ui.rippleColor(this), null, rounded(Ui.surface(this), 24)));
         icon.setOnClickListener(v -> action.run()); return icon;
     }
     private void showScreen() {
         viewing = true; firstFrame = false; frameWidth = frameHeight = 0; root.removeAllViews();
         LinearLayout screen = column(); root.addView(screen, new FrameLayout.LayoutParams(-1, -1));
         LinearLayout bar = toolbar("远程控制", this::confirmExit); bar.addView(toolbarIcon(2, "更多选项", this::sessionMenu), new LinearLayout.LayoutParams(dp(48), dp(48))); screen.addView(bar);
-        status = label("正在准备显示区域…", 12); status.setTextColor(0xff666666); screen.addView(status);
+        status = label("正在准备显示区域…", 12); status.setTextColor(Ui.muted(this)); screen.addView(status);
         picture = new FrameLayout(this); picture.setBackgroundColor(Color.BLACK); screen.addView(picture, new LinearLayout.LayoutParams(-1, 0, 1));
         texture = new TextureView(this); texture.setSurfaceTextureListener(this); picture.addView(texture, new FrameLayout.LayoutParams(-1, -1, Gravity.CENTER));
         screenshot = new ImageView(this); screenshot.setScaleType(options.stretch ? ImageView.ScaleType.FIT_XY : ImageView.ScaleType.FIT_CENTER);
@@ -167,7 +164,7 @@ public final class ScreenActivity extends Activity implements ScreenController.L
         bottomNav = navigation();
         if (navigationIndex == 0) screen.addView(bottomNav);
         else if (navigationIndex == 1) {
-            FrameLayout floating = new FrameLayout(this); floating.setBackgroundColor(0xeefafafa);
+            FrameLayout floating = new FrameLayout(this); floating.setBackgroundColor(Ui.color(this,R.color.ui_floating_surface));
             LinearLayout row = new LinearLayout(this); TextView handle = label("⋮⋮", 20); row.addView(handle); row.addView(bottomNav); floating.addView(row);
             FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(-2, -2, Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL); lp.bottomMargin = dp(20); picture.addView(floating, lp);
             FrameLayout viewport = picture;
@@ -192,7 +189,7 @@ public final class ScreenActivity extends Activity implements ScreenController.L
         floating.setY(Math.max(0, Math.min(viewport.getHeight() - floating.getHeight(), y)));
     }
     private LinearLayout navigation() {
-        LinearLayout row = new LinearLayout(this); row.setGravity(Gravity.CENTER); row.setBackgroundColor(0xffeeeeee);
+        LinearLayout row = new LinearLayout(this); row.setGravity(Gravity.CENTER); row.setBackgroundColor(Ui.raised(this));
         row.addView(button("返回", () -> controller.key(4))); row.addView(button("主页", () -> controller.key(3))); row.addView(button("最近", () -> controller.key(187))); return row;
     }
     private void sessionMenu() {
@@ -300,14 +297,14 @@ public final class ScreenActivity extends Activity implements ScreenController.L
         if (!resumed || !viewing || controller == null || controller.running()) return;
         if (!options.compatibility && (surface == null || !surface.isValid())) return;
         frameWidth = frameHeight = 0; firstFrame = false;
-        if (status != null) status.setTextColor(0xff666666);
+        if (status != null) status.setTextColor(Ui.muted(this));
         if (screenshot != null) screenshot.setImageDrawable(null);
         if (shownBitmap != null) { shownBitmap.recycle(); shownBitmap = null; }
         try { controller.start(options, surface); } catch (RuntimeException e) { onError(e.getMessage()); }
     }
     @Override public void onStatus(String text) { if (status != null) status.setText(text); }
     @Override public void onError(String error) {
-        if (status != null) { status.setText("错误：" + error); status.setTextColor(0xffb3261e); }
+        if (status != null) { status.setText("错误：" + error); status.setTextColor(Ui.color(this,R.color.ui_danger)); }
         Toast.makeText(this, error == null ? "远控失败" : error, Toast.LENGTH_LONG).show();
     }
     @Override public void onFrame(Bitmap bitmap, int width, int height) {

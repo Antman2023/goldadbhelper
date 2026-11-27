@@ -1,0 +1,10 @@
+<resources>
+  <style name="PlatformAppearance" parent="android:style/Theme.Material.NoActionBar">
+    <item name="android:colorAccent">@color/ui_accent</item>
+    <item name="android:statusBarColor">@color/ui_status_bar</item>
+    <item name="android:navigationBarColor">@color/ui_navigation_bar</item>
+    <item name="android:windowLightStatusBar">@bool/ui_light_status_bar</item>
+    <item name="android:windowLightNavigationBar">false</item>
+    <item name="android:forceDarkAllowed">false</item>
+  </style>
+</resources>

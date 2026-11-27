@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
-import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.RippleDrawable;
 import android.view.Gravity;
@@ -16,7 +15,6 @@ import java.util.function.IntConsumer;
 public final class RemoteSettingsView extends ScrollView {
     public static final String PREFERENCES = "jinjiachong_remote";
     public static final String CONNECT_IMMEDIATELY = "connect_immediately";
-    private static final int BLUE = 0xff1976d2, PAPER = 0xfff8f8f8, MUTED = 0xff757575;
     private static final int[] BIT_RATES = {12000000,8000000,6000000,4000000,2000000,1000000};
     private static final String[] RESOLUTIONS = {"原始分辨率", "自动（最长边 1920）", "1080p（短边）", "720p（短边）", "540p（短边）", "360p（短边）"};
     private static final String[] RATES = {"12Mbps", "8Mbps", "6Mbps", "4Mbps", "2Mbps", "1Mbps"};
@@ -25,9 +23,9 @@ public final class RemoteSettingsView extends ScrollView {
 
     public RemoteSettingsView(Activity activity, Runnable onConnect) {
         super(activity); this.activity = activity; prefs = activity.getSharedPreferences(PREFERENCES, Activity.MODE_PRIVATE);
-        setBackgroundColor(PAPER); setClipToPadding(false); setFillViewport(true);
+        setBackgroundColor(Ui.page(activity)); setClipToPadding(false); setFillViewport(true);
         LinearLayout body = column(); body.setPadding(dp(12), dp(32), dp(12), dp(24)); addView(body);
-        LinearLayout card = column(); card.setBackground(rounded(Color.WHITE, 6)); Compatibility.elevation(card,dp(4)); Compatibility.clipToOutline(card,true);
+        LinearLayout card = column(); card.setBackground(rounded(Ui.surface(getContext()), 6)); Compatibility.elevation(card,dp(4)); Compatibility.clipToOutline(card,true);
         LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(-1, -2); cardParams.setMargins(dp(2), 0, dp(2), 0);
         body.addView(card, cardParams);
         settingChoice(card, "分辨率", RESOLUTIONS, bounded(prefs.getInt("resolution", 0), 5),
@@ -56,8 +54,8 @@ public final class RemoteSettingsView extends ScrollView {
         });
         modeUi.run();
         Button connect = new Button(activity); connect.setText("连接"); connect.setAllCaps(false); connect.setOnClickListener(v -> onConnect.run());
-        connect.setTextColor(Color.WHITE); connect.setTextSize(14); connect.setPadding(0, 0, 0, 0); connect.setMinHeight(0); connect.setMinimumHeight(0);
-        connect.setBackground(Compatibility.ripple(0x33ffffff, rounded(BLUE, 4), null)); Compatibility.elevation(connect,dp(2));
+        connect.setTextColor(Ui.color(activity,R.color.ui_on_accent)); connect.setTextSize(14); connect.setPadding(0, 0, 0, 0); connect.setMinHeight(0); connect.setMinimumHeight(0);
+        connect.setBackground(Compatibility.ripple(0x33ffffff, rounded(Ui.accent(activity), 4), null)); Compatibility.elevation(connect,dp(2));
         LinearLayout.LayoutParams connectParams = new LinearLayout.LayoutParams(-1, dp(48)); connectParams.topMargin = dp(26);
         body.addView(connect, connectParams);
     }
@@ -71,19 +69,19 @@ public final class RemoteSettingsView extends ScrollView {
         // The measured reference rows are 69.5dp, including their dividers.
         if (card.getChildCount() > 0) {
             FrameLayout previous = (FrameLayout) card.getChildAt(card.getChildCount() - 1);
-            View divider = new View(activity); divider.setBackgroundColor(0xffdedede);
+            View divider = new View(activity); divider.setBackgroundColor(Ui.line(activity));
             previous.addView(divider, new FrameLayout.LayoutParams(-1, dp(1), Gravity.BOTTOM));
         }
         FrameLayout frame = new FrameLayout(activity); card.addView(frame, new LinearLayout.LayoutParams(-1, dp(69.5f)));
         LinearLayout row = new LinearLayout(activity); row.setGravity(Gravity.CENTER_VERTICAL); row.setPadding(dp(16), 0, dp(8), 0);
-        row.setBackground(Compatibility.ripple(0x18000000, null, rounded(Color.WHITE, 0)));
-        TextView name = new TextView(activity); name.setText(title); name.setTextColor(Color.BLACK); name.setTextSize(16);
+        row.setBackground(Compatibility.ripple(Ui.rippleColor(activity), null, rounded(Ui.surface(activity), 0)));
+        TextView name = new TextView(activity); name.setText(title); name.setTextColor(Ui.ink(activity)); name.setTextSize(16);
         row.addView(name, new LinearLayout.LayoutParams(-2, -2));
         frame.addView(row, new FrameLayout.LayoutParams(-1, -1)); return row;
     }
     private View settingChoice(LinearLayout card, String title, String[] choices, int selected, IntConsumer changed) {
         LinearLayout row = settingRow(card, title);
-        TextView value = new TextView(activity); value.setText(choices[selected]); value.setTextSize(14); value.setTextColor(MUTED);
+        TextView value = new TextView(activity); value.setText(choices[selected]); value.setTextSize(14); value.setTextColor(Ui.muted(activity));
         value.setGravity(Gravity.END | Gravity.CENTER_VERTICAL); value.setPadding(dp(16), 0, dp(16), 0);
         row.addView(value, new LinearLayout.LayoutParams(0, -1, 1));
         int[] selection = {selected}; row.setFocusable(true);
@@ -94,7 +92,7 @@ public final class RemoteSettingsView extends ScrollView {
     private CheckBox settingToggle(LinearLayout card, String title, boolean selected, CompoundButton.OnCheckedChangeListener changed) {
         LinearLayout row = settingRow(card, title); row.addView(new View(activity), new LinearLayout.LayoutParams(0, 0, 1));
         CheckBox field = new CheckBox(activity); field.setContentDescription(title); field.setChecked(selected); field.setPadding(0, 0, 0, 0);
-        Compatibility.buttonTint(field,new ColorStateList(new int[][]{new int[]{android.R.attr.state_checked}, new int[]{}}, new int[]{BLUE, MUTED}));
+        Compatibility.buttonTint(field,new ColorStateList(new int[][]{new int[]{android.R.attr.state_checked}, new int[]{}}, new int[]{Ui.accent(activity), Ui.muted(activity)}));
         row.addView(field, new LinearLayout.LayoutParams(dp(48), dp(48)));
         field.setOnCheckedChangeListener(changed); row.setOnClickListener(v -> field.setChecked(!field.isChecked())); return field;
     }

@@ -53,7 +53,7 @@ public final class FileEntryAdapter extends BaseAdapter {
         row.detail.setText(detail);
         row.modified.setText(modified);
         row.checked = checked;
-        row.setBackgroundColor(checked ? 0xffe8f0fc : 0xffffffff);
+        row.setBackgroundColor(checked ? Ui.selected(context) : Ui.surface(context));
         row.icon.bind(entry, checked);
         row.setContentDescription(entry.name + "，" + detail + "，" + modified + (checked ? "，已选择" : ""));
         return row;
@@ -99,14 +99,14 @@ public final class FileEntryAdapter extends BaseAdapter {
 
             LinearLayout labels = new LinearLayout(context);
             labels.setOrientation(LinearLayout.VERTICAL);
-            name = text(context, 18, 0xff000000);
+            name = text(context, 18, Ui.ink(context));
             labels.addView(name, new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
             LinearLayout metadata = new LinearLayout(context);
             metadata.setOrientation(LinearLayout.HORIZONTAL);
             metadata.setGravity(Gravity.CENTER_VERTICAL);
-            detail = text(context, 14, 0xff757575);
+            detail = text(context, 14, Ui.muted(context));
             metadata.addView(detail, new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
-            modified = text(context, 14, 0xff757575);
+            modified = text(context, 14, Ui.muted(context));
             modified.setGravity(Gravity.RIGHT);
             metadata.addView(modified, new LinearLayout.LayoutParams(dp(context, 172), LayoutParams.WRAP_CONTENT));
             labels.addView(metadata, new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
@@ -116,7 +116,7 @@ public final class FileEntryAdapter extends BaseAdapter {
             addView(labels, textParams);
 
             View divider = new View(context);
-            divider.setBackgroundColor(0xffdedede);
+            divider.setBackgroundColor(Ui.line(context));
             LayoutParams line = new LayoutParams(LayoutParams.MATCH_PARENT, dp(context, 1), Gravity.BOTTOM);
             line.leftMargin = line.rightMargin = dp(context, 16);
             addView(divider, line);

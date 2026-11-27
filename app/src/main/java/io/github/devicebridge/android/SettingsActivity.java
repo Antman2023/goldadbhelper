@@ -1,6 +1,5 @@
 package io.github.devicebridge.android;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ClipData;
 import android.content.ClipboardManager;
@@ -29,18 +28,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 /** Grouped settings, implemented with platform widgets and independent geometric icons. */
-public final class SettingsActivity extends Activity {
-    private static final int INK = 0xff212121, MUTED = 0xff757575, PINK = 0xffff4f81;
+public final class SettingsActivity extends ThemedActivity {
     private static final String[] PAGES = {"设备信息", "实用工具", "远程控制", "文件管理", "应用管理", "进程管理", "运行命令"};
+    private static final String[] APPEARANCES = {"跟随系统", "浅色", "深色"};
     private SharedPreferences prefs;
     private LinearLayout list;
     private ScrollView scroll;
+    private int restoredScroll;
     private String pickerId;
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
         prefs = getSharedPreferences("settings", MODE_PRIVATE);
         pickerId = state == null ? null : state.getString("directory_request");
+        restoredScroll = state == null ? 0 : state.getInt("settings_scroll");
         show();
     }
 
@@ -55,20 +56,20 @@ public final class SettingsActivity extends Activity {
     }
 
     private void show() {
-        final int previousY = scroll == null ? 0 : scroll.getScrollY();
+        final int previousY = scroll == null ? restoredScroll : scroll.getScrollY();
         LinearLayout root = Ui.col(this);
-        root.setBackgroundColor(0xffffffff);
+        root.setBackgroundColor(Ui.surface(this));
         Ui.inset(this, root);
         LinearLayout toolbar = Ui.row(this);
         toolbar.setMinimumHeight(dp(56));
-        SettingsIcon back = new SettingsIcon("back", INK);
+        SettingsIcon back = new SettingsIcon("back", Ui.ink(this));
         back.setContentDescription("返回");
         back.setFocusable(true);
         back.setClickable(true);
         back.setBackground(ripple());
         back.setOnClickListener(view -> finish());
         toolbar.addView(back, new LinearLayout.LayoutParams(dp(56), dp(56)));
-        TextView title = text("设置", 20, INK);
+        TextView title = text("设置", 20, Ui.ink(this));
         title.setPadding(dp(16), 0, dp(16), 0);
         toolbar.addView(title, new LinearLayout.LayoutParams(0, -2, 1));
         root.addView(toolbar, new LinearLayout.LayoutParams(-1, dp(56)));
@@ -92,6 +93,13 @@ public final class SettingsActivity extends Activity {
         hiddenFiles();
         divider();
         section("全局设置");
+        int appearance = appearance(this);
+        item("appearance", "外观", APPEARANCES[appearance], () -> new AlertDialog.Builder(this)
+                .setTitle("外观")
+                .setSingleChoiceItems(APPEARANCES, appearance, (dialog, which) -> {
+                    dialog.dismiss();
+                    selectAppearance(which);
+                }).setNegativeButton("取消", null).show());
         int page = prefs.getInt("default_page", 0);
         if (page < 0 || page >= PAGES.length) page = 0;
         final int selectedPage = prefs.contains("default_page") ? page : -1;
@@ -134,11 +142,11 @@ public final class SettingsActivity extends Activity {
     }
 
     private android.graphics.drawable.Drawable ripple() {
-        return Compatibility.ripple(0x16000000, new ColorDrawable(0xffffffff), null);
+        return Compatibility.ripple(Ui.rippleColor(this), new ColorDrawable(Ui.surface(this)), null);
     }
 
     private void section(String title) {
-        TextView heading = text(title, 14, PINK);
+        TextView heading = text(title, 14, Ui.color(this,R.color.ui_pink));
         heading.setGravity(Gravity.CENTER_VERTICAL);
         heading.setPadding(dp(72), dp(12), dp(16), 0);
         list.addView(heading, new LinearLayout.LayoutParams(-1, dp(56)));
@@ -146,7 +154,7 @@ public final class SettingsActivity extends Activity {
 
     private void divider() {
         View line = new View(this);
-        line.setBackgroundColor(0xffdedede);
+        line.setBackgroundColor(Ui.line(this));
         list.addView(line, new LinearLayout.LayoutParams(-1, Math.max(1, dp(.75f))));
     }
 
@@ -155,15 +163,15 @@ public final class SettingsActivity extends Activity {
         row.setMinimumHeight(dp(72));
         row.setPadding(0, dp(16), dp(16), dp(16));
         row.setBackground(ripple());
-        SettingsIcon symbol = new SettingsIcon(icon, icon.equals("lock") ? 0xff1976d2 : MUTED);
+        SettingsIcon symbol = new SettingsIcon(icon, icon.equals("lock") ? Ui.accent(this) : Ui.muted(this));
         symbol.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
         row.addView(symbol, new LinearLayout.LayoutParams(dp(56), dp(40)));
         LinearLayout words = Ui.col(this);
         words.setPadding(dp(16), 0, 0, 0);
-        TextView title = text(name, 16, INK);
+        TextView title = text(name, 16, Ui.ink(this));
         words.addView(title, new LinearLayout.LayoutParams(-1, -2));
         if (summary != null && !summary.isEmpty()) {
-            TextView sub = text(summary, 14, MUTED);
+            TextView sub = text(summary, 14, Ui.muted(this));
             words.addView(sub, new LinearLayout.LayoutParams(-1, -2));
         }
         row.addView(words, new LinearLayout.LayoutParams(0, -2, 1));
@@ -255,7 +263,11 @@ public final class SettingsActivity extends Activity {
     }
 
     private void chooseScreenshotDirectory(){pickerId=java.util.UUID.randomUUID().toString();startActivityForResult(LocalFilesActivity.intent(this,LocalFilesActivity.MODE_DIRECTORY,pickerId),2);}
-    @Override protected void onSaveInstanceState(Bundle state){super.onSaveInstanceState(state);state.putString("directory_request",pickerId);}
+    @Override protected void onSaveInstanceState(Bundle state){
+        super.onSaveInstanceState(state);
+        state.putString("directory_request",pickerId);
+        state.putInt("settings_scroll",scroll.getScrollY());
+    }
     @Override protected void onActivityResult(int request,int result,Intent data){super.onActivityResult(request,result,data);if(request!=2||data==null)return;if(data.hasExtra(LocalFilesActivity.EXTRA_REQUEST_ID)&&!java.util.Objects.equals(pickerId,data.getStringExtra(LocalFilesActivity.EXTRA_REQUEST_ID))){Ui.message(this,"目录选择已失效","请重新选择截图保存目录。");return;}if(result==LocalFilesActivity.RESULT_USE_SAF){if(Compatibility.supportsDocumentTree())startActivityForResult(new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE),2);else Ui.message(this,"系统目录选择不可用","Android 4.4不支持目录树选择，请使用本机文件浏览器。");return;}if(result!=RESULT_OK||data.getData()==null)return;Uri uri=data.getData();try{if(!"file".equals(uri.getScheme()))getContentResolver().takePersistableUriPermission(uri,data.getFlags()&(Intent.FLAG_GRANT_READ_URI_PERMISSION|Intent.FLAG_GRANT_WRITE_URI_PERMISSION));else if(!new java.io.File(uri.getPath()).isDirectory())throw new IllegalArgumentException("所选目录已不存在");java.util.ArrayList<String> tokens=data.getStringArrayListExtra("local_picker_source_tokens");String token=tokens!=null&&!tokens.isEmpty()?tokens.get(0):null;if("file".equals(uri.getScheme())&&token==null)token=Compatibility.directoryToken(new java.io.File(uri.getPath()));prefs.edit().putString("screenshot_tree",uri.toString()).putString("screenshot_tree_token",token).apply();show();}catch(Exception error){Ui.message(this,"目录不可用",error.getMessage());}}
 
     private final class SettingsIcon extends View {
@@ -284,6 +296,10 @@ public final class SettingsActivity extends Activity {
                     canvas.drawPath(path, paint); canvas.drawRect(-4, -7, 4, -2, paint); canvas.drawCircle(0, 3, 2, paint); break;
                 case "eye":
                     path.moveTo(-10, 0); path.quadTo(0, -12, 10, 0); path.quadTo(0, 12, -10, 0); canvas.drawPath(path, paint); canvas.drawCircle(0, 0, 3.4f, paint); break;
+                case "appearance":
+                    path.moveTo(1, -9); path.cubicTo(-10, -10, -13, 6, -3, 9);
+                    path.cubicTo(2, 11, 7, 8, 9, 3); path.cubicTo(1, 5, -4, -2, 1, -9);
+                    path.close(); canvas.drawPath(path, paint); break;
                 case "home":
                     path.moveTo(-9, -1); path.lineTo(0, -9); path.lineTo(9, -1); path.moveTo(-6, -3); path.lineTo(-6, 8);
                     path.lineTo(-1.5f, 8); path.lineTo(-1.5f, 2); path.lineTo(2, 2); path.lineTo(2, 8); path.lineTo(6, 8); path.lineTo(6, -3); canvas.drawPath(path, paint); break;

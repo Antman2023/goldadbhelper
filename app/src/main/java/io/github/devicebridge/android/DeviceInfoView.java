@@ -25,7 +25,6 @@ import java.util.regex.Pattern;
 
 /** A read-only device snapshot. All displayed values originate in the supplied shell results. */
 public final class DeviceInfoView extends ScrollView {
-    private static final int INK = 0xff101010, MUTED = 0xff757575, BLUE = 0xff1684ec, PINK = 0xffff4f81;
     private static final String MISSING = "未提供";
     private final Map<String, String> snapshots;
     private final Runnable refresh;
@@ -42,11 +41,11 @@ public final class DeviceInfoView extends ScrollView {
         this.refresh = refresh;
         setFillViewport(true);
         setClipToPadding(false);
-        setBackgroundColor(0xfff7f7f7);
+        setBackgroundColor(Ui.page(getContext()));
         content = Ui.col(context);
         content.setPadding(0, 0, 0, dp(24));
         addView(content, new ScrollView.LayoutParams(-1, -2));
-        pullHint = text("下拉刷新", 13, MUTED);
+        pullHint = text("下拉刷新", 13, Ui.muted(getContext()));
         pullHint.setPadding(dp(18), dp(10), dp(18), dp(10));
         pullHint.setGravity(Gravity.CENTER);
         pullHint.setVisibility(GONE);
@@ -85,7 +84,7 @@ public final class DeviceInfoView extends ScrollView {
 
         LinearLayout card = Ui.col(getContext());
         card.setPadding(0, dp(8), 0, dp(8));
-        card.setBackground(Ui.rounded(0xffffffff, dp(6)));
+        card.setBackground(Ui.rounded(Ui.surface(getContext()), dp(6)));
         Compatibility.elevation(card,dp(5));
         LinearLayout.LayoutParams cardLayout = new LinearLayout.LayoutParams(-1, -2);
         cardLayout.setMargins(dp(13), dp(15), dp(13), dp(16));
@@ -198,7 +197,7 @@ public final class DeviceInfoView extends ScrollView {
         detail("USB 供电", yesNo(battery.usbPowered));
         detail("无线供电", yesNo(battery.wirelessPowered));
 
-        TextView explanation = text("未提供表示设备未报告该项、系统限制或读取未成功。下拉可刷新当前设备的信息。", 12, MUTED);
+        TextView explanation = text("未提供表示设备未报告该项、系统限制或读取未成功。下拉可刷新当前设备的信息。", 12, Ui.muted(getContext()));
         explanation.setPadding(dp(18), dp(20), dp(18), dp(8));
         content.addView(explanation, new LinearLayout.LayoutParams(-1, -2));
         Button update = Ui.button(getContext(), "刷新设备信息", this::requestRefresh);
@@ -221,7 +220,7 @@ public final class DeviceInfoView extends ScrollView {
         row.addView(symbol, new LinearLayout.LayoutParams(dp(44), dp(36)));
         LinearLayout values = Ui.col(getContext());
         values.setGravity(Gravity.CENTER_VERTICAL);
-        TextView main = text(shown(value), icon == 5 ? 16 : 18, INK);
+        TextView main = text(shown(value), icon == 5 ? 16 : 18, Ui.ink(getContext()));
         main.setTextIsSelectable(true);
         values.addView(main, new LinearLayout.LayoutParams(-1, -2));
         if (icon == 5 && usedFraction != null) {
@@ -235,7 +234,7 @@ public final class DeviceInfoView extends ScrollView {
         valueLayout.leftMargin = dp(10);
         row.addView(values, valueLayout);
         if (label != null) {
-            TextView caption = text(label, 14, MUTED);
+            TextView caption = text(label, 14, Ui.muted(getContext()));
             caption.setGravity(Gravity.END | Gravity.CENTER_VERTICAL);
             LinearLayout.LayoutParams captionLayout = new LinearLayout.LayoutParams(-2, -2);
             captionLayout.leftMargin = dp(8);
@@ -245,7 +244,7 @@ public final class DeviceInfoView extends ScrollView {
     }
 
     private void section(String title) {
-        TextView heading = text(title, 14, BLUE);
+        TextView heading = text(title, 14, Ui.accent(getContext()));
         heading.setPadding(dp(18), 0, dp(18), 0);
         heading.setGravity(Gravity.CENTER_VERTICAL);
         content.addView(heading, new LinearLayout.LayoutParams(-1, dp(56)));
@@ -256,12 +255,12 @@ public final class DeviceInfoView extends ScrollView {
         row.setGravity(Gravity.TOP);
         row.setMinimumHeight(dp(48));
         row.setPadding(dp(18), dp(10), dp(18), dp(10));
-        TextView key = text(title, 16, INK);
+        TextView key = text(title, 16, Ui.ink(getContext()));
         LinearLayout.LayoutParams label = new LinearLayout.LayoutParams(-2, -2);
         label.rightMargin = dp(8);
         key.setMaxWidth(dp(150));
         row.addView(key, label);
-        TextView data = text(shown(value), 16, MUTED);
+        TextView data = text(shown(value), 16, Ui.muted(getContext()));
         data.setGravity(Gravity.END);
         data.setTextIsSelectable(true);
         row.addView(data, new LinearLayout.LayoutParams(0, -2, 1));
@@ -407,13 +406,14 @@ public final class DeviceInfoView extends ScrollView {
         private final double used;
         UsageBar(Context context, double used) { super(context); this.used = Math.max(0, Math.min(1, used)); }
         @Override protected void onDraw(Canvas canvas) {
-            paint.setColor(0xffd9d9d9); canvas.drawRect(0, 0, getWidth(), getHeight(), paint);
-            paint.setColor(PINK); canvas.drawRect(0, 0, (float) (getWidth() * used), getHeight(), paint);
+            paint.setColor(Ui.line(getContext())); canvas.drawRect(0, 0, getWidth(), getHeight(), paint);
+            paint.setColor(Ui.color(getContext(),R.color.ui_pink)); canvas.drawRect(0, 0, (float) (getWidth() * used), getHeight(), paint);
         }
     }
 
     private static final class SummaryIcon extends View {
-        private static final int[] COLORS = {0xff258aeb, 0xff00a394, 0xff25bfd0, 0xff898516, 0xff0082c8, 0xff9025b8};
+        private static final int[] COLORS = {R.color.ui_accent, R.color.ui_teal, R.color.ui_pink,
+                R.color.ui_warning, R.color.ui_success, R.color.ui_purple};
         private final int index;
         private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
         SummaryIcon(Context context, int index) { super(context); this.index = index; }
@@ -421,7 +421,8 @@ public final class DeviceInfoView extends ScrollView {
             super.onDraw(canvas);
             canvas.save(); canvas.translate(getWidth() / 2f, getHeight() / 2f);
             float density = getResources().getDisplayMetrics().density; canvas.scale(density, density);
-            paint.setColor(COLORS[index]); paint.setStrokeWidth(2.7f); paint.setStyle(Paint.Style.STROKE);
+            int color = Ui.color(getContext(), COLORS[index]);
+            paint.setColor(color); paint.setStrokeWidth(2.7f); paint.setStyle(Paint.Style.STROKE);
             paint.setStrokeCap(Paint.Cap.ROUND); paint.setStrokeJoin(Paint.Join.ROUND);
             switch (index) {
                 case 0:
@@ -452,8 +453,8 @@ public final class DeviceInfoView extends ScrollView {
                 case 5:
                     for (int y = -8; y <= 8; y += 8) {
                         canvas.drawRoundRect(new RectF(-12, y - 1.5f, 12, y + 1.5f), 1.5f, 1.5f, paint);
-                        paint.setColor(0xffffffff); paint.setStrokeWidth(1.5f); canvas.drawPoint(-8, y, paint);
-                        paint.setColor(COLORS[index]); paint.setStrokeWidth(2.7f);
+                        paint.setColor(Ui.ink(getContext())); paint.setStrokeWidth(1.5f); canvas.drawPoint(-8, y, paint);
+                        paint.setColor(color); paint.setStrokeWidth(2.7f);
                     } break;
                 default: break;
             }

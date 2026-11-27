@@ -1,6 +1,8 @@
 package io.github.devicebridge.android;
 import android.app.*;import android.content.*;import android.hardware.usb.*;import android.net.Uri;import android.os.*;import android.provider.OpenableColumns;import android.database.Cursor;import android.view.*;import android.widget.*;import io.github.devicebridge.core.*;import java.io.*;import java.util.*;import java.util.concurrent.*;
 import android.content.res.ColorStateList;
+import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.StateListDrawable;
@@ -9,10 +11,7 @@ import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public final class FastbootActivity extends Activity {
- private static final int PAGE=0xfff3f6f7, SURFACE=0xffffffff, STROKE=0xffdce5e8;
- private static final int ACCENT=0xff006761, ACCENT_CONTAINER=0xffe0efed;
- private static final int DANGER=0xff9b2b28, DANGER_CONTAINER=0xfff9eae8;
+public final class FastbootActivity extends ThemedActivity {
  private static final String DEVICE_HINT="通过 OTG 连接已进入 Fastboot 模式的设备。";
 
  private FastbootClient client;
@@ -26,6 +25,8 @@ public final class FastbootActivity extends Activity {
  private ScrollView pageScroll, outputScroll;
  private LinearLayout consoleSection;
  private int followOutputFrom=-1;
+ private int partitionPreset;
+ private boolean darkAppearance;
  private Button chooseDevice, readInfo, selectImage, flashButton, runCommand;
  private IconView more;
  private Spinner choices;
@@ -57,7 +58,7 @@ public final class FastbootActivity extends Activity {
  };
  @Override public void onCreate(Bundle state){
   super.onCreate(state);
-  buildContent();
+  buildContent("recovery");
   IntentFilter filter=new IntentFilter("io.github.devicebridge.FASTBOOT_PERMISSION");
   filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
   if(Build.VERSION.SDK_INT>=33)registerReceiver(usb,filter,Context.RECEIVER_NOT_EXPORTED);
@@ -74,25 +75,26 @@ public final class FastbootActivity extends Activity {
   }
  }
 
- private void buildContent(){
+ private void buildContent(String partitionText){
+  darkAppearance=Ui.dark(this);
+  followOutputFrom=-1;
   LinearLayout root=Ui.col(this);
-  root.setBackgroundColor(PAGE);
+  root.setBackgroundColor(Ui.page(this));
   root.setFocusableInTouchMode(true);
   Ui.inset(this,root);
-  Compatibility.statusBarColor(getWindow(),PAGE);
 
   LinearLayout bar=Ui.row(this);
   bar.setGravity(Gravity.CENTER_VERTICAL);
-  bar.setBackgroundColor(SURFACE);
+  bar.setBackgroundColor(Ui.surface(this));
   bar.setPadding(dp(4),dp(4),dp(4),dp(4));
-  IconView back=new IconView(this,IconView.Kind.BACK,Ui.INK,"返回",this::onBackPressed);
-  back.setBackground(Compatibility.ripple(0x14006761,null,null));
+  IconView back=new IconView(this,IconView.Kind.BACK,Ui.ink(this),"返回",this::onBackPressed);
+  back.setBackground(Compatibility.ripple(Ui.rippleColor(this),null,null));
   bar.addView(back,new LinearLayout.LayoutParams(dp(48),dp(48)));
-  TextView title=label("Fastboot",21,Ui.INK);
+  TextView title=label("Fastboot",21,Ui.ink(this));
   title.setTypeface(null,Typeface.BOLD);
   Ui.expanded(bar,title);
-  more=new IconView(this,IconView.Kind.MORE,Ui.INK,"更多 Fastboot 选项",this::menu);
-  more.setBackground(Compatibility.ripple(0x14006761,null,null));
+  more=new IconView(this,IconView.Kind.MORE,Ui.ink(this),"更多 Fastboot 选项",this::menu);
+  more.setBackground(Compatibility.ripple(Ui.rippleColor(this),null,null));
   bar.addView(more,new LinearLayout.LayoutParams(dp(48),dp(48)));
   root.addView(bar);
   root.addView(Ui.divider(this));
@@ -107,7 +109,7 @@ public final class FastbootActivity extends Activity {
   pageScroll.addView(body,new ScrollView.LayoutParams(-1,-2));
   Ui.fill(root,pageScroll);
   addBlock(body,deviceCard(),0);
-  addBlock(body,imageCard(),12);
+  addBlock(body,imageCard(partitionText),12);
   consoleSection=consoleCard();
   addBlock(body,consoleSection,12);
   setContentView(root);
@@ -119,17 +121,17 @@ public final class FastbootActivity extends Activity {
   operationPanel=card();
   operationTitle=heading("");
   addBlock(operationPanel,operationTitle,0);
-  operationDetail=label("",13,Ui.MUTED);
+  operationDetail=label("",13,Ui.muted(this));
   addBlock(operationPanel,operationDetail,6);
   progress=new ProgressBar(this,null,android.R.attr.progressBarStyleHorizontal);
   progress.setMax(1000);
   if(Build.VERSION.SDK_INT>=21){
-   ColorStateList tint=ColorStateList.valueOf(ACCENT);
+   ColorStateList tint=ColorStateList.valueOf(Ui.color(this,R.color.ui_teal));
    progress.setProgressTintList(tint);
    progress.setIndeterminateTintList(tint);
   }
   addBlock(operationPanel,progress,8);
-  addBlock(operationPanel,action("取消操作",this::cancelOperation,DANGER,DANGER_CONTAINER),8);
+  addBlock(operationPanel,action("取消操作",this::cancelOperation,Ui.color(this,R.color.ui_danger),Ui.color(this,R.color.ui_danger_container)),8);
   operationPanel.setVisibility(View.GONE);
   return operationPanel;
  }
@@ -139,36 +141,36 @@ public final class FastbootActivity extends Activity {
   LinearLayout heading=Ui.row(this);
   heading.setGravity(Gravity.CENTER_VERTICAL);
   Ui.expanded(heading,heading("设备连接"));
-  deviceStatus=label("",12,Ui.MUTED);
+  deviceStatus=label("",12,Ui.muted(this));
   deviceStatus.setPadding(dp(10),dp(4),dp(10),dp(4));
   heading.addView(deviceStatus,new LinearLayout.LayoutParams(-2,-2));
   addBlock(card,heading,0);
-  deviceDetail=label(DEVICE_HINT,14,Ui.MUTED);
+  deviceDetail=label(DEVICE_HINT,14,Ui.muted(this));
   addBlock(card,deviceDetail,8);
-  chooseDevice=action("选择 USB 设备",this::choose,SURFACE,ACCENT);
+  chooseDevice=action("选择 USB 设备",this::choose,Ui.color(this,R.color.ui_on_teal),Ui.color(this,R.color.ui_teal));
   addBlock(card,chooseDevice,14);
-  readInfo=action("读取设备信息",()->run(client,"读取设备信息",(active,transfer)->active.deviceInfo()),ACCENT,ACCENT_CONTAINER);
+  readInfo=action("读取设备信息",()->run(client,"读取设备信息",(active,transfer)->active.deviceInfo()),Ui.color(this,R.color.ui_teal),Ui.color(this,R.color.ui_teal_container));
   addBlock(card,readInfo,8);
   return card;
  }
 
- private LinearLayout imageCard(){
+ private LinearLayout imageCard(String partitionText){
   LinearLayout card=card();
   addBlock(card,heading("镜像与分区"),0);
   LinearLayout imageInfo=Ui.col(this);
   imageInfo.setPadding(dp(12),dp(10),dp(12),dp(10));
-  imageInfo.setBackground(Ui.rounded(PAGE,dp(10)));
-  imageLabel=label("未选择镜像",14,Ui.MUTED);
+  imageInfo.setBackground(Ui.rounded(Ui.page(this),dp(10)));
+  imageLabel=label("未选择镜像",14,Ui.muted(this));
   imageInfo.addView(imageLabel);
-  imageDetails=label("",12,Ui.MUTED);
+  imageDetails=label("",12,Ui.muted(this));
   imageDetails.setTextIsSelectable(true);
   imageDetails.setVisibility(View.GONE);
   addBlock(imageInfo,imageDetails,6);
   addBlock(card,imageInfo,12);
-  selectImage=action("选择镜像",this::pickImage,ACCENT,ACCENT_CONTAINER);
+  selectImage=action("选择镜像",this::pickImage,Ui.color(this,R.color.ui_teal),Ui.color(this,R.color.ui_teal_container));
   addBlock(card,selectImage,8);
 
-  addBlock(card,label("目标分区",13,Ui.MUTED),16);
+  addBlock(card,label("目标分区",13,Ui.muted(this)),16);
   choices=new Spinner(this);
   choices.setContentDescription("分区预设");
   choices.setMinimumHeight(dp(48));
@@ -176,19 +178,63 @@ public final class FastbootActivity extends Activity {
           new String[]{"recovery","boot","自定义分区"});
   presets.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
   choices.setAdapter(presets);
+  choices.setSelection(partitionPreset,false);
   addBlock(card,choices,4);
   partition=input("输入分区名");
-  partition.setText("recovery");
+  partition.setText(partitionText);
   choices.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener(){
    public void onNothingSelected(AdapterView<?> parent){}
    public void onItemSelected(AdapterView<?> parent,View view,int position,long id){
+    if(position==partitionPreset)return;
+    partitionPreset=position;
     partition.setText(position==0?"recovery":position==1?"boot":"");
    }
   });
   addBlock(card,partition,4);
-  flashButton=action("刷入镜像",this::flash,DANGER,DANGER_CONTAINER);
+  flashButton=action("刷入镜像",this::flash,Ui.color(this,R.color.ui_danger),Ui.color(this,R.color.ui_danger_container));
   addBlock(card,flashButton,12);
   return card;
+ }
+
+ @Override public void onConfigurationChanged(Configuration newConfig){
+  super.onConfigurationChanged(newConfig);
+  if(darkAppearance==Ui.dark(this))return;
+
+  String partitionText=partition.getText().toString(), commandText=command.getText().toString();
+  CharSequence device=deviceDetail.getText(), name=imageLabel.getText(), image=imageDetails.getText();
+  boolean imageVisible=imageDetails.getVisibility()==View.VISIBLE;
+  String logs=output.getText().toString();
+  int pageY=pageScroll.getScrollY(), logY=outputScroll.getScrollY();
+  CharSequence title=operationTitle.getText(), detail=operationDetail.getText();
+  boolean indeterminate=progress.isIndeterminate();
+  int transferred=progress.getProgress();
+
+  Resources.Theme theme=getResources().newTheme();
+  theme.applyStyle(R.style.AppTheme,true);
+  getTheme().setTo(theme);
+  buildContent(partitionText);
+  Compatibility.systemBarColors(getWindow(),Ui.color(this,R.color.ui_status_bar),
+          Ui.color(this,R.color.ui_navigation_bar),getResources().getBoolean(R.bool.ui_light_status_bar));
+  deviceDetail.setText(device);
+  command.setText(commandText);
+  imageLabel.setText(name);
+  if(imageVisible){
+   imageLabel.setTextColor(Ui.ink(this));
+   imageDetails.setText(image);
+   imageDetails.setVisibility(View.VISIBLE);
+  }
+  output.setText(logs);
+  if(operation!=null){
+   operationTitle.setText(title);
+   operationDetail.setText(detail);
+   progress.setIndeterminate(indeterminate);
+   progress.setProgress(transferred);
+   operationPanel.setVisibility(View.VISIBLE);
+  }
+  pageScroll.post(()->{
+   pageScroll.scrollTo(0,pageY);
+   outputScroll.scrollTo(0,logY);
+  });
  }
 
  private LinearLayout consoleCard(){
@@ -204,7 +250,7 @@ public final class FastbootActivity extends Activity {
    return true;
   });
   addBlock(card,command,12);
-  runCommand=action("运行命令",this::raw,ACCENT,ACCENT_CONTAINER);
+  runCommand=action("运行命令",this::raw,Ui.color(this,R.color.ui_teal),Ui.color(this,R.color.ui_teal_container));
   addBlock(card,runCommand,8);
 
   outputScroll=new ScrollView(this);
@@ -233,12 +279,12 @@ public final class FastbootActivity extends Activity {
  private LinearLayout card(){
   LinearLayout card=Ui.col(this);
   card.setPadding(dp(14),dp(14),dp(14),dp(14));
-  card.setBackground(outlined(SURFACE,14));
+  card.setBackground(outlined(Ui.surface(this),14));
   return card;
  }
 
  private TextView heading(String text){
-  TextView heading=label(text,17,Ui.INK);
+  TextView heading=label(text,17,Ui.ink(this));
   heading.setTypeface(null,Typeface.BOLD);
   return heading;
  }
@@ -253,15 +299,15 @@ public final class FastbootActivity extends Activity {
 
  private EditText input(String hint){
   EditText field=Ui.edit(this,hint);
-  field.setTextColor(Ui.INK);
-  field.setHintTextColor(Ui.MUTED);
+  field.setTextColor(Ui.ink(this));
+  field.setHintTextColor(Ui.muted(this));
   field.setPadding(dp(12),dp(8),dp(12),dp(8));
   field.setMinimumHeight(dp(48));
-  GradientDrawable focused=outlined(SURFACE,10);
-  focused.setStroke(dp(2),ACCENT);
+  GradientDrawable focused=outlined(Ui.surface(this),10);
+  focused.setStroke(dp(2),Ui.color(this,R.color.ui_teal));
   StateListDrawable background=new StateListDrawable();
   background.addState(new int[]{android.R.attr.state_focused},focused);
-  background.addState(new int[]{},outlined(SURFACE,10));
+  background.addState(new int[]{},outlined(Ui.surface(this),10));
   field.setBackground(background);
   return field;
  }
@@ -274,10 +320,10 @@ public final class FastbootActivity extends Activity {
   button.setPadding(dp(12),dp(8),dp(12),dp(8));
   button.setMinimumHeight(dp(48));
   int[][] states={{-android.R.attr.state_enabled},{}};
-  button.setTextColor(new ColorStateList(states,new int[]{Ui.MUTED,foreground}));
+  button.setTextColor(new ColorStateList(states,new int[]{Ui.muted(this),foreground}));
   StateListDrawable buttonBackground=new StateListDrawable();
-  buttonBackground.addState(states[0],Ui.rounded(PAGE,dp(10)));
-  buttonBackground.addState(states[1],Compatibility.ripple(0x22002624,Ui.rounded(background,dp(10)),null));
+  buttonBackground.addState(states[0],Ui.rounded(Ui.page(this),dp(10)));
+  buttonBackground.addState(states[1],Compatibility.ripple(Ui.rippleColor(this),Ui.rounded(background,dp(10)),null));
   button.setBackground(buttonBackground);
   button.setOnClickListener(view->click.run());
   return button;
@@ -285,7 +331,7 @@ public final class FastbootActivity extends Activity {
 
  private GradientDrawable outlined(int color,int radius){
   GradientDrawable background=Ui.rounded(color,dp(radius));
-  background.setStroke(dp(1),STROKE);
+  background.setStroke(dp(1),Ui.line(this));
   return background;
  }
 
@@ -300,13 +346,15 @@ public final class FastbootActivity extends Activity {
  private void updateDeviceState(String detail){
   boolean connected=client!=null&&!client.isClosed();
   deviceStatus.setText(closingSession?"正在断开":connected?"已连接":"未连接");
-  deviceStatus.setTextColor(connected?ACCENT:Ui.MUTED);
-  deviceStatus.setBackground(Ui.rounded(connected?ACCENT_CONTAINER:PAGE,dp(20)));
+  deviceStatus.setTextColor(connected?Ui.color(this,R.color.ui_teal):Ui.muted(this));
+  deviceStatus.setBackground(Ui.rounded(connected?Ui.color(this,R.color.ui_teal_container):Ui.page(this),dp(20)));
   deviceDetail.setText(detail);
   updateControls();
  }
 
  private boolean busy(){return operation!=null||closingSession;}
+
+ @Override boolean canRecreateForAppearance(){return !busy();}
 
  private void updateControls(){
   boolean idle=!busy();
@@ -433,7 +481,7 @@ public final class FastbootActivity extends Activity {
   if(preparedImage!=null){LocalSnapshot.dispose(preparedImage);preparedImage=null;}
   updateControls();
   imageLabel.setText(name);
-  imageLabel.setTextColor(Ui.INK);
+  imageLabel.setTextColor(Ui.ink(this));
   imageDetails.setVisibility(View.VISIBLE);
   imageDetails.setText("正在缓存并校验…");
   imagePreparing=BridgeRuntime.IO.submit(()->{

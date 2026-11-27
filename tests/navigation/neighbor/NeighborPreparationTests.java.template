@@ -159,7 +159,7 @@ class ProgressDialog {
     void dismiss(){showing=false;if(onDismiss!=null)onDismiss.run();}void cancelButton(){cancel.onClick(this,-2);dismiss();}
 }
 class Toast {static final int LENGTH_LONG=1;static Toast makeText(Object owner,String message,int length){return new Toast();}void show(){}}
-class Ui {static final List<String> messages=new ArrayList<>();static void message(Object owner,String title,String text){messages.add(title+":"+text);}static int dp(Object c,int n){return n;}}
+class Ui {static final List<String> messages=new ArrayList<>();static void message(Object owner,String title,String text){messages.add(title+":"+text);}static int dp(Object c,int n){return n;}static int page(Object context){return 0;}}
 class ManualExecutor extends AbstractExecutorService {
     final Deque<Runnable> queue=new ArrayDeque<>();boolean stopped;
     public void execute(Runnable runnable){queue.addLast(runnable);}void runNext(){queue.removeFirst().run();}void runAll(){while(!queue.isEmpty())runNext();}
