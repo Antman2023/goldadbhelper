@@ -7,8 +7,8 @@ android {
         minSdk 19
         multiDexEnabled true
         targetSdk 35
-        versionCode 11
-        versionName '0.1.10'
+        versionCode 12
+        versionName '0.1.11'
     }
     compileOptions { coreLibraryDesugaringEnabled true; sourceCompatibility JavaVersion.VERSION_1_8; targetCompatibility JavaVersion.VERSION_1_8 }
 }

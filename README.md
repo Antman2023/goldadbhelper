@@ -5,13 +5,15 @@
 [![Android CI](https://github.com/Antman2023/goldadbhelper/actions/workflows/android-ci.yml/badge.svg)](https://github.com/Antman2023/goldadbhelper/actions/workflows/android-ci.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 [![Android: API 19+](https://img.shields.io/badge/Android-API%2019%2B-green.svg)](app/build.gradle)
-[![Version: 0.1.10](https://img.shields.io/badge/version-0.1.10-orange.svg)](https://github.com/Antman2023/goldadbhelper/releases/latest)
+[![Version: 0.1.11](https://img.shields.io/badge/version-0.1.11-orange.svg)](https://github.com/Antman2023/goldadbhelper/releases/latest)
 
 从连接、查看设备信息，到文件传输、应用管理和命令终端，把常用 ADB 工作放在一个应用里。支持 TCP / USB ADB，提供 Android 11+ 无线调试配对、外部 ADB server、投屏与 Fastboot 入口。
 
 项目使用独立的 Java ADB 协议实现，提供 TCP、USB 和 Android 11+ 无线调试配对入口。应用名称、图标、包名和开发签名均为独立身份。
 
-> **当前版本 `0.1.10`（Android 4.4 / API 19+）。** Fastboot 刷写和临时启动在页面顶部显示传输进度。取消或拔出 USB 后会立即关闭进度区，待旧操作退出并释放连接后可重新选设备。进度和取消流程尚待真机验证。
+> **当前版本 `0.1.11`（Android 4.4 / API 19+）。** 新增暗黑模式，默认跟随 Android 系统，可在「设置 → 外观」手动选择浅色或深色。主题切换和主要页面的显示效果尚待真机验证。
+
+`0.1.10` 为 Fastboot 刷写和临时启动加入传输进度。取消或拔出 USB 后会立即关闭进度区，待旧操作退出并释放连接后可重新选设备。进度和取消流程尚待真机验证。
 
 `0.1.9` 将 Fastboot 的设备连接、镜像与分区、命令与输出整理为三个可滚动区块。页面直接显示连接状态和镜像校验结果，操作完成后定位到输出区。
 
@@ -208,7 +210,7 @@ bash tools/build-apk.sh
 
 | 主要输出 | 内容 |
 | --- | --- |
-| `build/outputs/金甲虫ADB助手-0.1.10.apk` | 开发签名 APK |
+| `build/outputs/金甲虫ADB助手-0.1.11.apk` | 开发签名 APK |
 | `build/outputs/构建来源.json` | APK、源码归档和服务端资源的哈希记录 |
 | `build/金甲虫ADB助手-对应源码及许可.zip` | 此次构建的对应源码与许可 |
 | `build/source-inputs.json` | 构建输入文件及其 SHA-256 |
